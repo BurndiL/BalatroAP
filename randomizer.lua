@@ -142,8 +142,6 @@ function G.UIDEF.profile_option(_profile)
 
 end
 
-
-
 -- game changes
 
 local game_updateRef = Game.update
@@ -181,9 +179,6 @@ function Game.load_profile(args, _profile)
 
     APSettings = json.decode(APSettings)
 
-    sendDebugMessage("is null: " .. tostring(APSettings ~= nil))
-    sendDebugMessage("length " .. tostring(#APSettings))
-
     if APSettings ~= nil  then
         G.AP.APSlot = APSettings['APSlot']
         G.AP.APAddress = APSettings['APAddress']
@@ -198,18 +193,37 @@ end
 -- other stuff 
 
 -- (not tested)
+-- Here you can unlock checks
+
 local check_for_unlockRef = check_for_unlock
 function check_for_unlock(args)
     
     local check_for_unlock = check_for_unlockRef(args)
 
-    if args.type == 'win' then
-        
-        --unlock_achievement('heads_up')
-        if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
-            G.APClient:StatusUpdate(AP.ClientStatus.GOAL)
+    if args.type == 'ante_up' then
+        -- when an ante is beaten
+        if args.ante >= 8 then
+            -- specify the deck
+            if G.deck.name == 'red_deck' then -- (not sure if its actually called 'red_deck' lol)
+                -- specify which stake
+                if G.stake == 1 then
+                    G.APClient:LocationChecks() -- put in corresponding ID
+                end
+                -- else......... (put in rest of checks)
+            end
         end
     end
+
+    -- also need to check for goal completions!
+
+    
+    -- if args.type == 'win' then
+        
+    --     --unlock_achievement('heads_up')
+    --     if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
+    --         G.APClient:StatusUpdate(AP.ClientStatus.GOAL)
+    --     end
+    -- end
     return check_for_unlock
 end
 
