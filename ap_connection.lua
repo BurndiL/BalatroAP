@@ -183,10 +183,7 @@ G.APSave = {
     ShopLocations = 0,
 }
 
-
-
 function APConnect()
-    -- maybe save AP information into json?
     local APInfo = json.encode(G.AP)
     save_file('APSettings.json', APInfo)
     server = G.AP.APAddress..":"..G.AP.APPort
