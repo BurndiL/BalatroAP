@@ -184,8 +184,6 @@ G.APSave = {
 }
 
 function APConnect()
-    local APInfo = json.encode(G.AP)
-    save_file('APSettings.json', APInfo)
     server = G.AP.APAddress..":"..G.AP.APPort
     slot = G.AP.APSlot
     password = G.AP.APPassword
