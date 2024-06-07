@@ -15,3 +15,9 @@ function load_file(_file)
         end
     end
 end
+
+
+function create_empty_profile()
+    -- TODO: set all decks to unlocked
+
+end
