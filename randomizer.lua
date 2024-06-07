@@ -14,30 +14,35 @@ require(this_mod.path .. "utils")
 json = require(this_mod.path .. "json")
 AP = require('lua-apclientpp')
 
+local isInProfileTabCreation = false
+local isInProfileOptionCreation = false
+local profileAP_Id = -1
+
 G.FUNCS.APConnect = function()
+    local APInfo = json.encode(G.AP)
+    save_file('APSettings.json', APInfo)
+
+
+    -- set profile name to slot name (not sure if this is smart, also doesnt work yet)
+    G.PROFILES[profileAP_Id]['name'] = G.AP['APSlot']
+    G:save_settings()
+    G.FILE_HANDLER.force = true
+
     APConnect()
 end
 
 -- Profile interface
-local isInProfileTabCreation = false
-local isInProfileOptionCreation = false
-
-local profileAP_Id = -1
 
 local create_tabsRef = create_tabs
 function create_tabs(args)
     -- when profile interface is created, add archipelago tab 
     if isInProfileTabCreation then 
-        if profileAP_Id == -1 then
-            profileAP_Id = #args.tabs+1
-        end
-
         args.tabs[profileAP_Id] = {
-                        label = "ARCHIPELAGO",
-                        chosen = G.focused_profile == profileAP_Id,
-                        tab_definition_function = G.UIDEF.profile_option,
-                        tab_definition_function_args = profileAP_Id
-                    }
+                label = "ARCHIPELAGO",
+                chosen = G.focused_profile == profileAP_Id,
+                tab_definition_function = G.UIDEF.profile_option,
+                tab_definition_function_args = profileAP_Id
+            }
     end
 
     local create_tabs = create_tabsRef(args)
@@ -72,7 +77,7 @@ function create_text_input(args)
         --sendDebugMessage("Is not null: " .. tostring(#ui_letters))
 
         if #ui_letters > 0 then  
-            ui_letters[#ui_letters]['config']['id'] = 'position_'..args.prompt_text
+            ui_letters[#ui_letters]['config']['id'] = 'position_'.. args.prompt_text
         end
     end
 
@@ -169,10 +174,20 @@ function Game.draw(args)
 end
 
 
--- load APSettings on startup
+
+-- load APSettings when opening Profile Select
+-- also create new profile when first loading (might have to move this somewhere more fitting)
 
 local game_load_profileRef = Game.load_profile
 function Game.load_profile(args, _profile)
+
+    if profileAP_Id == -1 then
+        profileAP_Id = #G.PROFILES + 1
+        G.PROFILES[profileAP_Id] = {}
+        sendDebugMessage("Created AP Profile in Slot " .. tostring(profileAP_Id))
+    end
+
+    
     local game_load_profile = game_load_profileRef(args, _profile)
 
     local APSettings = load_file('APSettings.json')
