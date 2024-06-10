@@ -18,20 +18,35 @@
 -- Traps: Discard random cards, boss blinds
 -- Hint Pack
 -- When Deathlink: joker will tell you the cause
+G.AP = {
+    APAddress = "localhost",
+    APPort = 38281,
+    APSlot = "Player1",
+    APPassword = "",
+    id_offset = 5606000
+}
 
+G.AP.this_mod = SMODS.current_mod
 
-this_mod = SMODS.current_mod
-
-require(this_mod.path .. "ap_connection")
-require(this_mod.path .. "utils")
-json = require(this_mod.path .. "json")
+require(G.AP.this_mod.path .. "ap_connection")
+require(G.AP.this_mod.path .. "utils")
+json = require(G.AP.this_mod.path .. "json")
 AP = require('lua-apclientpp')
 
 local isInProfileTabCreation = false
 local isInProfileOptionCreation = false
+local unloadAPProfile = false
 G.AP.profile_Id = -1
+G.AP.queue_deathLink = false
 
 function isAPProfileLoaded()
+    -- if G.SETTINGS == nil then
+    --     return false
+    -- end
+    return G.SETTINGS.profile == G.AP.profile_Id
+end
+
+function isAPProfileSelected()
     return G.focused_profile == G.AP.profile_Id
 end
 
@@ -40,6 +55,68 @@ G.FUNCS.APConnect = function()
     save_file('APSettings.json', APInfo)
 
     APConnect()
+end
+
+G.FUNCS.APDisconnect = function()
+    G.APClient = nil
+    collectgarbage("collect") -- or collectgarbage("step")
+    unloadAPProfile = true
+
+end
+
+-- DeathLink 
+
+G.FUNCS.die = function()
+    -- check if in run, otherwise dont queue (TODO)
+
+    G.E_MANAGER:add_event(Event({
+        trigger = 'immediate',
+        delay = 0.2,
+        func = function()
+            G.STATE = G.STATES.GAME_OVER
+            if not G.GAME.won and not G.GAME.seeded and not G.GAME.challenge then
+                G.PROFILES[G.SETTINGS.profile].high_scores.current_streak.amt = 0
+            end
+            G:save_settings()
+            G.FILE_HANDLER.force = true
+            G.STATE_COMPLETE = false
+            return true
+        end
+
+    }))
+end
+
+-- make joker say death link cause, not working yet
+
+local localizeRef = localize
+function localize(args, misc_cat)
+    local localize = ''
+    if args and args.type == 'quip' and args.key == 'deathlink' then
+        G.localization.quips_parsed['deathlink'] = {
+            multi_line = true
+        }
+        for k, v in ipairs(G.AP.death_link_cause) do
+            G.localization.quips_parsed['deathlink'][k] = loc_parse_string(v)
+        end
+
+        G.AP.death_link_cause = nil
+    end
+
+    localize = localizeRef(args, misc_cat)
+
+    return localize
+end
+
+local add_speech_bubbleRef = Card_Character.add_speech_bubble
+function Card_Character.add_speech_bubble(args, text_key, align, loc_vars)
+    -- sendDebugMessage(tostring(G.AP.death_link_cause))
+    if G.AP.death_link_cause and loc_vars and loc_vars.quip then
+        text_key = 'deathlink'
+    end
+
+    local add_speech_bubble = add_speech_bubbleRef(args, text_key, align, loc_vars)
+
+    return add_speech_bubble
 end
 
 -- Profile interface
@@ -94,7 +171,7 @@ end
 local profile_optionRef = G.UIDEF.profile_option
 function G.UIDEF.profile_option(_profile)
     G.focused_profile = _profile
-    if isAPProfileLoaded() then -- AP profile tab code
+    if isAPProfileSelected() then -- AP profile tab code
 
         isInProfileOptionCreation = true
         local t = {
@@ -119,7 +196,6 @@ function G.UIDEF.profile_option(_profile)
                         w = 4,
                         max_length = 16,
                         prompt_text = 'Server Address',
-                        -- normally saved values would go into ref table, maybe make json to save?
                         ref_table = G.AP,
                         ref_value = 'APAddress',
                         extended_corpus = true,
@@ -131,7 +207,6 @@ function G.UIDEF.profile_option(_profile)
                         w = 4,
                         max_length = 16,
                         prompt_text = 'PORT',
-                        -- normally saved values would go into ref table, maybe make json to save?
                         ref_table = G.AP,
                         ref_value = 'APPort',
                         extended_corpus = false,
@@ -157,7 +232,6 @@ function G.UIDEF.profile_option(_profile)
                         w = 4,
                         max_length = 16,
                         prompt_text = 'Slot name',
-                        -- normally saved values would go into ref table, maybe make json to save?
                         ref_table = G.AP,
                         ref_value = 'APSlot',
                         extended_corpus = true,
@@ -169,7 +243,6 @@ function G.UIDEF.profile_option(_profile)
                         w = 4,
                         max_length = 16,
                         prompt_text = 'Password',
-                        -- normally saved values would go into ref table, maybe make json to save?
                         ref_table = G.AP,
                         ref_value = 'APPassword',
                         extended_corpus = true,
@@ -184,7 +257,57 @@ function G.UIDEF.profile_option(_profile)
                 label = {"Connect"},
                 minw = 3,
                 Func = G.FUNCS.APConnect
-            })}
+            }), {
+                n = G.UIT.R,
+                config = {
+                    align = "cm",
+                    padding = 0,
+                    minh = 0.7
+                },
+                nodes = {{
+                    n = G.UIT.R,
+                    config = {
+                        align = "cm",
+                        minw = 3,
+                        maxw = 4,
+                        minh = 0.6,
+                        padding = 0.2,
+                        r = 0.1,
+                        hover = true,
+                        colour = G.C.RED,
+                        func = 'can_delete_AP_profile',
+                        button = "delete_profile",
+                        shadow = true,
+                        focus_args = {
+                            nav = 'wide'
+                        }
+                    },
+                    nodes = {{
+                        n = G.UIT.T,
+                        config = {
+                            text = _profile == G.SETTINGS.profile and localize('b_reset_profile') or
+                                localize('b_delete_profile'),
+                            scale = 0.3,
+                            colour = G.C.UI.TEXT_LIGHT
+                        }
+                    }}
+                }}
+            }, {
+                n = G.UIT.R,
+                config = {
+                    align = "cm",
+                    padding = 0
+                },
+                nodes = {{
+                    n = G.UIT.T,
+                    config = {
+                        id = 'warning_text',
+                        text = localize('ph_click_confirm'),
+                        scale = 0.4,
+                        colour = G.C.CLEAR
+                    }
+                }}
+            }}
         }
         isInProfileOptionCreation = false
         return t
@@ -214,8 +337,8 @@ function Game.draw(args)
     local game_draw = game_drawRef(args)
 
     if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
-        love.graphics.print("Connected to Archipelago at " .. G.AP.APAddress .. ":".. G.AP.APPort .. " as " .. G.AP.APSlot,
-            10, 30)
+        love.graphics.print("Connected to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort .. " as " ..
+                                G.AP.APSlot, 10, 30)
         -- print("connected")
     else
         love.graphics.print("Not connected to Archipelago.", 10, 30)
@@ -230,6 +353,13 @@ end
 local game_load_profileRef = Game.load_profile
 function Game.load_profile(args, _profile)
 
+    
+
+    if unloadAPProfile then
+        _profile = 1
+        unloadAPProfile = false
+    end
+
     if G.AP.profile_Id == -1 then
         G.AP.profile_Id = #G.PROFILES + 1
         G.PROFILES[G.AP.profile_Id] = {}
@@ -237,17 +367,6 @@ function Game.load_profile(args, _profile)
     end
 
     local game_load_profile = game_load_profileRef(args, _profile)
-    -- copy_uncrompessed("1/save.jkr")
-    -- copy_uncrompessed("1/meta.jkr")
-    -- copy_uncrompessed("1/profile.jkr")
-
-    -- local i = 1
-    -- while i <= #G.P_LOCKED do
-    --     sendDebugMessage(tostring(G.P_LOCKED[i].key))
-    --     i = i+1
-    -- end
-
-
 
     local APSettings = load_file('APSettings.json')
 
@@ -261,6 +380,44 @@ function Game.load_profile(args, _profile)
     end
 
     return game_load_profile
+end
+
+-- handle profile deletion
+G.FUNCS.can_delete_AP_profile = function(e)
+    G.AP.CHECK_PROFILE_DATA = G.AP.CHECK_PROFILE_DATA or
+                                  love.filesystem.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
+    if (not G.AP.CHECK_PROFILE_DATA) or e.config.disable_button then
+        G.AP.CHECK_PROFILE_DATA = false
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+    else
+        e.config.colour = G.C.RED
+        e.config.button = 'delete_AP_profile'
+    end
+end
+
+local ap_profile_delete = false
+
+G.FUNCS.delete_AP_profile = function(e)
+    if ap_profile_delete then 
+        G.FUNCS.APDisconnect()
+        ap_profile_delete = false
+    end
+    G.FUNCS.delete_profile(e)
+    ap_profile_delete = true
+    G.AP.CHECK_PROFILE_DATA = nil
+    
+end
+
+
+-- When Load Profile Button is clicked
+local load_profile_funcRef = G.FUNCS.load_profile
+
+G.FUNCS.load_profile = function(delete_prof_data)
+    if isAPProfileLoaded() and not isAPProfileSelected() and G.APClient ~= nil then
+        G.FUNCS.APDisconnect()
+    end
+    return load_profile_funcRef(delete_prof_data)
 end
 
 -- other stuff 
@@ -280,63 +437,60 @@ function check_for_unlock(args)
 
             sendDebugMessage("deck_name is " .. deck_name)
             -- specify the deck
-            if deck_name == 'Red Deck' then          
-                sendLocationCleared(G.AP.id_offset + (args.ante-2) * 8 + (G.GAME.stake-1))            
+            if deck_name == 'Red Deck' then
+                sendLocationCleared(G.AP.id_offset + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Blue Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Yellow Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 2 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 2 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Green Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 3 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 3 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Black Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 4 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 4 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Magic Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 5 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 5 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Nebula Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 6 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 6 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Ghost Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 7 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 7 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Abandoned Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 8 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 8 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Checkered Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 9 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 9 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Zodiac Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 10 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 10 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Painted Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 11 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 11 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Anaglyph Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 12 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 12 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Plasma Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 13 + (args.ante-2) * 8 + (G.GAME.stake-1))  
+                sendLocationCleared(G.AP.id_offset + 64 * 13 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
             elseif deck_name == 'Erratic Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 14 + (args.ante-2) * 8 + (G.GAME.stake-1))  
-            end            
+                sendLocationCleared(G.AP.id_offset + 64 * 14 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
+            end
         end
-    
+
         -- also need to check for goal completions!
     end
-    
+
     return check_for_unlock
 end
 
 function sendLocationCleared(id)
     if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
         sendDebugMessage("sendLocationCleared: " .. tostring(id))
-        sendDebugMessage("Queuing LocationCheck was successful: ".. tostring(G.APClient:LocationChecks({id})))
+        sendDebugMessage("Queuing LocationCheck was successful: " .. tostring(G.APClient:LocationChecks({id})))
     end
 end
 
 -- Unlock Decks from received items
 
 G.FUNCS.set_up_APProfile = function()
-    
+
     sendDebugMessage("set_up_APProfile called")
 
     G.AP.unlocked_backs = {}
-
-
 end
-
 
 -- I couldnt for the life of me figure out how else to easily lock decks, 
 -- so i feel like this is a hacky but intuitive solution.
@@ -344,7 +498,7 @@ end
 local back_generate_UIRef = Back.generate_UI
 function Back.generate_UI(args, other, ui_scale, min_dims, challenge)
 
-    if isAPProfileLoaded() then        
+    if isAPProfileLoaded() then
         local back_name = args["name"]
         args.effect.center.unlocked = G.AP.unlocked_backs[back_name] == true
         -- sendDebugMessage(args["name"] .. " is unlocked: " .. tostring(args.effect.center.unlocked))
@@ -353,10 +507,8 @@ function Back.generate_UI(args, other, ui_scale, min_dims, challenge)
 
     local back_generate_UI = back_generate_UIRef(args, other, ui_scale, min_dims, challenge)
 
-
     return back_generate_UI
 end
-
 
 -- debug
 
@@ -367,10 +519,9 @@ function copy_uncrompessed(_file)
         if file_string ~= '' then
             local success = nil
             success, file_string = pcall(love.data.decompress, 'string', 'deflate', file_string)
-            love.filesystem.write(_file .. ".txt", file_string) 
+            love.filesystem.write(_file .. ".txt", file_string)
         end
     end
-    
 end
 
 -- fix turning '0' into 'o'
