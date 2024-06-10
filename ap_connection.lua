@@ -1,10 +1,4 @@
-G.AP = {
-    APAddress = "localhost",
-    APPort = 38281,
-    APSlot = "Player1",
-    APPassword = "",
-    id_offset = 5606000
-}
+require(G.AP.this_mod.path .. "utils")
 
 G.APItems = {
     [G.AP.id_offset + 1]="Red Deck"   ,
@@ -142,7 +136,13 @@ function APConnect()
 
     function on_bounced(bounce)
         print("Bounced:")
-        print(bounce)
+        print(tostring(bounce))
+        if bounce ~= nil and bounce.tags and tbl_contains(bounce.tags, "DeathLink") and bounce.data then
+            G.AP.death_link_cause = bounce.data.cause or "unknown"
+            G.AP.death_link_source = bounce.data.source or "unknown"
+            
+            G.FUNCS.die()
+        end
     end
 
     function on_retrieved(map, keys, extra)
