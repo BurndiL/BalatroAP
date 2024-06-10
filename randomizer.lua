@@ -8,16 +8,12 @@
 -- TODO
 -- TECH:
 -- make most functions only execute when balatro profile is loaded 
--- load Balatro profile 
--- disconnect when other profile is loaded
--- parse AP messages 
--- map ids to checks
--- lock/unlock decks depending on AP 
+-- test if outgoing deathlink works
 -- FEATURES:
 -- 
 -- Traps: Discard random cards, boss blinds
 -- Hint Pack
--- When Deathlink: joker will tell you the cause
+-- When Deathlink: joker will tell you the cause(backlog)
 G.AP = {
     APAddress = "localhost",
     APPort = 38281,
@@ -36,30 +32,37 @@ AP = require('lua-apclientpp')
 local isInProfileTabCreation = false
 local isInProfileOptionCreation = false
 local unloadAPProfile = false
-G.AP.profile_Id = -1
-G.AP.queue_deathLink = false
+local foreignDeathlink = false
 
+G.AP.profile_Id = -1
+
+-- true if the profile was selected and loaded
 function isAPProfileLoaded()
-    -- if G.SETTINGS == nil then
-    --     return false
-    -- end
     return G.SETTINGS.profile == G.AP.profile_Id
 end
 
+-- true if the profile is selected in profile selection, does not have to be loaded yet
 function isAPProfileSelected()
     return G.focused_profile == G.AP.profile_Id
 end
 
+-- gets called when connection wants to be established. Also saves Connection info in json
 G.FUNCS.APConnect = function()
-    local APInfo = json.encode(G.AP)
+    local APInfo = json.encode({
+        APAddress = G.AP.APAddress,
+        APPort = G.AP.APPort,
+        APSlot = G.AP.APSlot,
+        APPassword = G.AP.APPassword
+    })
     save_file('APSettings.json', APInfo)
 
     APConnect()
 end
 
+-- gets called when connection wants to be ended (for example when selecting non AP profile)
 G.FUNCS.APDisconnect = function()
     G.APClient = nil
-    collectgarbage("collect") -- or collectgarbage("step")
+    collectgarbage("collect")
     unloadAPProfile = true
 
 end
@@ -67,23 +70,25 @@ end
 -- DeathLink 
 
 G.FUNCS.die = function()
-    -- check if in run, otherwise dont queue (TODO)
 
-    G.E_MANAGER:add_event(Event({
-        trigger = 'immediate',
-        delay = 0.2,
-        func = function()
-            G.STATE = G.STATES.GAME_OVER
-            if not G.GAME.won and not G.GAME.seeded and not G.GAME.challenge then
-                G.PROFILES[G.SETTINGS.profile].high_scores.current_streak.amt = 0
+    if G.STAGE == G.STAGES.RUN then
+
+        foreignDeathlink = true
+        G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
+            delay = 0.2,
+            func = function()
+                G.STATE = G.STATES.GAME_OVER
+                if not G.GAME.won and not G.GAME.seeded and not G.GAME.challenge then
+                    G.PROFILES[G.SETTINGS.profile].high_scores.current_streak.amt = 0
+                end
+                G:save_settings()
+                G.FILE_HANDLER.force = true
+                G.STATE_COMPLETE = false
+                return true
             end
-            G:save_settings()
-            G.FILE_HANDLER.force = true
-            G.STATE_COMPLETE = false
-            return true
-        end
-
-    }))
+        }))
+    end
 end
 
 -- make joker say death link cause, not working yet
@@ -117,6 +122,32 @@ function Card_Character.add_speech_bubble(args, text_key, align, loc_vars)
     local add_speech_bubble = add_speech_bubbleRef(args, text_key, align, loc_vars)
 
     return add_speech_bubble
+end
+
+-- send out deathlink
+
+function sendDeathLinkBounce(cause, source)
+    cause = cause or "Balatro"
+    source = source or G.AP.APSlot or "BalaroPlayer"
+    local time = G.APClient:get_server_time()
+    sendDebugMessage("AP:sendDeathLinkBounce " .. tostring(time) .. " " .. cause .. " " .. source)
+    local res = G.APClient:Bounce({
+        time = time,
+        cause = cause,
+        source = source
+    }, {}, {}, {"DeathLink"})
+    sendDebugMessage("AP:sendDeathLinkBounce " .. tostring(G.APClient))
+    sendDebugMessage("AP:sendDeathLinkBounce " .. tostring(res))
+end
+
+local update_game_overRef = Game.update_game_over
+function Game.update_game_over(args, dt)
+    -- only sends deathlink if run ended before and during ante 8
+    -- also checks if run is over because of deathlink coming in (not sure if necessary)
+    if G.GAME.round_resets.ante <= G.GAME.win_ante and not foreignDeathlink then
+        sendDeathLinkBounce("Run ended at ante " .. G.GAME.round_resets.ante)
+    end
+    return update_game_overRef(args, dt)
 end
 
 -- Profile interface
@@ -329,6 +360,10 @@ function Game.update(arg_298_0, dt)
         G.APClient:poll()
     end
 
+    if G.STAGE == G.STAGES.MAIN_MENU and foreignDeathlink then
+        foreignDeathlink = false
+    end
+
     return game_update
 end
 
@@ -353,8 +388,6 @@ end
 local game_load_profileRef = Game.load_profile
 function Game.load_profile(args, _profile)
 
-    
-
     if unloadAPProfile then
         _profile = 1
         unloadAPProfile = false
@@ -373,10 +406,10 @@ function Game.load_profile(args, _profile)
     APSettings = json.decode(APSettings)
 
     if APSettings ~= nil then
-        G.AP.APSlot = APSettings['APSlot']
-        G.AP.APAddress = APSettings['APAddress']
-        G.AP.APPort = APSettings['APPort']
-        G.AP.APPassword = APSettings['APPassword']
+        G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
+        G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
+        G.AP.APPort = APSettings['APPort'] or G.AP.APPort
+        G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
     end
 
     return game_load_profile
@@ -399,16 +432,15 @@ end
 local ap_profile_delete = false
 
 G.FUNCS.delete_AP_profile = function(e)
-    if ap_profile_delete then 
+    if ap_profile_delete then
         G.FUNCS.APDisconnect()
         ap_profile_delete = false
     end
     G.FUNCS.delete_profile(e)
     ap_profile_delete = true
     G.AP.CHECK_PROFILE_DATA = nil
-    
-end
 
+end
 
 -- When Load Profile Button is clicked
 local load_profile_funcRef = G.FUNCS.load_profile
