@@ -1,31 +1,31 @@
 require(G.AP.this_mod.path .. "utils")
 
 G.APItems = {
-    [G.AP.id_offset + 1]="Red Deck"   ,
-    [G.AP.id_offset + 2]="Blue Deck"  ,
-    [G.AP.id_offset + 3]="Yellow Deck" ,
-    [G.AP.id_offset + 4]="Green Deck" ,
-    [G.AP.id_offset + 5]="Black Deck" ,
-    [G.AP.id_offset + 6]="Magic Deck" ,
-    [G.AP.id_offset + 7]="Nebula Deck",
-    [G.AP.id_offset + 8]="Ghost Deck" ,
-    [G.AP.id_offset + 9]="Abandoned Deck" ,
-    [G.AP.id_offset + 10]="Checkered Deck",
-    [G.AP.id_offset + 11]="Zodiac Deck",
-    [G.AP.id_offset + 12]="Painted Deck",
-    [G.AP.id_offset + 13]="Anaglyph Deck",
-    [G.AP.id_offset + 14]="Plasma Deck" ,
-    [G.AP.id_offset + 15]="Erratic Deck" ,
-    [G.AP.id_offset + 16]="Filler Item" ,
+    [G.AP.id_offset + 1] = "Red Deck",
+    [G.AP.id_offset + 2] = "Blue Deck",
+    [G.AP.id_offset + 3] = "Yellow Deck",
+    [G.AP.id_offset + 4] = "Green Deck",
+    [G.AP.id_offset + 5] = "Black Deck",
+    [G.AP.id_offset + 6] = "Magic Deck",
+    [G.AP.id_offset + 7] = "Nebula Deck",
+    [G.AP.id_offset + 8] = "Ghost Deck",
+    [G.AP.id_offset + 9] = "Abandoned Deck",
+    [G.AP.id_offset + 10] = "Checkered Deck",
+    [G.AP.id_offset + 11] = "Zodiac Deck",
+    [G.AP.id_offset + 12] = "Painted Deck",
+    [G.AP.id_offset + 13] = "Anaglyph Deck",
+    [G.AP.id_offset + 14] = "Plasma Deck",
+    [G.AP.id_offset + 15] = "Erratic Deck",
+    [G.AP.id_offset + 16] = "Filler Item"
 
 }
 
 G.APSave = {
-    ShopLocations = 0,
+    ShopLocations = 0
 }
 
 function APConnect()
-    server = G.AP.APAddress..":"..G.AP.APPort
+    server = G.AP.APAddress .. ":" .. G.AP.APPort
     slot = G.AP.APSlot
     password = G.AP.APPassword
     function on_socket_connected()
@@ -48,37 +48,37 @@ function APConnect()
     function on_slot_connected(slot_data)
         print("Slot connected")
         print(slot_data)
-        
+
         print("missing locations: " .. table.concat(G.APClient.missing_locations, ", "))
         print("checked locations: " .. table.concat(G.APClient.checked_locations, ", "))
         G.APClient:Say("Hello World!")
-        G.APClient:Bounce({name="test"}, {"Balatro"})
-        local extra = {nonce = 123}  -- optional extra data will be in the server reply
+        G.APClient:Bounce({
+            name = "test"
+        }, {"Balatro"})
+        local extra = {
+            nonce = 123
+        } -- optional extra data will be in the server reply
         G.APClient:Get({"counter"}, extra)
         G.APClient:Set("counter", 0, true, {{"add", 1}}, extra)
         G.APClient:Set("empty_array", nil, true, {{"replace", AP.EMPTY_ARRAY}})
         G.APClient:ConnectUpdate(nil, {"Lua-APClientPP", "DeathLink"})
-        --G.APClient:LocationChecks({64000, 64001, 64002})
+        -- G.APClient:LocationChecks({64000, 64001, 64002})
         print("Players:")
         local players = G.APClient:get_players()
         for _, player in ipairs(players) do
-            print("  " .. tostring(player.slot) .. ": " .. player.name ..
-                  " playing " .. G.APClient:get_player_game(player.slot))
+            print("  " .. tostring(player.slot) .. ": " .. player.name .. " playing " ..
+                      G.APClient:get_player_game(player.slot))
         end
-        
+
         -- set profile name to slot name 
         G.PROFILES[G.AP.profile_Id]['name'] = G.AP['APSlot']
         -- just to make sure it's actually loading the right profile
         G.SETTINGS.profile = G.AP.profile_Id
-        
-        
+
         G.FUNCS.load_profile(false)
-        
+
         G.FUNCS.set_up_APProfile()
     end
-
-    
-
 
     function on_slot_refused(reasons)
         print("Slot refused: " .. table.concat(reasons, ", "))
@@ -96,14 +96,18 @@ function APConnect()
 
             if (item_id - G.AP.id_offset) <= 15 then
                 G.AP.unlocked_backs[item_name] = true
-            end 
+            elseif item_id == 16 then
+                G.PROFILES[G.AP.profile_Id]["BonusHands"] = (G.PROFILES[G.AP.profile_Id]["BonusHands"] or 0) + 1
+            end
 
             -- local i=1
             -- while i <= #G.P_LOCKED do
             --     --leaving this for maybe unlocking cards in future (not planned though)
             --     i = i+1
             -- end
+
         end
+
     end
 
     function on_location_info(items)
@@ -140,7 +144,7 @@ function APConnect()
         if bounce ~= nil and bounce.tags and tbl_contains(bounce.tags, "DeathLink") and bounce.data then
             G.AP.death_link_cause = bounce.data.cause or "unknown"
             G.AP.death_link_source = bounce.data.source or "unknown"
-            
+
             G.FUNCS.die()
         end
     end
