@@ -67,6 +67,19 @@ G.FUNCS.APDisconnect = function()
 
 end
 
+-- Initialize AP Buffs
+
+local init_game_objectRef = Game.init_game_object
+function Game.init_game_object(args)
+    local init_game_object = init_game_objectRef(args)
+
+    if isAPProfileLoaded() then
+        init_game_object.starting_params.hands = init_game_object.starting_params.hands + G.PROFILES[G.AP.profile_Id]["BonusHands"]
+    end
+
+    return init_game_object
+end
+
 -- DeathLink 
 
 G.FUNCS.die = function()
@@ -396,6 +409,9 @@ function Game.load_profile(args, _profile)
     if G.AP.profile_Id == -1 then
         G.AP.profile_Id = #G.PROFILES + 1
         G.PROFILES[G.AP.profile_Id] = {}
+        G.PROFILES[G.AP.profile_Id]["BonusHands"] = 2
+        G.PROFILES[G.AP.profile_Id]["BonusDiscards"] = 2
+        G.PROFILES[G.AP.profile_Id]["BonusHandSize"] = 2
         sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
     end
 
