@@ -35,6 +35,7 @@ local unloadAPProfile = false
 local foreignDeathlink = false
 
 G.AP.profile_Id = -1
+G.AP.GameObjectInit = false
 
 -- true if the profile was selected and loaded
 function isAPProfileLoaded()
@@ -74,7 +75,9 @@ function Game.init_game_object(args)
     local init_game_object = init_game_objectRef(args)
 
     if isAPProfileLoaded() then
-        init_game_object.starting_params.hands = init_game_object.starting_params.hands + G.PROFILES[G.AP.profile_Id]["BonusHands"]
+
+        init_game_object.starting_params.hands = init_game_object.starting_params.hands +
+                                                     (G.PROFILES[G.AP.profile_Id]["bonushands"] or 0)
     end
 
     return init_game_object
@@ -109,15 +112,16 @@ end
 local localizeRef = localize
 function localize(args, misc_cat)
     local localize = ''
-    if args and args.type == 'quip' and args.key == 'deathlink' then
-        G.localization.quips_parsed['deathlink'] = {
-            multi_line = true
-        }
-        for k, v in ipairs(G.AP.death_link_cause) do
-            G.localization.quips_parsed['deathlink'][k] = loc_parse_string(v)
+
+    if isAPProfileLoaded() then
+        if misc_cat == "suits_singular" then
+            return ""
         end
 
-        G.AP.death_link_cause = nil
+        if args and args.set == "Joker" and args.type == "unlocks" then
+            return "" -- figure out how to put real text here
+        end
+
     end
 
     localize = localizeRef(args, misc_cat)
@@ -374,6 +378,7 @@ function Game.update(arg_298_0, dt)
     end
 
     if G.STAGE == G.STAGES.MAIN_MENU and foreignDeathlink then
+
         foreignDeathlink = false
     end
 
@@ -409,9 +414,6 @@ function Game.load_profile(args, _profile)
     if G.AP.profile_Id == -1 then
         G.AP.profile_Id = #G.PROFILES + 1
         G.PROFILES[G.AP.profile_Id] = {}
-        G.PROFILES[G.AP.profile_Id]["BonusHands"] = 2
-        G.PROFILES[G.AP.profile_Id]["BonusDiscards"] = 2
-        G.PROFILES[G.AP.profile_Id]["BonusHandSize"] = 2
         sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
     end
 
@@ -430,6 +432,96 @@ function Game.load_profile(args, _profile)
 
     return game_load_profile
 end
+
+-- unlock Items based on APItems
+
+local game_init_item_prototypesRef = Game.init_item_prototypes
+function Game.init_item_prototypes(args)
+    local game_init_item_prototypes = game_init_item_prototypesRef(args)
+
+    if isAPProfileLoaded() then
+
+        for k, v in pairs(G.AP.JokerQueue) do
+            G.PROFILES[G.AP.profile_Id]["jokers"][k] = true
+        end
+
+        for k, v in pairs(G.AP.BackQueue) do
+            G.PROFILES[G.AP.profile_Id]["backs"][k] = true
+        end
+
+        for k, v in pairs(G.AP.VoucherQueue) do
+            G.PROFILES[G.AP.profile_Id]["vouchers"][k] = true
+        end
+
+        alert_unlock = function(item)
+            G:save_notify(item)
+            table.sort(G.P_CENTER_POOLS["Back"], function(a, b)
+                return (a.order - (a.unlocked and 100 or 0)) < (b.order - (b.unlocked and 100 or 0))
+            end)
+            G:save_progress()
+            G.FILE_HANDLER.force = true
+            notify_alert(item.key, item.set)
+        end
+
+        args.P_LOCKED = {}
+        for k, v in pairs(args.P_CENTERS) do
+            v.unlocked = false
+            -- for jokers
+            sendDebugMessage("jokerlength: " .. tostring(#G.PROFILES[G.AP.profile_Id]["jokers"]))
+            if (string.find(k, '^j_') and G.PROFILES[G.AP.profile_Id]["jokers"][v.name] ~= nil) then
+                v.unlocked = true
+                if (G.AP.JokerQueue[v] == true) then
+                    alert_unlock(v)
+                end
+
+            elseif (string.find(k, '^b_') and G.PROFILES[G.AP.profile_Id]["backs"][v.name] ~= nil) then
+                v.unlocked = true
+                if (G.AP.BackQueue[v] == true) then
+                    alert_unlock(v)
+                end
+            elseif (string.find(k, '^v_') and G.PROFILES[G.AP.profile_Id]["vouchers"][v.name] ~= nil) then
+                v.unlocked = true
+                if (G.AP.VoucherQueue[v] == true) then
+                    alert_unlock(v)
+                end
+            end
+            v.unlock_condition = {
+                type = 'APItem',
+                extra = ''
+            }
+            v.discovered = v.unlocked
+            if not v.unlocked then
+                args.P_LOCKED[#args.P_LOCKED + 1] = v
+            end
+
+        end
+
+        -- table.sort(args.P_LOCKED, function(a, b)
+        --     return not a.order or not b.order or a.order < b.order
+        -- end)
+
+        G.AP.BackQueue = {}
+        G.AP.VoucherQueue = {}
+        G.AP.JokerQueue = {}
+        G.AP.GameObjectInit = true
+    end
+    return game_init_item_prototypes
+end
+
+-- Card UI
+
+-- local card_generate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
+-- function Card.generate_UIBox_ability_table(args)
+--     --sendDebugMessage("bla: " .. tostring(args.config.center.unlocked == false and not args.bypass_lock))
+--     return card_generate_UIBox_ability_tableRef(args)
+-- end
+
+-- local generate_card_uiRef = generate_card_ui
+-- function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end) 
+
+--     sendDebugMessage("bla: " .. tostring(card_type))
+--     return generate_card_uiRef(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
+-- end
 
 -- handle profile deletion
 G.FUNCS.can_delete_AP_profile = function(e)
@@ -464,20 +556,32 @@ local load_profile_funcRef = G.FUNCS.load_profile
 G.FUNCS.load_profile = function(delete_prof_data)
     if isAPProfileLoaded() and not isAPProfileSelected() and G.APClient ~= nil then
         G.FUNCS.APDisconnect()
+        G.AP.GameObjectInit = false
     end
     return load_profile_funcRef(delete_prof_data)
 end
 
 -- other stuff 
 
--- (not tested)
+-- circumvent Jokers being unlocked normally:
+
+local unlock_cardRef = unlock_cardRef
+function unlock_card(card)
+    -- only intervene if 1. APProfile is loaded and 2. The receiving item is a AP Item (so planet/tarot/voucher etc are not included)
+    if isAPProfileLoaded() and (card.set == 'Back' or card.set == 'Joker' or card.set == "Voucher") then
+        return
+    end
+
+    return unlock_cardRef(card)
+end
+
 -- Here you can unlock checks
 
 local check_for_unlockRef = check_for_unlock
 function check_for_unlock(args)
     local check_for_unlock = check_for_unlockRef(args)
     if isAPProfileLoaded() then
-        if args.type == 'ante_up' then
+        if args.type == 'ante_up' and args.ante < 9 then
             sendDebugMessage("args.type is ante_up")
             -- when an ante is beaten
             local deck_name = G.GAME.selected_back.name
@@ -531,28 +635,30 @@ function sendLocationCleared(id)
     end
 end
 
--- Unlock Decks from received items
+-- gets called after connection has been established
 
 G.FUNCS.set_up_APProfile = function()
 
     sendDebugMessage("set_up_APProfile called")
 
-    G.AP.unlocked_backs = {}
+    --
+    G.PROFILES[G.AP.profile_Id]["jokers"] = {}
+    G.PROFILES[G.AP.profile_Id]["backs"] = {}
+    G.PROFILES[G.AP.profile_Id]["vouchers"] = {}
+    G.PROFILES[G.AP.profile_Id]["bonushands"] = 0
 end
-
--- I couldnt for the life of me figure out how else to easily lock decks, 
--- so i feel like this is a hacky but intuitive solution.
 
 local back_generate_UIRef = Back.generate_UI
 function Back.generate_UI(args, other, ui_scale, min_dims, challenge)
 
-    if isAPProfileLoaded() then
-        local back_name = args["name"]
-        args.effect.center.unlocked = G.AP.unlocked_backs[back_name] == true
-        -- sendDebugMessage(args["name"] .. " is unlocked: " .. tostring(args.effect.center.unlocked))
+    -- if isAPProfileLoaded() then
+    --     local back_name = args["name"]
+    --     args.effect.center.unlocked = G.AP.unlocked_backs[back_name] == true
+    --     -- sendDebugMessage(args["name"] .. " is unlocked: " .. tostring(args.effect.center.unlocked))
 
-    end
+    -- end
 
+    sendDebugMessage("back is unlocked: " .. tostring(args.effect.center.unlocked))
     local back_generate_UI = back_generate_UIRef(args, other, ui_scale, min_dims, challenge)
 
     return back_generate_UI
