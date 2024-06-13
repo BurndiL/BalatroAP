@@ -1,6 +1,7 @@
 require(G.AP.this_mod.path .. "utils")
 
 G.APItems = {
+    -- Backs (=decks but referred to as backs)
     [G.AP.id_offset + 1] = "Red Deck",
     [G.AP.id_offset + 2] = "Blue Deck",
     [G.AP.id_offset + 3] = "Yellow Deck",
@@ -16,7 +17,158 @@ G.APItems = {
     [G.AP.id_offset + 13] = "Anaglyph Deck",
     [G.AP.id_offset + 14] = "Plasma Deck",
     [G.AP.id_offset + 15] = "Erratic Deck",
-    [G.AP.id_offset + 16] = "Filler Item"
+
+    -- Jokers
+    [G.AP.id_offset + 16] = "Joker",
+    [G.AP.id_offset + 17] = "Greedy Joker",
+    [G.AP.id_offset + 18] = "Lusty Joker",
+    [G.AP.id_offset + 19] = "Wrathful Joker",
+    [G.AP.id_offset + 20] = "Gluttonous Joker",
+    [G.AP.id_offset + 21] = "Jolly Joker",
+    [G.AP.id_offset + 22] = "Zany Joker",
+    [G.AP.id_offset + 23] = "Mad Joker",
+    [G.AP.id_offset + 24] = "Crazy Joker",
+    [G.AP.id_offset + 25] = "Droll Joker",
+    [G.AP.id_offset + 26] = "Sly Joker",
+    [G.AP.id_offset + 27] = "Wily Joker",
+    [G.AP.id_offset + 28] = "Clever Joker",
+    [G.AP.id_offset + 29] = "Devious Joker",
+    [G.AP.id_offset + 30] = "Crafty Joker",
+    [G.AP.id_offset + 31] = "Half Joker",
+    [G.AP.id_offset + 32] = "Joker Stencil",
+    [G.AP.id_offset + 33] = "Four Fingers",
+    [G.AP.id_offset + 34] = "Mime",
+    [G.AP.id_offset + 35] = "Credit Card",
+    [G.AP.id_offset + 36] = "Ceremonial Dagger",
+    [G.AP.id_offset + 37] = "Banner",
+    [G.AP.id_offset + 38] = "Mystic Summit",
+    [G.AP.id_offset + 39] = "Marble Joker",
+    [G.AP.id_offset + 40] = "Loyalty Card",
+    [G.AP.id_offset + 41] = "8 Ball",
+    [G.AP.id_offset + 42] = "Misprint",
+    [G.AP.id_offset + 43] = "Dusk",
+    [G.AP.id_offset + 44] = "Raised Fist",
+    [G.AP.id_offset + 45] = "Chaos the Clown",
+    [G.AP.id_offset + 46] = "Fibonacci",
+    [G.AP.id_offset + 47] = "Steel Joker",
+    [G.AP.id_offset + 48] = "Scary Face",
+    [G.AP.id_offset + 49] = "Abstract Joker",
+    [G.AP.id_offset + 50] = "Delayed Gratification",
+    [G.AP.id_offset + 51] = "Hack",
+    [G.AP.id_offset + 52] = "Pareidolia",
+    [G.AP.id_offset + 53] = "Gros Michel",
+    [G.AP.id_offset + 54] = "Even Steven",
+    [G.AP.id_offset + 55] = "Odd Todd",
+    [G.AP.id_offset + 56] = "Scholar",
+    [G.AP.id_offset + 57] = "Business Card",
+    [G.AP.id_offset + 58] = "Supernova",
+    [G.AP.id_offset + 59] = "Ride the Bus",
+    [G.AP.id_offset + 60] = "Space Joker",
+    [G.AP.id_offset + 61] = 'Egg',
+    [G.AP.id_offset + 62] = 'Burglar',
+    [G.AP.id_offset + 63] = 'Blackboard',
+    [G.AP.id_offset + 64] = 'Runner',
+    [G.AP.id_offset + 65] = 'Ice Cream',
+    [G.AP.id_offset + 66] = 'DNA',
+    [G.AP.id_offset + 67] = 'Splash',
+    [G.AP.id_offset + 68] = 'Blue Joker',
+    [G.AP.id_offset + 69] = 'Sixth Sense',
+    [G.AP.id_offset + 70] = 'Constellation',
+    [G.AP.id_offset + 71] = 'Hiker',
+    [G.AP.id_offset + 72] = 'Faceless Joker',
+    [G.AP.id_offset + 73] = 'Green Joker',
+    [G.AP.id_offset + 74] = 'Superposition',
+    [G.AP.id_offset + 75] = 'To Do List',
+    [G.AP.id_offset + 76] = "Cavendish",
+    [G.AP.id_offset + 77] = "Card Sharp",
+    [G.AP.id_offset + 78] = "Red Card",
+    [G.AP.id_offset + 79] = "Madness",
+    [G.AP.id_offset + 80] = "Square Joker",
+    [G.AP.id_offset + 81] = "Seance",
+    [G.AP.id_offset + 82] = "Riff-raff",
+    [G.AP.id_offset + 83] = "Vampire",
+    [G.AP.id_offset + 84] = "Shortcut",
+    [G.AP.id_offset + 85] = "Hologram",
+    [G.AP.id_offset + 86] = "Vagabond",
+    [G.AP.id_offset + 87] = "Baron",
+    [G.AP.id_offset + 88] = "Cloud 9",
+    [G.AP.id_offset + 89] = "Rocket",
+    [G.AP.id_offset + 90] = "Obelisk",
+    [G.AP.id_offset + 91] = "Midas Mask",
+    [G.AP.id_offset + 92] = "Luchador",
+    [G.AP.id_offset + 93] = "Photograph",
+    [G.AP.id_offset + 94] = "Gift Card",
+    [G.AP.id_offset + 95] = "Turtle Bean",
+    [G.AP.id_offset + 96] = "Erosion",
+    [G.AP.id_offset + 97] = "Reserved Parking",
+    [G.AP.id_offset + 98] = "Mail-In Rebate",
+    [G.AP.id_offset + 99] = "To the Moon",
+    [G.AP.id_offset + 100] = "Hallucination",
+    [G.AP.id_offset + 101] = "Fortune Teller",
+    [G.AP.id_offset + 102] = "Juggler",
+    [G.AP.id_offset + 103] = "Drunkard",
+    [G.AP.id_offset + 104] = "Stone Joker",
+    [G.AP.id_offset + 105] = "Golden Joker",
+    [G.AP.id_offset + 106] = "Lucky Cat",
+    [G.AP.id_offset + 107] = "Baseball Card",
+    [G.AP.id_offset + 108] = "Bull",
+    [G.AP.id_offset + 109] = "Diet Cola",
+    [G.AP.id_offset + 110] = "Trading Card",
+    [G.AP.id_offset + 111] = "Flash Card",
+    [G.AP.id_offset + 112] = "Popcorn",
+    [G.AP.id_offset + 113] = "Spare Trousers",
+    [G.AP.id_offset + 114] = "Ancient Joker",
+    [G.AP.id_offset + 115] = "Ramen",
+    [G.AP.id_offset + 116] = "Walkie Talkie",
+    [G.AP.id_offset + 117] = "Seltzer",
+    [G.AP.id_offset + 118] = "Castle",
+    [G.AP.id_offset + 119] = "Smiley Face",
+    [G.AP.id_offset + 120] = "Campfire",
+    [G.AP.id_offset + 121] = "Golden Ticket",
+    [G.AP.id_offset + 122] = "Mr. Bones",
+    [G.AP.id_offset + 123] = "Acrobat",
+    [G.AP.id_offset + 124] = "Sock and Buskin",
+    [G.AP.id_offset + 125] = "Swashbuckler",
+    [G.AP.id_offset + 126] = "Troubadour",
+    [G.AP.id_offset + 127] = "Certificate",
+    [G.AP.id_offset + 128] = "Smeared Joker",
+    [G.AP.id_offset + 129] = "Throwback",
+    [G.AP.id_offset + 130] = "Hanging Chad",
+    [G.AP.id_offset + 131] = "Rough Gem",
+    [G.AP.id_offset + 132] = "Bloodstone",
+    [G.AP.id_offset + 133] = "Arrowhead",
+    [G.AP.id_offset + 134] = "Onyx Agate",
+    [G.AP.id_offset + 135] = "Glass Joker",
+    [G.AP.id_offset + 136] = "Showman",
+    [G.AP.id_offset + 137] = "Flower Pot",
+    [G.AP.id_offset + 138] = "Blueprint",
+    [G.AP.id_offset + 139] = "Wee Joker",
+    [G.AP.id_offset + 140] = "Merry Andy",
+    [G.AP.id_offset + 141] = "Oops! All 6s",
+    [G.AP.id_offset + 142] = "The Idol",
+    [G.AP.id_offset + 143] = "Seeing Double",
+    [G.AP.id_offset + 144] = "Matador",
+    [G.AP.id_offset + 145] = "Hit the Road",
+    [G.AP.id_offset + 146] = "The Duo",
+    [G.AP.id_offset + 147] = "The Trio",
+    [G.AP.id_offset + 148] = "The Family",
+    [G.AP.id_offset + 149] = "The Order",
+    [G.AP.id_offset + 150] = "The Tribe",
+    [G.AP.id_offset + 151] = "Stuntman",
+    [G.AP.id_offset + 152] = "Invisible Joker",
+    [G.AP.id_offset + 153] = "Brainstorm",
+    [G.AP.id_offset + 154] = "Satellite",
+    [G.AP.id_offset + 155] = "Shoot the Moon",
+    [G.AP.id_offset + 156] = "Driver's License",
+    [G.AP.id_offset + 157] = "Cartomancer",
+    [G.AP.id_offset + 158] = "Astronomer",
+    [G.AP.id_offset + 159] = "Burnt Joker",
+    [G.AP.id_offset + 160] = "Bootstraps",
+    [G.AP.id_offset + 161] = "Caino",
+    [G.AP.id_offset + 162] = "Triboulet",
+    [G.AP.id_offset + 163] = "Yorick",
+    [G.AP.id_offset + 164] = "Chicot",
+    [G.AP.id_offset + 165] = "Perkeo"
 
 }
 
@@ -28,6 +180,11 @@ function APConnect()
     server = G.AP.APAddress .. ":" .. G.AP.APPort
     slot = G.AP.APSlot
     password = G.AP.APPassword
+
+    G.AP.JokerQueue = {}
+    G.AP.BackQueue = {}
+    G.AP.VoucherQueue = {}
+
     function on_socket_connected()
         print("Socket connected")
     end
@@ -89,16 +246,70 @@ function APConnect()
         remove_locked = {}
         for _, item in ipairs(items) do
             print(item.item)
-            local item_id = item.item
+            local item_id = item.item - G.AP.id_offset
             local item_name = G.APItems[item.item]
 
-            -- unlock decks by adding their name to the list of unlocked_backs:
+            -- unlock decks by adding their name to the list of backs (this backs list is only there in AP to keep track of unlocks):
+            -- same with jokers/vouchers
 
-            if (item_id - G.AP.id_offset) <= 15 then
-                G.AP.unlocked_backs[item_name] = true
-            elseif item_id == 16 then
-                G.PROFILES[G.AP.profile_Id]["BonusHands"] = (G.PROFILES[G.AP.profile_Id]["BonusHands"] or 0) + 1
+            alert_unlock = function(item)
+                G:save_notify(item)
+                table.sort(G.P_CENTER_POOLS["Back"], function(a, b)
+                    return (a.order - (a.unlocked and 100 or 0)) < (b.order - (b.unlocked and 100 or 0))
+                end)
+                G:save_progress()
+                G.FILE_HANDLER.force = true
+                notify_alert(item.key, item.set)
             end
+
+            unlock = function(item_name)
+                local i = 1
+                while i <= #G.P_LOCKED do
+                    local wasLocked = false
+                    local item = G.P_LOCKED[i]
+                    if item_name == item.name then
+                        wasLocked = true 
+                        alert_unlock(item)
+                    end
+
+                    if wasLocked == true then
+                        table.remove(G.P_LOCKED, i)
+                    else
+                        i = i + 1
+                    end
+                end
+
+            end
+
+            sendDebugMessage("received Item id" .. tostring(item_id))
+            sendDebugMessage("received Item name" .. tostring(item_name))
+            if item_id <= 15 then
+                sendDebugMessage("received Deck")
+
+                -- different handling if item was received on startup (queue it)
+                -- or if it's during gameplay (display immediately)
+                if G.AP.GameObjectInit then
+                    G.PROFILES[G.AP.profile_Id]["backs"][item_name] = true
+                    unlock(item_name)
+                else
+                    G.AP.BackQueue[item_name] = true
+                end
+
+            elseif item_id >= 16 and item_id <= 165 then
+                sendDebugMessage("received Joker")
+                if G.AP.GameObjectInit then
+                    G.PROFILES[G.AP.profile_Id]["jokers"][item_name] = true
+                    unlock(item_name)
+                else
+                    G.AP.JokerQueue[item_name] = true
+                end
+                
+
+            end
+
+            -- for filler items:
+            --     G.PROFILES[G.AP.profile_Id]["bonushands"] = (G.PROFILES[G.AP.profile_Id]["bonushands"] or 0) + 1
+            -- end
 
             -- local i=1
             -- while i <= #G.P_LOCKED do
