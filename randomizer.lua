@@ -78,6 +78,18 @@ function Game.init_game_object(args)
 
         init_game_object.starting_params.hands = init_game_object.starting_params.hands +
                                                      (G.PROFILES[G.AP.profile_Id]["bonushands"] or 0)
+
+        init_game_object.starting_params.discards = init_game_object.starting_params.discards +
+                                                        (G.PROFILES[G.AP.profile_Id]["bonusdiscards"] or 0)
+
+        init_game_object.starting_params.dollars = init_game_object.starting_params.dollars +
+                                                       (G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] or 0)
+
+        init_game_object.starting_params.hand_size = init_game_object.starting_params.hand_size +
+                                                         (G.PROFILES[G.AP.profile_Id]["bonushandsize"] or 0)
+
+        init_game_object.interest_cap = init_game_object.interest_cap +
+                                            (G.PROFILES[G.AP.profile_Id]["maxinterest"] or 0)
     end
 
     return init_game_object
@@ -112,17 +124,6 @@ end
 local localizeRef = localize
 function localize(args, misc_cat)
     local localize = ''
-
-    if isAPProfileLoaded() then
-        if misc_cat == "suits_singular" then
-            return ""
-        end
-
-        if args and args.set == "Joker" and args.type == "unlocks" then
-            return "" -- figure out how to put real text here
-        end
-
-    end
 
     localize = localizeRef(args, misc_cat)
 
@@ -440,6 +441,21 @@ function Game.init_item_prototypes(args)
     local game_init_item_prototypes = game_init_item_prototypesRef(args)
 
     if isAPProfileLoaded() then
+        -- Locked text
+        for g_k, group in pairs(G.localization) do
+            if g_k == 'descriptions' then
+                for _, set in pairs(group) do
+                    for x, center in pairs(set) do
+
+                        if string.find(tostring(x), '^b_') or string.find(tostring(x), '^j_') or string.find(tostring(x), '^v_') then
+                            center.unlock_parsed = {}
+                            center.unlock_parsed[1] = loc_parse_string("AP Item")
+                        end
+
+                    end
+                end
+            end
+        end
 
         for k, v in pairs(G.AP.JokerQueue) do
             G.PROFILES[G.AP.profile_Id]["jokers"][k] = true
@@ -465,41 +481,75 @@ function Game.init_item_prototypes(args)
 
         args.P_LOCKED = {}
         for k, v in pairs(args.P_CENTERS) do
-            v.unlocked = false
             -- for jokers
-            sendDebugMessage("jokerlength: " .. tostring(#G.PROFILES[G.AP.profile_Id]["jokers"]))
-            if (string.find(k, '^j_') and G.PROFILES[G.AP.profile_Id]["jokers"][v.name] ~= nil) then
-                v.unlocked = true
-                if (G.AP.JokerQueue[v] == true) then
-                    alert_unlock(v)
+            if string.find(k, '^j_') then
+                v.unlocked = false
+                if G.PROFILES[G.AP.profile_Id]["jokers"][v.name] ~= nil then
+                    v.unlocked = true
+                    v.discovered = true
+                    
+                    if (G.AP.JokerQueue[v] == true) then
+                        alert_unlock(v)
+                    end
                 end
-
-            elseif (string.find(k, '^b_') and G.PROFILES[G.AP.profile_Id]["backs"][v.name] ~= nil) then
-                v.unlocked = true
-                if (G.AP.BackQueue[v] == true) then
-                    alert_unlock(v)
+                -- for backs (decks)
+            elseif string.find(k, '^b_') then
+                v.unlocked = false
+                if G.PROFILES[G.AP.profile_Id]["backs"][v.name] ~= nil then
+                    v.unlocked = true
+                    v.discovered = true
+                    if (G.AP.BackQueue[v] == true) then
+                        alert_unlock(v)
+                    end
                 end
-            elseif (string.find(k, '^v_') and G.PROFILES[G.AP.profile_Id]["vouchers"][v.name] ~= nil) then
-                v.unlocked = true
-                if (G.AP.VoucherQueue[v] == true) then
-                    alert_unlock(v)
+                -- for vouchers
+            elseif string.find(k, '^v_') then
+                v.unlocked = false
+                if G.PROFILES[G.AP.profile_Id]["vouchers"][v.name] ~= nil then
+                    v.unlocked = true
+                    v.discovered = true
+                    if (G.AP.VoucherQueue[v] == true) then
+                        alert_unlock(v)
+                    end
                 end
             end
-            v.unlock_condition = {
-                type = 'APItem',
-                extra = ''
-            }
-            v.discovered = v.unlocked
-            if not v.unlocked then
+
+            v.unlock_condition = v.unlock_condition or {}
+
+            if v.unlocked ~= nil and v.unlocked == false then
+                v.discovered = v.unlocked
                 args.P_LOCKED[#args.P_LOCKED + 1] = v
             end
 
         end
 
-        -- table.sort(args.P_LOCKED, function(a, b)
-        --     return not a.order or not b.order or a.order < b.order
-        -- end)
+        -- Handle Queued Bonus stuff
 
+        for k, v in pairs(G.AP.BonusQueue) do
+            if (not G.PROFILES[G.AP.profile_Id]["received_indeces"][v.idx]) then
+
+                if (v.type == "bonusdiscards") then
+                    G.PROFILES[G.AP.profile_Id]["bonusdiscards"] =
+                        (G.PROFILES[G.AP.profile_Id]["bonusdiscards"] or 0) + 1
+                elseif (v.type == "bonusstartingmoney") then
+                    G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] =
+                        (G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] or 0) + 1
+                elseif (v.type == "bonushands") then
+                    G.PROFILES[G.AP.profile_Id]["bonushands"] = (G.PROFILES[G.AP.profile_Id]["bonushands"] or 0) + 1
+
+                elseif (v.type == "bonushandsize") then
+                    G.PROFILES[G.AP.profile_Id]["bonushandsize"] =
+                        (G.PROFILES[G.AP.profile_Id]["bonushandsize"] or 0) + 1
+                elseif (v.type ==  "maxinterest") then
+                    G.PROFILES[G.AP.profile_Id]["maxinterest"] = (G.PROFILES[G.AP.profile_Id]["maxinterest"] or 0) + 1
+                end
+
+                G.PROFILES[G.AP.profile_Id]["received_indeces"][v.idx] = true
+            end
+        end
+
+        -- remove queued items
+        G.AP.BonusQueue = {}
         G.AP.BackQueue = {}
         G.AP.VoucherQueue = {}
         G.AP.JokerQueue = {}
@@ -508,20 +558,62 @@ function Game.init_item_prototypes(args)
     return game_init_item_prototypes
 end
 
--- Card UI
+-- handle shop cards
 
--- local card_generate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
--- function Card.generate_UIBox_ability_table(args)
---     --sendDebugMessage("bla: " .. tostring(args.config.center.unlocked == false and not args.bypass_lock))
---     return card_generate_UIBox_ability_tableRef(args)
+local can_redeem_APRef = G.FUNCS.can_redeem
+G.FUNCS.can_redeem = function(e)
+    if isAPProfileLoaded() and not e.config.ref_table.unlocked then
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+        return
+    end
+
+    return can_redeem_APRef(e)
+end
+
+-- local can_buy_APRef = G.FUNCS.can_buy
+-- G.FUNCS.can_buy = function(e)
+--     -- Planet cards cant be bought yet
+--     if isAPProfileLoaded() and not e.config.ref_table.unlocked then
+--         e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+--         e.config.button = nil
+--         return
+--     end
+
+--     return can_buy_APRef(e)
 -- end
 
--- local generate_card_uiRef = generate_card_ui
--- function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end) 
 
---     sendDebugMessage("bla: " .. tostring(card_type))
---     return generate_card_uiRef(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
--- end
+local get_next_voucher_keyRef = get_next_voucher_key
+function get_next_voucher_key(_from_tag)
+    local get_next_voucher = get_next_voucher_keyRef(_from_tag)
+    -- normally when no voucher is available it would put blank in shop, prevent that (if blank is not unlocked)
+    if isAPProfileLoaded() then
+        if G.P_LOCKED[get_next_voucher] or get_next_voucher == "UNAVAILABLE" then
+            return nil
+        end
+    end
+
+    return get_next_voucher
+end
+
+local get_current_poolRef = get_current_pool
+function get_current_pool(_type, _rarity, _legendary, _append)
+    local _pool, _pool_key = get_current_poolRef(_type, _rarity, _legendary, _append)
+
+    if isAPProfileLoaded() then
+        for k, v in pairs(_pool) do
+            -- if j_joker not unlocked, put pluto card there (not a pretty solution, will probably be changed in future TODO)
+            if G.P_LOCKED[v] or v == "j_joker" then
+                _pool[k] = "c_pluto"
+            end
+        end
+    end
+
+    return _pool, _pool_key
+end
+
+
 
 -- handle profile deletion
 G.FUNCS.can_delete_AP_profile = function(e)
@@ -641,7 +733,7 @@ G.FUNCS.set_up_APProfile = function()
 
     sendDebugMessage("set_up_APProfile called")
 
-    --
+    G.PROFILES[G.AP.profile_Id]["received_indeces"] = {}
     G.PROFILES[G.AP.profile_Id]["jokers"] = {}
     G.PROFILES[G.AP.profile_Id]["backs"] = {}
     G.PROFILES[G.AP.profile_Id]["vouchers"] = {}
@@ -650,15 +742,6 @@ end
 
 local back_generate_UIRef = Back.generate_UI
 function Back.generate_UI(args, other, ui_scale, min_dims, challenge)
-
-    -- if isAPProfileLoaded() then
-    --     local back_name = args["name"]
-    --     args.effect.center.unlocked = G.AP.unlocked_backs[back_name] == true
-    --     -- sendDebugMessage(args["name"] .. " is unlocked: " .. tostring(args.effect.center.unlocked))
-
-    -- end
-
-    sendDebugMessage("back is unlocked: " .. tostring(args.effect.center.unlocked))
     local back_generate_UI = back_generate_UIRef(args, other, ui_scale, min_dims, challenge)
 
     return back_generate_UI
