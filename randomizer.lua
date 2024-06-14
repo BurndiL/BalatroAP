@@ -747,6 +747,13 @@ function Back.generate_UI(args, other, ui_scale, min_dims, challenge)
     return back_generate_UI
 end
 
+-- prevent achievements from being unlocked
+local unlock_achievementRef = unlock_achievement
+function unlock_achievement(achievement_name)
+    if isAPProfileLoaded() then return end
+    return unlock_achievementRef(achievement_name)
+end
+
 -- debug
 
 function copy_uncrompessed(_file)
