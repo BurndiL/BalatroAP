@@ -14,3 +14,8 @@ After installing that, you will also have to download the [lua apclient](https:/
 To install this mod create a new folder in `%AppData%/Roaming/Balatro/Mods/` called `BalatroAP` and put the files from this repository in there. ![Your AppData Folder should look something like this](https://i.imgur.com/3JzrdlV.png).
 
 You should be good to go then! If there are any issues, consider going to the Archipelago After Dark Discord server, there is a Balatro thread somewhere. Or message me on Discord @Burndi. 
+
+# Connecting
+
+In Balatro you can simply connect by selecting the profile "Archipelago" in the profile selector. 
+It is adviced that you backup your existing save files, even though they should not be modified or deleted by this mod. 
