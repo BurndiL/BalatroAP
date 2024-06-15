@@ -687,7 +687,7 @@ end
 
 -- circumvent Jokers being unlocked normally:
 
-local unlock_cardRef = unlock_cardRef
+local unlock_cardRef = unlock_card
 function unlock_card(card)
     -- only intervene if 1. APProfile is loaded and 2. The receiving item is a AP Item (so planet/tarot/voucher etc are not included)
     if isAPProfileLoaded() and (card.set == 'Back' or card.set == 'Joker' or card.set == "Voucher") then
