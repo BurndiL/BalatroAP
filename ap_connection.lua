@@ -250,10 +250,13 @@ function APConnect()
 
     function on_slot_connected(slot_data)
         print("Slot connected")
-        print(slot_data)
+        sendDebugMessage("slot_data: " .. tostring(slot_data))
+        
+        G.AP.slot_data = slot_data
+        G.AP.goal = slot_data.goal
 
-        print("missing locations: " .. table.concat(G.APClient.missing_locations, ", "))
-        print("checked locations: " .. table.concat(G.APClient.checked_locations, ", "))
+        -- print("missing locations: " .. table.concat(G.APClient.missing_locations, ", "))
+        -- print("checked locations: " .. table.concat(G.APClient.checked_locations, ", "))
         G.APClient:Say("Hello World!")
         G.APClient:Bounce({
             name = "test"
@@ -494,7 +497,7 @@ function APConnect()
     function on_print_json(msg, extra)
         print(G.APClient:render_json(msg, AP.RenderFormat.TEXT))
         for key, value in pairs(extra) do
-            -- print("  " .. key .. ": " .. tostring(value))
+            sendDebugMessage("  " .. tostring(key) .. ": " .. tostring(value))
         end
     end
 
@@ -505,6 +508,7 @@ function APConnect()
             G.AP.death_link_cause = bounce.data.cause or "unknown"
             G.AP.death_link_source = bounce.data.source or "unknown"
 
+            -- lol
             G.FUNCS.die()
         end
     end
