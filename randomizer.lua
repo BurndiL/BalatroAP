@@ -33,6 +33,7 @@ local isInProfileTabCreation = false
 local isInProfileOptionCreation = false
 local unloadAPProfile = false
 local foreignDeathlink = false
+local ap_profile_delete = false
 
 G.AP.profile_Id = -1
 G.AP.GameObjectInit = false
@@ -47,8 +48,18 @@ function isAPProfileSelected()
     return G.focused_profile == G.AP.profile_Id
 end
 
+G.FUNCS.can_APConnect = function(e)
+    if ((G.APClient and G.APClient:get_state() == AP.State.SLOT_CONNECTED)) then
+        e.config.button = nil
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+    else
+        e.config.button = 'APConnect'
+        e.config.colour = G.C.RED
+    end
+end
+
 -- gets called when connection wants to be established. Also saves Connection info in json
-G.FUNCS.APConnect = function()
+G.FUNCS.APConnect = function(e)
     local APInfo = json.encode({
         APAddress = G.AP.APAddress,
         APPort = G.AP.APPort,
@@ -99,7 +110,7 @@ end
 
 G.FUNCS.die = function()
 
-    if G.STAGE == G.STAGES.RUN then
+    if G.STAGE == G.STAGES.RUN and G.AP.slot_data.deathlink then
 
         foreignDeathlink = true
         G.E_MANAGER:add_event(Event({
@@ -162,7 +173,7 @@ local update_game_overRef = Game.update_game_over
 function Game.update_game_over(args, dt)
     -- only sends deathlink if run ended before and during ante 8
     -- also checks if run is over because of deathlink coming in (not sure if necessary)
-    if G.GAME.round_resets.ante <= G.GAME.win_ante and not foreignDeathlink then
+    if G.AP.slot_data.deathlink and G.GAME.round_resets.ante <= G.GAME.win_ante and not foreignDeathlink then
         sendDeathLinkBounce("Run ended at ante " .. G.GAME.round_resets.ante)
     end
     return update_game_overRef(args, dt)
@@ -305,7 +316,7 @@ function G.UIDEF.profile_option(_profile)
                 button = "APConnect",
                 label = {"Connect"},
                 minw = 3,
-                Func = G.FUNCS.APConnect
+                func = "can_APConnect"
             }), {
                 n = G.UIT.R,
                 config = {
@@ -390,10 +401,14 @@ local game_drawRef = Game.draw
 function Game.draw(args)
     local game_draw = game_drawRef(args)
 
-    if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
-        love.graphics.print("Connected to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort .. " as " ..
-                                G.AP.APSlot, 10, 30)
-        -- print("connected")
+    if G.APClient ~= nil then
+        if G.APClient:get_state() == AP.State.SLOT_CONNECTED then
+            love.graphics.print("Connected to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort .. " as " ..
+                                    G.AP.APSlot, 10, 30)
+        else
+            love.graphics.print("Connecting to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort, 10, 30)
+        end
+
     else
         love.graphics.print("Not connected to Archipelago.", 10, 30)
     end
@@ -411,6 +426,7 @@ function Game.load_profile(args, _profile)
         _profile = 1
         unloadAPProfile = false
     end
+    ap_profile_delete = false
 
     if G.AP.profile_Id == -1 then
         G.AP.profile_Id = #G.PROFILES + 1
@@ -444,10 +460,17 @@ function Game.init_item_prototypes(args)
         -- Locked text
         for g_k, group in pairs(G.localization) do
             if g_k == 'descriptions' then
-                for _, set in pairs(group) do
+                for grpkey, set in pairs(group) do
                     for x, center in pairs(set) do
+                        -- sendDebugMessage(tostring(center))
+                        if string.find(tostring(x), '^b_') or string.find(tostring(x), '^j_') or
+                            string.find(tostring(x), '^v_') then
+                            center.demo_locked = {}
+                            center.demo_locked[1] = loc_parse_string("AP Item")
 
-                        if string.find(tostring(x), '^b_') or string.find(tostring(x), '^j_') or string.find(tostring(x), '^v_') then
+                            center.deck_locked_win = {}
+                            center.deck_locked_win[1] = loc_parse_string("AP Item")
+                            
                             center.unlock_parsed = {}
                             center.unlock_parsed[1] = loc_parse_string("AP Item")
                         end
@@ -487,7 +510,7 @@ function Game.init_item_prototypes(args)
                 if G.PROFILES[G.AP.profile_Id]["jokers"][v.name] ~= nil then
                     v.unlocked = true
                     v.discovered = true
-                    
+
                     if (G.AP.JokerQueue[v] == true) then
                         alert_unlock(v)
                     end
@@ -540,7 +563,7 @@ function Game.init_item_prototypes(args)
                 elseif (v.type == "bonushandsize") then
                     G.PROFILES[G.AP.profile_Id]["bonushandsize"] =
                         (G.PROFILES[G.AP.profile_Id]["bonushandsize"] or 0) + 1
-                elseif (v.type ==  "maxinterest") then
+                elseif (v.type == "maxinterest") then
                     G.PROFILES[G.AP.profile_Id]["maxinterest"] = (G.PROFILES[G.AP.profile_Id]["maxinterest"] or 0) + 1
                 end
 
@@ -583,7 +606,6 @@ end
 --     return can_buy_APRef(e)
 -- end
 
-
 local get_next_voucher_keyRef = get_next_voucher_key
 function get_next_voucher_key(_from_tag)
     local get_next_voucher = get_next_voucher_keyRef(_from_tag)
@@ -613,13 +635,12 @@ function get_current_pool(_type, _rarity, _legendary, _append)
     return _pool, _pool_key
 end
 
-
-
 -- handle profile deletion
 G.FUNCS.can_delete_AP_profile = function(e)
     G.AP.CHECK_PROFILE_DATA = G.AP.CHECK_PROFILE_DATA or
                                   love.filesystem.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
-    if (not G.AP.CHECK_PROFILE_DATA) or e.config.disable_button then
+    if (not G.AP.CHECK_PROFILE_DATA) or e.config.disable_button or
+        (G.APClient and G.APClient:get_state() == AP.State.SOCKET_CONNECTING) then
         G.AP.CHECK_PROFILE_DATA = false
         e.config.colour = G.C.UI.BACKGROUND_INACTIVE
         e.config.button = nil
@@ -629,12 +650,18 @@ G.FUNCS.can_delete_AP_profile = function(e)
     end
 end
 
-local ap_profile_delete = false
-
 G.FUNCS.delete_AP_profile = function(e)
     if ap_profile_delete then
         G.FUNCS.APDisconnect()
         ap_profile_delete = false
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.3,
+            func = (function()
+                G.FUNCS.exit_overlay_menu()
+                return true
+            end)
+        }))
     end
     G.FUNCS.delete_profile(e)
     ap_profile_delete = true
@@ -650,6 +677,7 @@ G.FUNCS.load_profile = function(delete_prof_data)
         G.FUNCS.APDisconnect()
         G.AP.GameObjectInit = false
     end
+    ap_profile_delete = false
     return load_profile_funcRef(delete_prof_data)
 end
 
@@ -715,6 +743,46 @@ function check_for_unlock(args)
         end
 
         -- also need to check for goal completions!
+        if G.AP.goal then
+            -- beat # of decks goal
+            if G.AP.goal == 0 then
+
+                -- get all individual deck wins 
+                local deck_wins = 0
+                for k, v in pairs(G.P_CENTERS) do
+                    if string.find(tostring(k), '^b_') then
+                        if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
+                            G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
+                            G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
+                            deck_wins = deck_wins + 1
+                        end
+                    end
+                end
+
+                if deck_wins >= G.AP.slot_data.decks_win_goal then
+                    G.APClient:sendGoalReached()
+                end
+
+                -- unlock # of jokers
+            elseif G.AP.goal == 1 then
+
+                if G.PROFILES[G.AP.profile_Id]["jokers"] and #G.PROFILES[G.AP.profile_Id]["jokers"] >=
+                    G.AP.slot_data.jokers_unlock_goal then
+                    G.APClient:sendGoalReached()
+                end
+
+                -- beat ante
+            elseif G.AP.goal == 2 then
+                if args.type == 'ante_up' and args.ante >= G.AP.slot_data.ante_win_goal then
+                    G.APClient:sendGoalReached()
+                end
+
+            end
+
+        else
+            sendDebugMessage("No goal available, this is not good")
+        end
+
     end
 
     return check_for_unlock
@@ -738,6 +806,7 @@ G.FUNCS.set_up_APProfile = function()
     G.PROFILES[G.AP.profile_Id]["backs"] = {}
     G.PROFILES[G.AP.profile_Id]["vouchers"] = {}
     G.PROFILES[G.AP.profile_Id]["bonushands"] = 0
+    -- TODO add missing bonus lists
 end
 
 local back_generate_UIRef = Back.generate_UI
@@ -750,7 +819,9 @@ end
 -- prevent achievements from being unlocked
 local unlock_achievementRef = unlock_achievement
 function unlock_achievement(achievement_name)
-    if isAPProfileLoaded() then return end
+    if isAPProfileLoaded() then
+        return
+    end
     return unlock_achievementRef(achievement_name)
 end
 
