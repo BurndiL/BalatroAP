@@ -157,7 +157,7 @@ end
 
 function sendDeathLinkBounce(cause, source)
     cause = cause or "Balatro"
-    source = source or G.AP.APSlot or "BalaroPlayer"
+    source = source or G.AP.APSlot or "BalatroPlayer"
     local time = G.APClient:get_server_time()
     sendDebugMessage("AP:sendDeathLinkBounce " .. tostring(time) .. " " .. cause .. " " .. source)
     local res = G.APClient:Bounce({
