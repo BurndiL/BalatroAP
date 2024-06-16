@@ -438,15 +438,13 @@ function Game.load_profile(args, _profile)
 
     local APSettings = load_file('APSettings.json')
 
-    
+    APSettings = json.decode(APSettings)
+
     if APSettings ~= nil then
-        APSettings = json.decode(APSettings) 
-        if APSettings ~= nil then
-            G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
-            G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
-            G.AP.APPort = APSettings['APPort'] or G.AP.APPort
-            G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
-        end
+        G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
+        G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
+        G.AP.APPort = APSettings['APPort'] or G.AP.APPort
+        G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
     end
 
     return game_load_profile
@@ -472,7 +470,7 @@ function Game.init_item_prototypes(args)
 
                             center.deck_locked_win = {}
                             center.deck_locked_win[1] = loc_parse_string("AP Item")
-                            
+
                             center.unlock_parsed = {}
                             center.unlock_parsed[1] = loc_parse_string("AP Item")
                         end
@@ -623,18 +621,49 @@ end
 
 local get_current_poolRef = get_current_pool
 function get_current_pool(_type, _rarity, _legendary, _append)
+
+    -- to fix bugs, overwrite create_cards() instead and catch issues there
+
     local _pool, _pool_key = get_current_poolRef(_type, _rarity, _legendary, _append)
 
     if isAPProfileLoaded() then
         for k, v in pairs(_pool) do
             -- if j_joker not unlocked, put pluto card there (not a pretty solution, will probably be changed in future TODO)
-            if G.P_LOCKED[v] or v == "j_joker" then
-                _pool[k] = "c_pluto"
-            end
+            -- if G.P_LOCKED[v] and v == "j_joker" then
+            --     _pool[k] = "UNAVAILABLE"
+            -- end
         end
     end
 
     return _pool, _pool_key
+end
+
+local cardArea_emplaceRef = CardArea.emplace
+function CardArea.emplace(args, card, location, stay_flipped)
+    local cardAreaemplace = cardArea_emplaceRef(args, card, location, stay_flipped)
+    if card.config.center.unlocked == false and
+        (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
+            G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK) then
+        sendDebugMessage("removing card ")
+        args:remove_card(card, false)
+        card:start_dissolve({G.C.RED}, true, 0)
+    end
+    return cardAreaemplace
+end
+
+local can_skip_boosterRef = G.FUNCS.can_skip_booster
+G.FUNCS.can_skip_booster = function(e)
+    if isAPProfileLoaded() then
+        if G.pack_cards and
+            (G.STATE == G.STATES.PLANET_PACK or G.STATE == G.STATES.STANDARD_PACK or G.STATE == G.STATES.BUFFOON_PACK or
+                (G.hand and (G.hand.cards[1] or (G.hand.config.card_limit <= 0)))) then
+            e.config.colour = G.C.GREY
+            e.config.button = 'skip_booster'
+            return
+        end
+
+    end
+    return can_skip_boosterRef(e)
 end
 
 -- handle profile deletion
