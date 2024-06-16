@@ -438,13 +438,16 @@ function Game.load_profile(args, _profile)
 
     local APSettings = load_file('APSettings.json')
 
-    APSettings = json.decode(APSettings)
+    
 
     if APSettings ~= nil then
-        G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
-        G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
-        G.AP.APPort = APSettings['APPort'] or G.AP.APPort
-        G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
+        APSettings = json.decode(APSettings)
+        if APSettings ~= nil then
+            G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
+            G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
+            G.AP.APPort = APSettings['APPort'] or G.AP.APPort
+            G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
+        end
     end
 
     return game_load_profile
