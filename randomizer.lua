@@ -669,7 +669,7 @@ end
 -- handle profile deletion
 G.FUNCS.can_delete_AP_profile = function(e)
     G.AP.CHECK_PROFILE_DATA = G.AP.CHECK_PROFILE_DATA or
-                                  love.filesystem.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
+                                  NFS.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
     if (not G.AP.CHECK_PROFILE_DATA) or e.config.disable_button or
         (G.APClient and G.APClient:get_state() == AP.State.SOCKET_CONNECTING) then
         G.AP.CHECK_PROFILE_DATA = false
