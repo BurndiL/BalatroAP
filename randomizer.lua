@@ -499,7 +499,7 @@ function Game.init_item_prototypes(args)
             end)
             G:save_progress()
             G.FILE_HANDLER.force = true
-            notify_alert(item.key, item.set)
+            -- notify_alert(item.key, item.set)
         end
 
         args.P_LOCKED = {}
@@ -791,7 +791,7 @@ function check_for_unlock(args)
                 end
 
                 if deck_wins >= G.AP.slot_data.decks_win_goal then
-                    G.APClient:sendGoalReached()
+                    sendGoalReached()
                 end
 
                 -- unlock # of jokers
@@ -799,13 +799,13 @@ function check_for_unlock(args)
 
                 if G.PROFILES[G.AP.profile_Id]["jokers"] and #G.PROFILES[G.AP.profile_Id]["jokers"] >=
                     G.AP.slot_data.jokers_unlock_goal then
-                    G.APClient:sendGoalReached()
+                    sendGoalReached()
                 end
 
                 -- beat ante
             elseif G.AP.goal == 2 then
                 if args.type == 'ante_up' and args.ante >= G.AP.slot_data.ante_win_goal then
-                    G.APClient:sendGoalReached()
+                    sendGoalReached()
                 end
 
             end
@@ -817,6 +817,13 @@ function check_for_unlock(args)
     end
 
     return check_for_unlock
+end
+
+function sendGoalReached()
+    if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
+        sendDebugMessage("Goal Reached. Sending Goal Reached to Server")
+        G.APClient:StatusUpdate(30)
+    end
 end
 
 function sendLocationCleared(id)
