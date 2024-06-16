@@ -82,8 +82,8 @@ end
 -- Initialize AP Buffs
 
 local init_game_objectRef = Game.init_game_object
-function Game.init_game_object(args)
-    local init_game_object = init_game_objectRef(args)
+function Game:init_game_object()
+    local init_game_object = init_game_objectRef(self)
 
     if isAPProfileLoaded() then
 
@@ -142,13 +142,13 @@ function localize(args, misc_cat)
 end
 
 local add_speech_bubbleRef = Card_Character.add_speech_bubble
-function Card_Character.add_speech_bubble(args, text_key, align, loc_vars)
+function Card_Character:add_speech_bubble(text_key, align, loc_vars)
     -- sendDebugMessage(tostring(G.AP.death_link_cause))
     if G.AP.death_link_cause and loc_vars and loc_vars.quip then
         text_key = 'deathlink'
     end
 
-    local add_speech_bubble = add_speech_bubbleRef(args, text_key, align, loc_vars)
+    local add_speech_bubble = add_speech_bubbleRef(self, text_key, align, loc_vars)
 
     return add_speech_bubble
 end
@@ -170,13 +170,13 @@ function sendDeathLinkBounce(cause, source)
 end
 
 local update_game_overRef = Game.update_game_over
-function Game.update_game_over(args, dt)
+function Game:update_game_over(dt)
     -- only sends deathlink if run ended before and during ante 8
     -- also checks if run is over because of deathlink coming in (not sure if necessary)
     if G.AP.slot_data.deathlink and G.GAME.round_resets.ante <= G.GAME.win_ante and not foreignDeathlink then
         sendDeathLinkBounce("Run ended at ante " .. G.GAME.round_resets.ante)
     end
-    return update_game_overRef(args, dt)
+    return update_game_overRef(self, dt)
 end
 
 -- Profile interface
@@ -383,8 +383,8 @@ end
 -- game changes
 
 local game_updateRef = Game.update
-function Game.update(arg_298_0, dt)
-    local game_update = game_updateRef(arg_298_0, dt)
+function Game:update(dt)
+    local game_update = game_updateRef(self, dt)
     if G.APClient ~= nil then
         G.APClient:poll()
     end
@@ -398,8 +398,8 @@ function Game.update(arg_298_0, dt)
 end
 
 local game_drawRef = Game.draw
-function Game.draw(args)
-    local game_draw = game_drawRef(args)
+function Game:draw()
+    local game_draw = game_drawRef(self)
 
     if G.APClient ~= nil then
         if G.APClient:get_state() == AP.State.SLOT_CONNECTED then
@@ -420,7 +420,7 @@ end
 -- also create new profile when first loading (might have to move this somewhere more fitting)
 
 local game_load_profileRef = Game.load_profile
-function Game.load_profile(args, _profile)
+function Game:load_profile(_profile)
 
     if unloadAPProfile then
         _profile = 1
@@ -434,7 +434,7 @@ function Game.load_profile(args, _profile)
         sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
     end
 
-    local game_load_profile = game_load_profileRef(args, _profile)
+    local game_load_profile = game_load_profileRef(self, _profile)
 
     local APSettings = load_file('APSettings.json')
 
@@ -456,8 +456,8 @@ end
 -- unlock Items based on APItems
 
 local game_init_item_prototypesRef = Game.init_item_prototypes
-function Game.init_item_prototypes(args)
-    local game_init_item_prototypes = game_init_item_prototypesRef(args)
+function Game:init_item_prototypes()
+    local game_init_item_prototypes = game_init_item_prototypesRef(self)
 
     if isAPProfileLoaded() then
         -- Locked text
@@ -642,13 +642,13 @@ function get_current_pool(_type, _rarity, _legendary, _append)
 end
 
 local cardArea_emplaceRef = CardArea.emplace
-function CardArea.emplace(args, card, location, stay_flipped)
-    local cardAreaemplace = cardArea_emplaceRef(args, card, location, stay_flipped)
+function CardArea:emplace(card, location, stay_flipped)
+    local cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
     if card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
             G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK) then
         sendDebugMessage("removing card ")
-        args:remove_card(card, false)
+        self:remove_card(card, false)
         card:start_dissolve({G.C.RED}, true, 0)
     end
     return cardAreaemplace
@@ -672,7 +672,7 @@ end
 -- handle profile deletion
 G.FUNCS.can_delete_AP_profile = function(e)
     G.AP.CHECK_PROFILE_DATA = G.AP.CHECK_PROFILE_DATA or
-                                  love.filesystem.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
+                                  NFS.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
     if (not G.AP.CHECK_PROFILE_DATA) or e.config.disable_button or
         (G.APClient and G.APClient:get_state() == AP.State.SOCKET_CONNECTING) then
         G.AP.CHECK_PROFILE_DATA = false
@@ -851,8 +851,8 @@ G.FUNCS.set_up_APProfile = function()
 end
 
 local back_generate_UIRef = Back.generate_UI
-function Back.generate_UI(args, other, ui_scale, min_dims, challenge)
-    local back_generate_UI = back_generate_UIRef(args, other, ui_scale, min_dims, challenge)
+function Back:generate_UI(other, ui_scale, min_dims, challenge)
+    local back_generate_UI = back_generate_UIRef(self, other, ui_scale, min_dims, challenge)
 
     return back_generate_UI
 end
@@ -868,14 +868,14 @@ end
 
 -- debug
 
-function copy_uncrompessed(_file)
-    local file_data = love.filesystem.getInfo(_file)
+function copy_uncompressed(_file)
+    local file_data = NFS.getInfo(_file)
     if file_data ~= nil then
-        local file_string = love.filesystem.read(_file)
+        local file_string = NFS.read(_file)
         if file_string ~= '' then
             local success = nil
             success, file_string = pcall(love.data.decompress, 'string', 'deflate', file_string)
-            love.filesystem.write(_file .. ".txt", file_string)
+            NFS.write(_file .. ".txt", file_string)
         end
     end
 end
