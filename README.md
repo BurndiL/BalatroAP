@@ -18,4 +18,5 @@ You should be good to go then! If there are any issues, consider going to the Ar
 # Connecting
 
 In Balatro you can simply connect by selecting the profile "Archipelago" in the profile selector. 
+If you have a save file from a different AP session (so an entirely different mutliworld) you should delete the old save. 
 It is adviced that you backup your existing save files, even though they should not be modified or deleted by this mod. 
