@@ -4,7 +4,7 @@ This is a Mod for [Balatro](https://store.steampowered.com/app/2379780/Balatro/)
 
 # Requirements
 
-Needs [Steamodded (Alpha)](https://github.com/Steamopollys/Steamodded?tab=readme-ov-file#how-to-install-the-alpha). Just follow the installation instructions there (yes, you will need to install lovely). 
+Needs [Steamodded (Alpha)](https://github.com/Steamopollys/Steamodded?tab=readme-ov-file#how-to-install-the-alpha). You will have to install Lovely as described there and then install the Steamodded Alpha. 
 
 After installing that, you will also have to download the [lua apclient](https://github.com/black-sliver/lua-apclientpp/releases). There you need to download the `lua51.7z` and extract the file `lua51-clang64-dynamic > lua-apclientpp.dll` and put it into your Balatro installation folder (the same folder you put the lovely dll). 
 ![Your Balatro Folder should look something like this (highlighted files should be there)](https://i.imgur.com/Pe5uTX4.png).
