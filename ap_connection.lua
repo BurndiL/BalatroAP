@@ -305,7 +305,7 @@ function APConnect()
                 end)
                 G:save_progress()
                 G.FILE_HANDLER.force = true
-                notify_alert(item.key, item.set)
+                -- notify_alert(item.key, item.set)
             end
 
             unlock = function(item_name)
@@ -441,7 +441,7 @@ function APConnect()
                         if G.STAGE == G.STAGES.RUN then
                             G.E_MANAGER:add_event(Event({
                                 func = function()
-                                    G.GAME.interest_cap = center_table.extra
+                                    G.GAME.interest_cap = G.GAME.interest_cap + 1
                                     return true
                                 end
                             }))
