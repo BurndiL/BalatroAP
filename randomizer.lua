@@ -787,7 +787,7 @@ function check_for_unlock(args)
                     if string.find(tostring(k), '^b_') then
                         if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
                             G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
-                            G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
+                            #G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
                             deck_wins = deck_wins + 1
                         end
                     end
