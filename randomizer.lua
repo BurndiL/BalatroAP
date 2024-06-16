@@ -173,7 +173,7 @@ local update_game_overRef = Game.update_game_over
 function Game:update_game_over(dt)
     -- only sends deathlink if run ended before and during ante 8
     -- also checks if run is over because of deathlink coming in (not sure if necessary)
-    if G.AP.slot_data.deathlink and G.GAME.round_resets.ante <= G.GAME.win_ante and not foreignDeathlink then
+    if isAPProfileLoaded() and G.AP.slot_data and G.AP.slot_data.deathlink and G.GAME.round_resets.ante <= G.GAME.win_ante and not foreignDeathlink then
         sendDeathLinkBounce("Run ended at ante " .. G.GAME.round_resets.ante)
     end
     return update_game_overRef(self, dt)
@@ -505,8 +505,8 @@ function Game:init_item_prototypes()
             -- notify_alert(item.key, item.set)
         end
 
-        args.P_LOCKED = {}
-        for k, v in pairs(args.P_CENTERS) do
+        self.P_LOCKED = {}
+        for k, v in pairs(self.P_CENTERS) do
             -- for jokers
             if string.find(k, '^j_') then
                 v.unlocked = false
@@ -544,7 +544,7 @@ function Game:init_item_prototypes()
 
             if v.unlocked ~= nil and v.unlocked == false then
                 v.discovered = v.unlocked
-                args.P_LOCKED[#args.P_LOCKED + 1] = v
+                self.P_LOCKED[#self.P_LOCKED + 1] = v
             end
 
         end
