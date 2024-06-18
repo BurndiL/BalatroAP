@@ -128,11 +128,9 @@ end
 
 local localizeRef = localize
 function localize(args, misc_cat)
-    local localize = ''
+    -- sendDebugMessage(tostring(args and args.set))
 
-    localize = localizeRef(args, misc_cat)
-
-    return localize
+    return localizeRef(args, misc_cat)
 end
 
 local add_speech_bubbleRef = Card_Character.add_speech_bubble
@@ -168,7 +166,7 @@ function Game:update_game_over(dt)
     -- only sends deathlink if run ended before and during ante 8
     -- also checks if run is over because of deathlink coming in (not sure if necessary)
     if isAPProfileLoaded() and G.AP.slot_data and G.AP.slot_data.deathlink and G.GAME.round_resets.ante <=
-        G.GAME.win_ante and not foreignDeathlink and not G.GAME.game_over_by_deathlink then
+    G.GAME.win_ante and not foreignDeathlink and not G.GAME.game_over_by_deathlink then
         sendDeathLinkBounce("Run ended at ante " .. G.GAME.round_resets.ante)
         G.GAME.game_over_by_deathlink = true
     end
@@ -454,14 +452,21 @@ function Game:init_item_prototypes()
     local game_init_item_prototypes = game_init_item_prototypesRef(self)
 
     if isAPProfileLoaded() then
-        -- Locked text
+        -- Locked text (this system might have to be largely overhauled, can't be bothered tho 😀)
+        G.localization.descriptions["Booster"] = {}
+        -- G.localization.descriptions["Tarot"] = {}
+        -- G.localization.descriptions["Planet"] = {}
+        -- G.localization.descriptions["Spectral"] = {}
         for g_k, group in pairs(G.localization) do
             if g_k == 'descriptions' then
                 for grpkey, set in pairs(group) do
                     for x, center in pairs(set) do
-                        -- sendDebugMessage(tostring(center))
+
                         if string.find(tostring(x), '^b_') or string.find(tostring(x), '^j_') or
-                            string.find(tostring(x), '^v_') then
+                            string.find(tostring(x), '^v_') or
+                            (string.find(tostring(x), '^c_') and not string.find(tostring(x), '^c_base')) or
+                            string.find(tostring(x), '^p_') then
+
                             center.demo_locked = {}
                             center.demo_locked[1] = loc_parse_string("AP Item")
 
@@ -470,6 +475,10 @@ function Game:init_item_prototypes()
 
                             center.unlock_parsed = {}
                             center.unlock_parsed[1] = loc_parse_string("AP Item")
+
+                            if string.find(tostring(x), '^p_') then
+                                G.localization.descriptions["Booster"][x] = center
+                            end
                         end
 
                     end
@@ -487,6 +496,14 @@ function Game:init_item_prototypes()
 
         for k, v in pairs(G.AP.VoucherQueue) do
             G.PROFILES[G.AP.profile_Id]["vouchers"][k] = true
+        end
+
+        for k, v in pairs(G.AP.PackQueue) do
+            G.PROFILES[G.AP.profile_Id]["packs"][k] = true
+        end
+
+        for k, v in pairs(G.AP.ConsumableQueue) do
+            G.PROFILES[G.AP.profile_Id]["consumables"][k] = true
         end
 
         alert_unlock = function(item)
@@ -532,6 +549,28 @@ function Game:init_item_prototypes()
                         alert_unlock(v)
                     end
                 end
+                -- for packs
+            elseif string.find(k, '^p_') then
+                v.unlocked = false
+                if G.PROFILES[G.AP.profile_Id]["packs"][v.name] ~= nil then
+                    v.unlocked = true
+                    v.discovered = true
+                    if (G.AP.PackQueue[v] == true) then
+                        alert_unlock(v)
+                    end
+                end
+                -- for consumables
+                
+            elseif string.find(k, '^c_') and not string.find(k, '^c_base') then
+                v.unlocked = false
+                
+                if G.PROFILES[G.AP.profile_Id]["consumables"][v.name] ~= nil then
+                    v.unlocked = true
+                    v.discovered = true
+                    if (G.AP.ConsumableQueue[v] == true) then
+                        alert_unlock(v)
+                    end
+                end
             end
 
             v.unlock_condition = v.unlock_condition or {}
@@ -573,6 +612,8 @@ function Game:init_item_prototypes()
         G.AP.BackQueue = {}
         G.AP.VoucherQueue = {}
         G.AP.JokerQueue = {}
+        G.AP.PackQueue = {}
+        G.AP.ConsumableQueue = {}
         G.AP.GameObjectInit = true
     end
     return game_init_item_prototypes
@@ -638,10 +679,9 @@ end
 local cardArea_emplaceRef = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
     local cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
-    if card.config.center.unlocked == false and
+    if isAPProfileLoaded() and card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
             G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers) then
-        sendDebugMessage("removing card ")
         self:remove_card(card, false)
         card:start_dissolve({G.C.RED}, true, 0)
     end
@@ -839,7 +879,12 @@ G.FUNCS.set_up_APProfile = function()
     G.PROFILES[G.AP.profile_Id]["jokers"] = {}
     G.PROFILES[G.AP.profile_Id]["backs"] = {}
     G.PROFILES[G.AP.profile_Id]["vouchers"] = {}
+    G.PROFILES[G.AP.profile_Id]["packs"] = {}
+    G.PROFILES[G.AP.profile_Id]["consumables"] = {}
+
     G.PROFILES[G.AP.profile_Id]["bonushands"] = 0
+    G.PROFILES[G.AP.profile_Id]["bonusdiscards"] = 0
+    G.PROFILES[G.AP.profile_Id]["bonushandsize"] = 0
     -- TODO add missing bonus lists
 end
 
