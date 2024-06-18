@@ -114,20 +114,13 @@ G.FUNCS.die = function()
 
         foreignDeathlink = true
         -- G.SETTINGS.screenshake = 300
-        G.E_MANAGER:add_event(Event({
-            trigger = 'immediate',
-            delay = 0.2,
-            func = function()
-                G.STATE = G.STATES.GAME_OVER
-                if not G.GAME.won and not G.GAME.seeded and not G.GAME.challenge then
-                    G.PROFILES[G.SETTINGS.profile].high_scores.current_streak.amt = 0
-                end
-                G:save_settings()
-                G.FILE_HANDLER.force = true
-                G.STATE_COMPLETE = false
-                return true
-            end
-        }))
+        G.STATE = G.STATES.GAME_OVER
+        if not G.GAME.won and not G.GAME.seeded and not G.GAME.challenge then
+            G.PROFILES[G.SETTINGS.profile].high_scores.current_streak.amt = 0
+        end
+        G:save_settings()
+        G.FILE_HANDLER.force = true
+        G.STATE_COMPLETE = false
     end
 end
 
@@ -175,8 +168,9 @@ function Game:update_game_over(dt)
     -- only sends deathlink if run ended before and during ante 8
     -- also checks if run is over because of deathlink coming in (not sure if necessary)
     if isAPProfileLoaded() and G.AP.slot_data and G.AP.slot_data.deathlink and G.GAME.round_resets.ante <=
-        G.GAME.win_ante and not foreignDeathlink then
+        G.GAME.win_ante and not foreignDeathlink and not G.GAME.game_over_by_deathlink then
         sendDeathLinkBounce("Run ended at ante " .. G.GAME.round_resets.ante)
+        G.GAME.game_over_by_deathlink = true
     end
     return update_game_overRef(self, dt)
 end
