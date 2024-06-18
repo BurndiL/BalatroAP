@@ -704,7 +704,7 @@ function CardArea:emplace(card, location, stay_flipped)
     local cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
     if isAPProfileLoaded() and card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
-            G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers) then
+            G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers or self == G.consumeables) then
         self:remove_card(card, false)
         card:start_dissolve({G.C.RED}, true, 0)
     end
