@@ -129,7 +129,7 @@ end
 
 local speech_bubbleref = G.UIDEF.speech_bubble
 function G.UIDEF.speech_bubble(text_key, loc_vars)
-    if not G.GAME.game_over_by_deathlink and G.AP.death_link_cause ~= "unknown" and loc_vars and loc_vars.quip then
+    if not G.GAME.game_over_by_deathlink and G.AP.death_link_cause and G.AP.death_link_cause ~= "unknown" and loc_vars and loc_vars.quip then
         -- split cause into chunks
         local lines = {}
         local count = 0
