@@ -103,6 +103,7 @@ function Game:init_game_object()
                                             (G.PROFILES[G.AP.profile_Id]["maxinterest"] or 0)
     end
 
+    foreignDeathlink = false
     return init_game_object
 end
 
@@ -124,25 +125,47 @@ G.FUNCS.die = function()
     end
 end
 
--- make joker say death link cause, not working yet
+-- jimbo yaps about deathlink cause
 
-local localizeRef = localize
-function localize(args, misc_cat)
-    -- sendDebugMessage(tostring(args and args.set))
+local speech_bubbleref = G.UIDEF.speech_bubble
+function G.UIDEF.speech_bubble(text_key, loc_vars)
+    if not G.GAME.game_over_by_deathlink and G.AP.death_link_cause ~= "unknown" and loc_vars and loc_vars.quip then
+        -- split cause into chunks
+        local lines = {}
+        local count = 0
+        for word in G.AP.death_link_cause:gmatch("%S+") do
+            if count % 4 == 0 then lines[#lines + 1] = "" end
+            count = count + 1
+            lines[#lines] = lines[#lines] .. " " .. word
+        end
 
-    return localizeRef(args, misc_cat)
-end
+        G.localization.quips_parsed.ap_death = { multi_line = true }
+        for k, v in ipairs(lines) do
+            G.localization.quips_parsed.ap_death[k] = loc_parse_string(v)
+        end
 
-local add_speech_bubbleRef = Card_Character.add_speech_bubble
-function Card_Character:add_speech_bubble(text_key, align, loc_vars)
-    -- sendDebugMessage(tostring(G.AP.death_link_cause))
-    if G.AP.death_link_cause and loc_vars and loc_vars.quip then
-        text_key = 'deathlink'
+        local text = {}
+        localize { type = 'quips', key = 'ap_death', vars = {}, nodes = text }
+        local row = {}
+        for k, v in ipairs(text) do
+            row[#row + 1] = { n = G.UIT.R, config = { align = "cl" }, nodes = v }
+        end
+        local t = {
+            n = G.UIT.ROOT,
+            config = { align = "cm", minh = 1, r = 0.3, padding = 0.07, minw = 1, colour = G.C.JOKER_GREY, shadow = true },
+            nodes = {
+                {
+                    n = G.UIT.C,
+                    config = { align = "cm", minh = 1, r = 0.2, padding = 0.1, minw = 1, colour = G.C.WHITE },
+                    nodes = {
+                        { n = G.UIT.C, config = { align = "cm", minh = 1, r = 0.2, padding = 0.03, minw = 1, colour = G.C.WHITE }, nodes = row }
+                    }
+                }
+            }
+        }
+        return t
     end
-
-    local add_speech_bubble = add_speech_bubbleRef(self, text_key, align, loc_vars)
-
-    return add_speech_bubble
+    return speech_bubbleref(text_key, loc_vars)
 end
 
 -- send out deathlink
