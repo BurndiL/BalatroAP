@@ -589,7 +589,9 @@ function APConnect()
             G.AP.death_link_source = bounce.data.source or "unknown"
 
             -- lol
-            G.FUNCS.die()
+            if not G.GAME.game_over_by_deathlink then
+                G.FUNCS.die()
+            end
         end
     end
 
