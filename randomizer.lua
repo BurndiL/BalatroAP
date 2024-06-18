@@ -777,12 +777,24 @@ end
 
 local unlock_cardRef = unlock_card
 function unlock_card(card)
-    -- only intervene if 1. APProfile is loaded and 2. The receiving item is a AP Item (so planet/tarot/voucher etc are not included)
-    if isAPProfileLoaded() and (card.set == 'Back' or card.set == 'Joker' or card.set == "Voucher") then
+    -- only intervene if 1. APProfile is loaded and 2. The receiving item is a AP Item 
+    if isAPProfileLoaded() and
+        (card.set == 'Back' or card.set == 'Joker' or card.set == "Voucher" or card.set == "Booster" or card.set ==
+            "Spectral" or card.set == "Planet" or card.set == "Tarot") then
         return
     end
 
     return unlock_cardRef(card)
+end
+
+local discover_cardRef = discover_card
+function discover_card(card) 
+    if isAPProfileLoaded() and card.unlocked == false and
+        (card.set == 'Back' or card.set == 'Joker' or card.set == "Voucher" or card.set == "Booster" or card.set ==
+            "Spectral" or card.set == "Planet" or card.set == "Tarot") then
+        return
+    end
+    return discover_cardRef(card)
 end
 
 -- Here you can unlock checks
