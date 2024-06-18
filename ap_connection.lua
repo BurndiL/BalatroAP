@@ -283,7 +283,6 @@ G.APItems = {
     [G.AP.id_offset + 263] = "The Soul",
     [G.AP.id_offset + 264] = "Black Hole",
 
-
     -- Bonus Items
     [G.AP.id_offset + 300] = "Bonus Discards",
     [G.AP.id_offset + 301] = "Bonus Money",
@@ -310,6 +309,8 @@ function APConnect()
     G.AP.BackQueue = {}
     G.AP.VoucherQueue = {}
     G.AP.BonusQueue = {}
+    G.AP.PackQueue = {}
+    G.AP.ConsumableQueue = {}
 
     function on_socket_connected()
         print("Socket connected")
@@ -331,7 +332,7 @@ function APConnect()
     function on_slot_connected(slot_data)
         print("Slot connected")
         sendDebugMessage("slot_data: " .. tostring(slot_data))
-        
+
         G.AP.slot_data = slot_data
         G.AP.goal = slot_data.goal
 
@@ -378,6 +379,11 @@ function APConnect()
             local item_id = item.item - G.AP.id_offset
             local item_name = G.APItems[item.item]
 
+            -- if item was already received, ignore it 
+            if G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                item_id = 0
+            end
+
             alert_unlock = function(item)
                 G:save_notify(item)
                 table.sort(G.P_CENTER_POOLS["Back"], function(a, b)
@@ -412,143 +418,163 @@ function APConnect()
 
             sendDebugMessage("received Item id" .. tostring(item_id))
             sendDebugMessage("received Item name" .. tostring(item_name))
-            -- failsave, because if item_name is unknown, item_id will be 0
-            if item_id == 0 then
-                return
+
+            -- failsave, because if item_name is unknown or was already received, item_id will be 0
+            if item_id ~= 0 then
+                -- unlock decks by adding their name to the list of backs (this backs list is only there in AP to keep track of unlocks):
+                -- same with jokers/vouchers
+                if item_id <= 15 then
+                    sendDebugMessage("received Deck")
+
+                    -- different handling if item was received on startup (queue it)
+                    -- or if it's during gameplay (display immediately)
+                    if G.AP.GameObjectInit then
+                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                        G.PROFILES[G.AP.profile_Id]["backs"][item_name] = true
+                        unlock(item_name)
+                    else
+                        G.AP.BackQueue[item_name] = item.index
+                    end
+
+                elseif item_id >= 16 and item_id <= 165 then
+                    sendDebugMessage("received Joker")
+                    if G.AP.GameObjectInit then
+                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                        G.PROFILES[G.AP.profile_Id]["jokers"][item_name] = true
+                        unlock(item_name)
+                    else
+                        G.AP.JokerQueue[item_name] = item.index
+                    end
+                    -- Vouchers
+                elseif item_id >= 166 and item_id <= 197 then
+                    sendDebugMessage("received Voucher")
+                    if G.AP.GameObjectInit then
+                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                        G.PROFILES[G.AP.profile_Id]["vouchers"][item_name] = true
+                        unlock(item_name)
+                    else
+                        G.AP.VoucherQueue[item_name] = item.index
+                    end
+                    -- Packs
+                elseif item_id >= 198 and item_id <= 212 then
+                    sendDebugMessage("received Pack")
+                    if G.AP.GameObjectInit then
+                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                        G.PROFILES[G.AP.profile_Id]["packs"][item_name] = true
+                        unlock(item_name)
+                    else
+                        G.AP.PackQueue[item_name] = item.index
+                    end
+                    -- Consumables
+                elseif item_id >= 213 and item_id <= 264 then
+                    sendDebugMessage("received Consumable")
+                    if G.AP.GameObjectInit then
+                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                        G.PROFILES[G.AP.profile_Id]["consumables"][item_name] = true
+                        unlock(item_name)
+                    else
+                        G.AP.ConsumableQueue[item_name] = item.index
+                    end
+
+                    -- Bonus Items
+                elseif item_id >= 300 and item_id < 320 then
+                    if item_id == 300 then
+                        if G.AP.GameObjectInit then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.PROFILES[G.AP.profile_Id]["bonusdiscards"] =
+                                (G.PROFILES[G.AP.profile_Id]["bonusdiscards"] or 0) + 1
+                            if G.STAGE == G.STAGES.RUN then
+                                ease_discard(1)
+                            end
+                        else
+                            G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
+                                type = "bonusdiscards",
+                                idx = item.index
+                            }
+                        end
+                    elseif item_id == 301 then
+                        -- bonus money (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            local amount = math.random(3, 8)
+                            ease_dollars(amount)
+                        end
+                    elseif item_id == 302 then
+                        if G.AP.GameObjectInit then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] =
+                                (G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] or 0) + 1
+                        else
+                            G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
+                                type = "bonusstartingmoney",
+                                idx = item.index
+                            }
+                        end
+                    elseif item_id == 303 then
+                        if G.AP.GameObjectInit then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.PROFILES[G.AP.profile_Id]["bonushands"] =
+                                (G.PROFILES[G.AP.profile_Id]["bonushands"] or 0) + 1
+                            if G.STAGE == G.STAGES.RUN then
+                                ease_hands_played(1)
+                            end
+                        else
+                            G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
+                                type = "bonushands",
+                                idx = item.index
+                            }
+                        end
+                    elseif item_id == 304 then
+                        if G.AP.GameObjectInit then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.PROFILES[G.AP.profile_Id]["bonushandsize"] =
+                                (G.PROFILES[G.AP.profile_Id]["bonushandsize"] or 0) + 1
+                            if G.STAGE == G.STAGES.RUN then
+                                G.hand:change_size(1)
+                            end
+                        else
+                            G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
+                                type = "bonushandsize",
+                                idx = item.index
+                            }
+                        end
+                    elseif item_id == 305 then
+                        if G.AP.GameObjectInit then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.PROFILES[G.AP.profile_Id]["maxinterest"] =
+                                (G.PROFILES[G.AP.profile_Id]["maxinterest"] or 0) + 1
+                            if G.STAGE == G.STAGES.RUN then
+                                G.E_MANAGER:add_event(Event({
+                                    func = function()
+                                        G.GAME.interest_cap = G.GAME.interest_cap + 1
+                                        return true
+                                    end
+                                }))
+                            end
+                        else
+                            G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
+                                type = "maxinterest",
+                                idx = item.index
+                            }
+                        end
+                    end
+
+                    -- traps (only trigger while in run)
+                elseif item_id >= 320 and item_id < 330 and G.STAGE and G.STAGE == G.STAGES.RUN then
+                    if (item_id == 320) then
+                        -- Lose All Money
+                        ease_dollars(-G.GAME.dollars, true)
+
+                    elseif (item_id == 321) then
+                        -- Lose 1 Discard
+                        ease_discard(-1)
+                    elseif item_id == 322 then
+                        -- Lose 1 Hand
+                        ease_hands_played(-1)
+                    end
+                end
             end
-
-            -- unlock decks by adding their name to the list of backs (this backs list is only there in AP to keep track of unlocks):
-            -- same with jokers/vouchers
-            if item_id <= 15 then
-                sendDebugMessage("received Deck")
-
-                -- different handling if item was received on startup (queue it)
-                -- or if it's during gameplay (display immediately)
-                if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
-                    G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
-                    G.PROFILES[G.AP.profile_Id]["backs"][item_name] = true
-                    unlock(item_name)
-                else
-                    G.AP.BackQueue[item_name] = item.index
-                end
-
-            elseif item_id >= 16 and item_id <= 165 then
-                sendDebugMessage("received Joker")
-                if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
-                    G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
-                    G.PROFILES[G.AP.profile_Id]["jokers"][item_name] = true
-                    unlock(item_name)
-                else
-                    G.AP.JokerQueue[item_name] = item.index
-                end
-
-            elseif item_id >= 166 and item_id <= 197 then
-                sendDebugMessage("received Voucher")
-                if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
-                    G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
-                    G.PROFILES[G.AP.profile_Id]["vouchers"][item_name] = true
-                    unlock(item_name)
-                else
-                    G.AP.VoucherQueue[item_name] = item.index
-                end
-
-                -- Bonus Items
-            elseif item_id >= 300 and item_id < 320 then
-                if item_id == 300 then
-                    if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
-                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
-                        G.PROFILES[G.AP.profile_Id]["bonusdiscards"] =
-                            (G.PROFILES[G.AP.profile_Id]["bonusdiscards"] or 0) + 1
-                        if G.STAGE == G.STAGES.RUN then
-                            ease_discard(1)
-                        end
-                    else
-                        G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
-                            type = "bonusdiscards",
-                            idx = item.index
-                        }
-                    end
-                elseif item_id == 301 then
-                    -- bonus money (must be during a game)
-                    if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
-                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
-                        local amount = math.random(3, 8)
-                        ease_dollars(amount)
-                    end
-                elseif item_id == 302 then
-                    if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
-                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
-                        G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] =
-                            (G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] or 0) + 1
-                    else
-                        G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
-                            type = "bonusstartingmoney",
-                            idx = item.index
-                        }
-                    end
-                elseif item_id == 303 then
-                    if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
-                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
-                        G.PROFILES[G.AP.profile_Id]["bonushands"] = (G.PROFILES[G.AP.profile_Id]["bonushands"] or 0) + 1
-                        if G.STAGE == G.STAGES.RUN then
-                            ease_hands_played(1)
-                        end
-                    else
-                        G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
-                            type = "bonushands",
-                            idx = item.index
-                        }
-                    end
-                elseif item_id == 304 then
-                    if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
-                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
-                        G.PROFILES[G.AP.profile_Id]["bonushandsize"] =
-                            (G.PROFILES[G.AP.profile_Id]["bonushandsize"] or 0) + 1
-                        if G.STAGE == G.STAGES.RUN then
-                            G.hand:change_size(1)
-                        end
-                    else
-                        G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
-                            type = "bonushandsize",
-                            idx = item.index
-                        }
-                    end
-                elseif item_id == 305 then
-                    if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
-                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
-                        G.PROFILES[G.AP.profile_Id]["maxinterest"] =
-                            (G.PROFILES[G.AP.profile_Id]["maxinterest"] or 0) + 1
-                        if G.STAGE == G.STAGES.RUN then
-                            G.E_MANAGER:add_event(Event({
-                                func = function()
-                                    G.GAME.interest_cap = G.GAME.interest_cap + 1
-                                    return true
-                                end
-                            }))
-                        end
-                    else
-                        G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
-                            type = "maxinterest",
-                            idx = item.index
-                        }
-                    end
-                end
-
-                -- traps (only trigger while in run)
-            elseif item_id >= 320 and item_id < 330 and G.STAGE and G.STAGE == G.STAGES.RUN then
-                if (item_id == 320) then
-                    -- Lose All Money
-                    ease_dollars(-G.GAME.dollars, true)
-
-                elseif (item_id == 321) then
-                    -- Lose 1 Discard
-                    ease_discard(-1)
-                elseif item_id == 322 then
-                    -- Lose 1 Hand
-                    ease_hands_played(-1)
-                end
-            end
-
         end
 
     end
