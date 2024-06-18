@@ -204,17 +204,97 @@ G.APItems = {
     [G.AP.id_offset + 196] = "Retcon",
     [G.AP.id_offset + 197] = "Palette",
 
+    -- Packs 
+
+    [G.AP.id_offset + 198] = "Arcana Pack",
+    [G.AP.id_offset + 199] = "Jumbo Arcana Pack",
+    [G.AP.id_offset + 200] = "Mega Arcana Pack",
+    [G.AP.id_offset + 201] = "Celestial Pack",
+    [G.AP.id_offset + 202] = "Jumbo Celestial Pack",
+    [G.AP.id_offset + 203] = "Mega Celestial Pack",
+    [G.AP.id_offset + 204] = "Spectral Pack",
+    [G.AP.id_offset + 205] = "Jumbo Spectral Pack",
+    [G.AP.id_offset + 206] = "Mega Spectral Pack",
+    [G.AP.id_offset + 207] = "Standard Pack",
+    [G.AP.id_offset + 208] = "Jumbo Standard Pack",
+    [G.AP.id_offset + 209] = "Mega Standard Pack",
+    [G.AP.id_offset + 210] = "Buffoon Pack",
+    [G.AP.id_offset + 211] = "Jumbo Buffoon Pack",
+    [G.AP.id_offset + 212] = "Mega Buffoon Pack",
+
+    -- Tarot Cards 
+
+    [G.AP.id_offset + 213] = "The Fool",
+    [G.AP.id_offset + 214] = "The Magician",
+    [G.AP.id_offset + 215] = "The High Priestess",
+    [G.AP.id_offset + 216] = "The Empress",
+    [G.AP.id_offset + 217] = "The Emperor",
+    [G.AP.id_offset + 218] = "The Hierophant",
+    [G.AP.id_offset + 219] = "The Lovers",
+    [G.AP.id_offset + 220] = "The Chariot",
+    [G.AP.id_offset + 221] = "Justice",
+    [G.AP.id_offset + 222] = "The Hermit",
+    [G.AP.id_offset + 223] = "The Wheel of Fortune",
+    [G.AP.id_offset + 224] = "Strength",
+    [G.AP.id_offset + 225] = "The Hanged Man",
+    [G.AP.id_offset + 226] = "Death",
+    [G.AP.id_offset + 227] = "Temperance",
+    [G.AP.id_offset + 228] = "The Devil",
+    [G.AP.id_offset + 229] = "The Tower",
+    [G.AP.id_offset + 230] = "The Star",
+    [G.AP.id_offset + 231] = "The Moon",
+    [G.AP.id_offset + 232] = "The Sun",
+    [G.AP.id_offset + 233] = "Judgement",
+    [G.AP.id_offset + 234] = "The World",
+
+    -- Planet Cards
+
+    [G.AP.id_offset + 235] = "Mercury",
+    [G.AP.id_offset + 236] = "Venus",
+    [G.AP.id_offset + 237] = "Earth",
+    [G.AP.id_offset + 238] = "Mars",
+    [G.AP.id_offset + 239] = "Jupiter",
+    [G.AP.id_offset + 240] = "Saturn",
+    [G.AP.id_offset + 241] = "Uranus",
+    [G.AP.id_offset + 242] = "Neptune",
+    [G.AP.id_offset + 243] = "Pluto",
+    [G.AP.id_offset + 244] = "Planet X",
+    [G.AP.id_offset + 245] = "Ceres",
+    [G.AP.id_offset + 246] = "Eris",
+
+    -- Spectral Cards
+
+    [G.AP.id_offset + 247] = "Familiar",
+    [G.AP.id_offset + 248] = "Grim",
+    [G.AP.id_offset + 249] = "Incantation",
+    [G.AP.id_offset + 250] = "Talisman",
+    [G.AP.id_offset + 251] = "Aura",
+    [G.AP.id_offset + 252] = "Wraith",
+    [G.AP.id_offset + 253] = "Sigil",
+    [G.AP.id_offset + 254] = "Ouija",
+    [G.AP.id_offset + 255] = "Ectoplasm",
+    [G.AP.id_offset + 256] = "Immolate",
+    [G.AP.id_offset + 257] = "Ankh",
+    [G.AP.id_offset + 258] = "Deja Vu",
+    [G.AP.id_offset + 259] = "Hex",
+    [G.AP.id_offset + 260] = "Trance",
+    [G.AP.id_offset + 261] = "Medium",
+    [G.AP.id_offset + 262] = "Cryptid",
+    [G.AP.id_offset + 263] = "The Soul",
+    [G.AP.id_offset + 264] = "Black Hole",
+
+
     -- Bonus Items
-    [G.AP.id_offset + 200] = "Bonus Discards",
-    [G.AP.id_offset + 201] = "Bonus Money",
-    [G.AP.id_offset + 202] = "Bonus Starting Money",
-    [G.AP.id_offset + 203] = "Bonus Hands",
-    [G.AP.id_offset + 204] = "Bonus Hand Size",
+    [G.AP.id_offset + 300] = "Bonus Discards",
+    [G.AP.id_offset + 301] = "Bonus Money",
+    [G.AP.id_offset + 302] = "Bonus Starting Money",
+    [G.AP.id_offset + 303] = "Bonus Hands",
+    [G.AP.id_offset + 304] = "Bonus Hand Size",
 
     -- Trap Items
-    [G.AP.id_offset + 220] = "Lose All Money",
-    [G.AP.id_offset + 221] = "Lose Discard",
-    [G.AP.id_offset + 222] = "Lose Hand"
+    [G.AP.id_offset + 320] = "Lose All Money",
+    [G.AP.id_offset + 321] = "Lose Discard",
+    [G.AP.id_offset + 322] = "Lose Hand"
 }
 
 G.APSave = {
@@ -373,8 +453,8 @@ function APConnect()
                 end
 
                 -- Bonus Items
-            elseif item_id >= 200 and item_id < 220 then
-                if item_id == 200 then
+            elseif item_id >= 300 and item_id < 320 then
+                if item_id == 300 then
                     if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
                         G.PROFILES[G.AP.profile_Id]["bonusdiscards"] =
@@ -388,14 +468,14 @@ function APConnect()
                             idx = item.index
                         }
                     end
-                elseif item_id == 201 then
+                elseif item_id == 301 then
                     -- bonus money (must be during a game)
                     if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
                         local amount = math.random(3, 8)
                         ease_dollars(amount)
                     end
-                elseif item_id == 202 then
+                elseif item_id == 302 then
                     if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
                         G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] =
@@ -406,7 +486,7 @@ function APConnect()
                             idx = item.index
                         }
                     end
-                elseif item_id == 203 then
+                elseif item_id == 303 then
                     if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
                         G.PROFILES[G.AP.profile_Id]["bonushands"] = (G.PROFILES[G.AP.profile_Id]["bonushands"] or 0) + 1
@@ -419,7 +499,7 @@ function APConnect()
                             idx = item.index
                         }
                     end
-                elseif item_id == 204 then
+                elseif item_id == 304 then
                     if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
                         G.PROFILES[G.AP.profile_Id]["bonushandsize"] =
@@ -433,7 +513,7 @@ function APConnect()
                             idx = item.index
                         }
                     end
-                elseif item_id == 205 then
+                elseif item_id == 305 then
                     if G.AP.GameObjectInit and not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true 
                         G.PROFILES[G.AP.profile_Id]["maxinterest"] =
@@ -455,15 +535,15 @@ function APConnect()
                 end
 
                 -- traps (only trigger while in run)
-            elseif item_id >= 220 and item_id < 230 and G.STAGE and G.STAGE == G.STAGES.RUN then
-                if (item_id == 220) then
+            elseif item_id >= 320 and item_id < 330 and G.STAGE and G.STAGE == G.STAGES.RUN then
+                if (item_id == 320) then
                     -- Lose All Money
                     ease_dollars(-G.GAME.dollars, true)
 
-                elseif (item_id == 221) then
+                elseif (item_id == 321) then
                     -- Lose 1 Discard
                     ease_discard(-1)
-                elseif item_id == 222 then
+                elseif item_id == 322 then
                     -- Lose 1 Hand
                     ease_hands_played(-1)
                 end
