@@ -110,9 +110,10 @@ end
 
 G.FUNCS.die = function()
 
-    if G.STAGE == G.STAGES.RUN and G.AP.slot_data.deathlink then
+    if G.STAGE == G.STAGES.RUN and G.AP.slot_data and G.AP.slot_data.deathlink then
 
         foreignDeathlink = true
+        -- G.SETTINGS.screenshake = 300
         G.E_MANAGER:add_event(Event({
             trigger = 'immediate',
             delay = 0.2,
@@ -173,7 +174,8 @@ local update_game_overRef = Game.update_game_over
 function Game:update_game_over(dt)
     -- only sends deathlink if run ended before and during ante 8
     -- also checks if run is over because of deathlink coming in (not sure if necessary)
-    if isAPProfileLoaded() and G.AP.slot_data and G.AP.slot_data.deathlink and G.GAME.round_resets.ante <= G.GAME.win_ante and not foreignDeathlink then
+    if isAPProfileLoaded() and G.AP.slot_data and G.AP.slot_data.deathlink and G.GAME.round_resets.ante <=
+        G.GAME.win_ante and not foreignDeathlink then
         sendDeathLinkBounce("Run ended at ante " .. G.GAME.round_resets.ante)
     end
     return update_game_overRef(self, dt)
@@ -438,8 +440,6 @@ function Game:load_profile(_profile)
 
     local APSettings = load_file('APSettings.json')
 
-    
-
     if APSettings ~= nil then
         APSettings = json.decode(APSettings)
         if APSettings ~= nil then
@@ -588,11 +588,11 @@ end
 
 local can_redeem_APRef = G.FUNCS.can_redeem
 G.FUNCS.can_redeem = function(e)
-    if isAPProfileLoaded() and not e.config.ref_table.unlocked then
-        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
-        e.config.button = nil
-        return
-    end
+    -- if isAPProfileLoaded() and not e.config.ref_table.unlocked then
+    --     e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+    --     e.config.button = nil
+    --     return
+    -- end
 
     return can_redeem_APRef(e)
 end
@@ -646,7 +646,7 @@ function CardArea:emplace(card, location, stay_flipped)
     local cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
     if card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
-            G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK) then
+            G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers) then
         sendDebugMessage("removing card ")
         self:remove_card(card, false)
         card:start_dissolve({G.C.RED}, true, 0)
@@ -671,8 +671,7 @@ end
 
 -- handle profile deletion
 G.FUNCS.can_delete_AP_profile = function(e)
-    G.AP.CHECK_PROFILE_DATA = G.AP.CHECK_PROFILE_DATA or
-                                  NFS.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
+    G.AP.CHECK_PROFILE_DATA = G.AP.CHECK_PROFILE_DATA or NFS.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
     if (not G.AP.CHECK_PROFILE_DATA) or e.config.disable_button or
         (G.APClient and G.APClient:get_state() == AP.State.SOCKET_CONNECTING) then
         G.AP.CHECK_PROFILE_DATA = false
