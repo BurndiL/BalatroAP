@@ -129,39 +129,77 @@ end
 
 local speech_bubbleref = G.UIDEF.speech_bubble
 function G.UIDEF.speech_bubble(text_key, loc_vars)
-    if not G.GAME.game_over_by_deathlink and G.AP.death_link_cause and G.AP.death_link_cause ~= "unknown" and loc_vars and loc_vars.quip then
+    if not G.GAME.game_over_by_deathlink and G.AP.death_link_cause and G.AP.death_link_cause ~= "unknown" and loc_vars and
+        loc_vars.quip then
         -- split cause into chunks
         local lines = {}
         local count = 0
         for word in G.AP.death_link_cause:gmatch("%S+") do
-            if count % 4 == 0 then lines[#lines + 1] = "" end
+            if count % 4 == 0 then
+                lines[#lines + 1] = ""
+            end
             count = count + 1
             lines[#lines] = lines[#lines] .. " " .. word
         end
 
-        G.localization.quips_parsed.ap_death = { multi_line = true }
+        G.localization.quips_parsed.ap_death = {
+            multi_line = true
+        }
         for k, v in ipairs(lines) do
             G.localization.quips_parsed.ap_death[k] = loc_parse_string(v)
         end
 
         local text = {}
-        localize { type = 'quips', key = 'ap_death', vars = {}, nodes = text }
+        localize {
+            type = 'quips',
+            key = 'ap_death',
+            vars = {},
+            nodes = text
+        }
         local row = {}
         for k, v in ipairs(text) do
-            row[#row + 1] = { n = G.UIT.R, config = { align = "cl" }, nodes = v }
+            row[#row + 1] = {
+                n = G.UIT.R,
+                config = {
+                    align = "cl"
+                },
+                nodes = v
+            }
         end
         local t = {
             n = G.UIT.ROOT,
-            config = { align = "cm", minh = 1, r = 0.3, padding = 0.07, minw = 1, colour = G.C.JOKER_GREY, shadow = true },
-            nodes = {
-                {
+            config = {
+                align = "cm",
+                minh = 1,
+                r = 0.3,
+                padding = 0.07,
+                minw = 1,
+                colour = G.C.JOKER_GREY,
+                shadow = true
+            },
+            nodes = {{
+                n = G.UIT.C,
+                config = {
+                    align = "cm",
+                    minh = 1,
+                    r = 0.2,
+                    padding = 0.1,
+                    minw = 1,
+                    colour = G.C.WHITE
+                },
+                nodes = {{
                     n = G.UIT.C,
-                    config = { align = "cm", minh = 1, r = 0.2, padding = 0.1, minw = 1, colour = G.C.WHITE },
-                    nodes = {
-                        { n = G.UIT.C, config = { align = "cm", minh = 1, r = 0.2, padding = 0.03, minw = 1, colour = G.C.WHITE }, nodes = row }
-                    }
-                }
-            }
+                    config = {
+                        align = "cm",
+                        minh = 1,
+                        r = 0.2,
+                        padding = 0.03,
+                        minw = 1,
+                        colour = G.C.WHITE
+                    },
+                    nodes = row
+                }}
+            }}
         }
         return t
     end
@@ -189,7 +227,7 @@ function Game:update_game_over(dt)
     -- only sends deathlink if run ended before and during ante 8
     -- also checks if run is over because of deathlink coming in (not sure if necessary)
     if isAPProfileLoaded() and G.AP.slot_data and G.AP.slot_data.deathlink and G.GAME.round_resets.ante <=
-    G.GAME.win_ante and not foreignDeathlink and not G.GAME.game_over_by_deathlink then
+        G.GAME.win_ante and not foreignDeathlink and not G.GAME.game_over_by_deathlink then
         sendDeathLinkBounce("Run ended at ante " .. G.GAME.round_resets.ante)
         G.GAME.game_over_by_deathlink = true
     end
@@ -583,10 +621,10 @@ function Game:init_item_prototypes()
                     end
                 end
                 -- for consumables
-                
+
             elseif string.find(k, '^c_') and not string.find(k, '^c_base') then
                 v.unlocked = false
-                
+
                 if G.PROFILES[G.AP.profile_Id]["consumables"][v.name] ~= nil then
                     v.unlocked = true
                     v.discovered = true
@@ -726,6 +764,14 @@ G.FUNCS.can_skip_booster = function(e)
     return can_skip_boosterRef(e)
 end
 
+local card_can_use_consumeableRef = Card.can_use_consumeable
+function Card:can_use_consumeable(any_state, skip_check)
+    if (isAPProfileLoaded() and self.config and self.config.center and self.center.unlocked == false) then
+        return false
+    end
+    return card_can_use_consumeableRef(self, any_state, skip_check)
+end
+
 -- handle profile deletion
 G.FUNCS.can_delete_AP_profile = function(e)
     G.AP.CHECK_PROFILE_DATA = G.AP.CHECK_PROFILE_DATA or NFS.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
@@ -788,7 +834,7 @@ function unlock_card(card)
 end
 
 local discover_cardRef = discover_card
-function discover_card(card) 
+function discover_card(card)
     if isAPProfileLoaded() and card.unlocked == false and
         (card.set == 'Back' or card.set == 'Joker' or card.set == "Voucher" or card.set == "Booster" or card.set ==
             "Spectral" or card.set == "Planet" or card.set == "Tarot") then
