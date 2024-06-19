@@ -374,6 +374,9 @@ function APConnect()
     function on_items_received(items)
         print("Items received:")
         remove_locked = {}
+        if not items then
+          return
+        end
         for _, item in ipairs(items) do
             print(item.item)
             local item_id = item.item - G.AP.id_offset
