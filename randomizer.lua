@@ -34,6 +34,7 @@ local isInProfileOptionCreation = false
 local unloadAPProfile = false
 local foreignDeathlink = false
 local ap_profile_delete = false
+local ap_items_in_shop = 0
 
 G.AP.profile_Id = -1
 G.AP.GameObjectInit = false
@@ -105,6 +106,15 @@ function Game:init_game_object()
 
     foreignDeathlink = false
     return init_game_object
+end
+
+local game_start_runRef = Game.start_run
+function Game:start_run(args)
+    local game_start_run = game_start_runRef(self, args)
+
+    -- remove this out of the normal voucher rotation immediately.
+    -- spawning the AP item is taken care of somewhere else.
+    return game_start_run
 end
 
 -- DeathLink 
@@ -601,7 +611,7 @@ function Game:init_item_prototypes()
                     end
                 end
                 -- for vouchers
-            elseif string.find(k, '^v_') then
+            elseif string.find(k, '^v_') and not string.find(k, '^v_rand_ap_item') then
                 v.unlocked = false
                 if G.PROFILES[G.AP.profile_Id]["vouchers"][v.name] ~= nil then
                     v.unlocked = true
@@ -676,6 +686,8 @@ function Game:init_item_prototypes()
         G.AP.PackQueue = {}
         G.AP.ConsumableQueue = {}
         G.AP.GameObjectInit = true
+
+        G.FUNCS.initialize_shop_items()
     end
     return game_init_item_prototypes
 end
@@ -710,7 +722,7 @@ function get_next_voucher_key(_from_tag)
     local get_next_voucher = get_next_voucher_keyRef(_from_tag)
     -- normally when no voucher is available it would put blank in shop, prevent that (if blank is not unlocked)
     if isAPProfileLoaded() then
-        if G.P_LOCKED[get_next_voucher] or get_next_voucher == "UNAVAILABLE" then
+        if G.P_LOCKED[get_next_voucher] or get_next_voucher == 'v_rand_ap_item' or  get_next_voucher == "UNAVAILABLE" then
             return nil
         end
     end
@@ -739,13 +751,21 @@ end
 
 local cardArea_emplaceRef = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
+    if (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and G.STATE == G.STATES.SHOP) then
+        ap_items_in_shop = ap_items_in_shop + 1
+    end
+
     local cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
-    if isAPProfileLoaded() and card.config.center.unlocked == false and
+    if (isAPProfileLoaded() and card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
-            G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers or self == G.consumeables) then
+            G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers or self == G.consumeables)) or
+
+        (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and ap_items_in_shop > 1 and G.STATE ==
+            G.STATES.SHOP) then
         self:remove_card(card, false)
         card:start_dissolve({G.C.RED}, true, 0)
     end
+
     return cardAreaemplace
 end
 
@@ -766,10 +786,118 @@ end
 
 local card_can_use_consumeableRef = Card.can_use_consumeable
 function Card:can_use_consumeable(any_state, skip_check)
-    if (isAPProfileLoaded() and self.config and self.config.center and self.center.unlocked == false) then
+    if (isAPProfileLoaded()) then
+        if (self.config and self.config.center) then
+            if self.config.center.unlocked == true then
+                return card_can_use_consumeableRef(self, any_state, skip_check)
+            end
+        end
         return false
     end
+
     return card_can_use_consumeableRef(self, any_state, skip_check)
+end
+
+-- AP Items in shop
+
+function tableContains(table, value)
+    for i = 1, #table do
+        if (table[i] == value) then
+            return true
+        end
+    end
+    return false
+end
+
+local voucher_name = 'Archipelago Item'
+local voucher_slug = 'ap_item'
+local min_cost = 1
+local max_cost = 10
+
+G.FUNCS.initialize_shop_items = function()
+    min_cost = G.AP.slot_data.minimum_price
+    max_cost = G.AP.slot_data.maximum_price
+end
+
+SMODS.Voucher {
+    key = voucher_slug,
+    loc_txt = {
+        name = voucher_name,
+        text = {'Unlocks an AP Item when redeemed'}
+    },
+    cost = ran_cost,
+    unlocked = true,
+    discovered = true,
+    requires = {'fuck!! shit!!!! (put here anything so it doesnt spawn naturally)'}
+}
+
+function get_shop_location() 
+    for i, v in ipairs(G.AP.slot_data.shop_locations) do
+        if (tableContains(G.APClient.missing_locations, v)) then
+            return v
+        end
+    end
+    return nil
+end
+
+local redeemref = Card.redeem
+
+function Card:redeem()
+    -- backup current round voucher in case AP Item Voucher was redeemed
+    local current_round_voucher
+    if (self.config.center_key == 'v_rand_ap_item') then
+        current_round_voucher = G.GAME.current_round.voucher 
+    end
+    redeemref(self)
+    if self.config.center_key == 'v_rand_ap_item' then
+
+        local location = get_shop_location()
+        if location then
+            sendLocationCleared(location)
+        end
+
+        G.GAME.current_round.voucher = current_round_voucher
+    end
+end
+
+
+local game_update_shopRef = Game.update_shop
+
+function Game:update_shop(dt)
+
+    if not G.STATE_COMPLETE then
+        ap_items_in_shop = 0
+        local game_update_shop = game_update_shopRef(self, dt)
+        -- first check if there are still shop locations to get
+        if (get_shop_location() ~= nil) then
+            -- give new random cost each time 
+            G.P_CENTERS['v_rand_ap_item'].cost = math.random(min_cost, max_cost)
+
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.3,
+                blockable = false,
+                func = function()
+                    
+                    local voucher_key = 'v_rand_ap_item'
+                    G.shop_vouchers.config.card_limit = G.shop_vouchers.config.card_limit + 1
+                    local card = Card(G.shop_vouchers.T.x + G.shop_vouchers.T.w / 2, G.shop_vouchers.T.y, G.CARD_W,
+                    G.CARD_H, G.P_CARDS.empty, G.P_CENTERS[voucher_key], {
+                        bypass_discovery_center = true,
+                        bypass_discovery_ui = true
+                    })
+                    create_shop_card_ui(card, 'Voucher', G.shop_vouchers)
+                    card:start_materialize()
+                    G.shop_vouchers:emplace(card)
+                    
+                    return true
+                end
+            }))
+        end
+
+        return game_update_shop
+    end
+    return game_update_shopRef(self, dt)
 end
 
 -- handle profile deletion
@@ -849,6 +977,7 @@ local check_for_unlockRef = check_for_unlock
 function check_for_unlock(args)
     local check_for_unlock = check_for_unlockRef(args)
     if isAPProfileLoaded() then
+        -- check if the 9 here is correct
         if args.type == 'ante_up' and args.ante < 9 then
             sendDebugMessage("args.type is ante_up")
             -- when an ante is beaten
