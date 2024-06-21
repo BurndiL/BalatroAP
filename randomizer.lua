@@ -108,6 +108,15 @@ function Game:init_game_object()
     return init_game_object
 end
 
+local game_start_runRef = Game.start_run
+function Game:start_run(args)
+    local game_start_run = game_start_runRef(self, args)
+
+    -- remove this out of the normal voucher rotation immediately.
+    -- spawning the AP item is taken care of somewhere else.
+    return game_start_run
+end
+
 -- DeathLink 
 
 G.FUNCS.die = function()
@@ -713,7 +722,7 @@ function get_next_voucher_key(_from_tag)
     local get_next_voucher = get_next_voucher_keyRef(_from_tag)
     -- normally when no voucher is available it would put blank in shop, prevent that (if blank is not unlocked)
     if isAPProfileLoaded() then
-        if G.P_LOCKED[get_next_voucher] or get_next_voucher == "UNAVAILABLE" then
+        if G.P_LOCKED[get_next_voucher] or get_next_voucher == 'v_rand_ap_item' or  get_next_voucher == "UNAVAILABLE" then
             return nil
         end
     end
@@ -744,7 +753,6 @@ local cardArea_emplaceRef = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
     if (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and G.STATE == G.STATES.SHOP) then
         ap_items_in_shop = ap_items_in_shop + 1
-        sendDebugMessage("ap_items_in_shop: " .. tostring(ap_items_in_shop))
     end
 
     local cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
@@ -801,20 +809,15 @@ function tableContains(table, value)
     return false
 end
 
-G.FUNCS.initialize_shop_items = function()
-    local min_cost = G.AP.slot_data.minimum_price
-    local max_cost = G.AP.slot_data.maximum_price
-    local random_cost = math.random(min_cost, max_cost)
-
-    G.P_CENTERS['v_rand_ap_item'].cost = random_cost
-
-end
-
 local voucher_name = 'Archipelago Item'
 local voucher_slug = 'ap_item'
 local min_cost = 1
 local max_cost = 10
-local ran_cost = math.random(min_cost, max_cost)
+
+G.FUNCS.initialize_shop_items = function()
+    min_cost = G.AP.slot_data.minimum_price
+    max_cost = G.AP.slot_data.maximum_price
+end
 
 SMODS.Voucher {
     key = voucher_slug,
@@ -824,7 +827,8 @@ SMODS.Voucher {
     },
     cost = ran_cost,
     unlocked = true,
-    discovered = true
+    discovered = true,
+    requires = {'fuck!! shit!!!! (put here anything so it doesnt spawn naturally)'}
 }
 
 function get_shop_location() 
@@ -839,12 +843,20 @@ end
 local redeemref = Card.redeem
 
 function Card:redeem()
+    -- backup current round voucher in case AP Item Voucher was redeemed
+    local current_round_voucher
+    if (self.config.center_key == 'v_rand_ap_item') then
+        current_round_voucher = G.GAME.current_round.voucher 
+    end
     redeemref(self)
     if self.config.center_key == 'v_rand_ap_item' then
+
         local location = get_shop_location()
         if location then
             sendLocationCleared(location)
         end
+
+        G.GAME.current_round.voucher = current_round_voucher
     end
 end
 
@@ -858,7 +870,9 @@ function Game:update_shop(dt)
         local game_update_shop = game_update_shopRef(self, dt)
         -- first check if there are still shop locations to get
         if (get_shop_location() ~= nil) then
-            
+            -- give new random cost each time 
+            G.P_CENTERS['v_rand_ap_item'].cost = math.random(min_cost, max_cost)
+
             G.E_MANAGER:add_event(Event({
                 trigger = 'after',
                 delay = 0.3,
@@ -866,7 +880,6 @@ function Game:update_shop(dt)
                 func = function()
                     
                     local voucher_key = 'v_rand_ap_item'
-                    sendDebugMessage("Unlocked is: " .. tostring(G.P_CENTERS[voucher_key].unlocked))
                     G.shop_vouchers.config.card_limit = G.shop_vouchers.config.card_limit + 1
                     local card = Card(G.shop_vouchers.T.x + G.shop_vouchers.T.w / 2, G.shop_vouchers.T.y, G.CARD_W,
                     G.CARD_H, G.P_CARDS.empty, G.P_CENTERS[voucher_key], {
