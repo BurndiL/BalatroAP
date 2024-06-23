@@ -977,8 +977,8 @@ local check_for_unlockRef = check_for_unlock
 function check_for_unlock(args)
     local check_for_unlock = check_for_unlockRef(args)
     if isAPProfileLoaded() then
-        -- check if the 9 here is correct
-        if args.type == 'ante_up' and args.ante < 9 then
+        -- check if the 10 here is correct
+        if args.type == 'ante_up' and args.ante < 10 then
             sendDebugMessage("args.type is ante_up")
             -- when an ante is beaten
             local deck_name = G.GAME.selected_back.name
