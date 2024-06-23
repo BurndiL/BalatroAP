@@ -577,12 +577,13 @@ function Game:init_item_prototypes()
             G.PROFILES[G.AP.profile_Id]["consumables"][k] = true
         end
 
-        alert_unlock = function(item)
+        function alert_unlock(item)
             G:save_notify(item)
             table.sort(G.P_CENTER_POOLS["Back"], function(a, b)
                 return (a.order - (a.unlocked and 100 or 0)) < (b.order - (b.unlocked and 100 or 0))
             end)
             G:save_progress()
+            if item.set == 'Back' then discover_card(item) end
             G.FILE_HANDLER.force = true
             -- notify_alert(item.key, item.set)
         end
@@ -819,12 +820,20 @@ G.FUNCS.initialize_shop_items = function()
     max_cost = G.AP.slot_data.maximum_price
 end
 
+SMODS.Atlas {
+	key = "ap_item_voucher",
+	path = "v_ap_item.png",
+	px = 118,
+	py = 186
+}
+
 SMODS.Voucher {
     key = voucher_slug,
     loc_txt = {
         name = voucher_name,
         text = {'Unlocks an AP Item when redeemed'}
     },
+    atlas = 'ap_item_voucher',
     cost = ran_cost,
     unlocked = true,
     discovered = true,
