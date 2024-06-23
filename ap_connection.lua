@@ -384,12 +384,13 @@ function APConnect()
                 item_id = 0
             end
 
-            alert_unlock = function(item)
+            function alert_unlock(item)
                 G:save_notify(item)
                 table.sort(G.P_CENTER_POOLS["Back"], function(a, b)
                     return (a.order - (a.unlocked and 100 or 0)) < (b.order - (b.unlocked and 100 or 0))
                 end)
                 G:save_progress()
+                if item.set == 'Back' then discover_card(item) end
                 G.FILE_HANDLER.force = true
                 -- notify_alert(item.key, item.set)
             end
