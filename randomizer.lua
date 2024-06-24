@@ -6,14 +6,12 @@
 ----------------------------------------------
 ------------MOD CODE -------------------------
 -- TODO
--- TECH:
--- make most functions only execute when balatro profile is loaded 
--- test if outgoing deathlink works
 -- FEATURES:
 -- 
 -- Traps: Discard random cards, boss blinds
 -- Hint Pack
--- When Deathlink: joker will tell you the cause(backlog)
+-- 
+
 G.AP = {
     APAddress = "localhost",
     APPort = 38281,
@@ -518,6 +516,17 @@ end
 
 -- unlock Items based on APItems
 
+G.FUNCS.AP_unlock_item = function(item)
+    G:save_notify(item)
+    table.sort(G.P_CENTER_POOLS["Back"], function(a, b)
+        return (a.order - (a.unlocked and 100 or 0)) < (b.order - (b.unlocked and 100 or 0))
+    end)
+    G:save_progress()
+    if item.set == 'Back' then discover_card(item) end
+    G.FILE_HANDLER.force = true
+    notify_alert(item.key, item.set)
+end
+
 local game_init_item_prototypesRef = Game.init_item_prototypes
 function Game:init_item_prototypes()
     local game_init_item_prototypes = game_init_item_prototypesRef(self)
@@ -577,17 +586,6 @@ function Game:init_item_prototypes()
             G.PROFILES[G.AP.profile_Id]["consumables"][k] = true
         end
 
-        function alert_unlock(item)
-            G:save_notify(item)
-            table.sort(G.P_CENTER_POOLS["Back"], function(a, b)
-                return (a.order - (a.unlocked and 100 or 0)) < (b.order - (b.unlocked and 100 or 0))
-            end)
-            G:save_progress()
-            if item.set == 'Back' then discover_card(item) end
-            G.FILE_HANDLER.force = true
-            -- notify_alert(item.key, item.set)
-        end
-
         self.P_LOCKED = {}
         for k, v in pairs(self.P_CENTERS) do
             -- for jokers
@@ -598,17 +596,18 @@ function Game:init_item_prototypes()
                     v.discovered = true
 
                     if (G.AP.JokerQueue[v] == true) then
-                        alert_unlock(v)
+                        G.FUNCS.AP_unlock_item(v)
                     end
                 end
                 -- for backs (decks)
             elseif string.find(k, '^b_') then
                 v.unlocked = false
+                v.unlock_condition = nil
                 if G.PROFILES[G.AP.profile_Id]["backs"][v.name] ~= nil then
                     v.unlocked = true
                     v.discovered = true
                     if (G.AP.BackQueue[v] == true) then
-                        alert_unlock(v)
+                        G.FUNCS.AP_unlock_item(v)
                     end
                 end
                 -- for vouchers
@@ -618,7 +617,7 @@ function Game:init_item_prototypes()
                     v.unlocked = true
                     v.discovered = true
                     if (G.AP.VoucherQueue[v] == true) then
-                        alert_unlock(v)
+                        G.FUNCS.AP_unlock_item(v)
                     end
                 end
                 -- for packs
@@ -628,7 +627,7 @@ function Game:init_item_prototypes()
                     v.unlocked = true
                     v.discovered = true
                     if (G.AP.PackQueue[v] == true) then
-                        alert_unlock(v)
+                        G.FUNCS.AP_unlock_item(v)
                     end
                 end
                 -- for consumables
@@ -640,7 +639,7 @@ function Game:init_item_prototypes()
                     v.unlocked = true
                     v.discovered = true
                     if (G.AP.ConsumableQueue[v] == true) then
-                        alert_unlock(v)
+                        G.FUNCS.AP_unlock_item(v)
                     end
                 end
             end
@@ -979,6 +978,23 @@ function discover_card(card)
     end
     return discover_cardRef(card)
 end
+
+local create_UIBox_deck_unlockRef = create_UIBox_deck_unlock
+function create_UIBox_deck_unlock(deck_center)
+    if isAPProfileLoaded() then
+        return nil
+    end
+    return create_UIBox_deck_unlockRef(deck_center)
+end
+
+local create_UIBox_card_unlockRef = create_UIBox_card_unlock
+function create_UIBox_card_unlock(card_center)
+    if isAPProfileLoaded() then
+        return nil
+    end
+    return create_UIBox_card_unlockRef(card_center)
+end
+
 
 -- Here you can unlock checks
 

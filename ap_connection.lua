@@ -384,18 +384,7 @@ function APConnect()
                 item_id = 0
             end
 
-            function alert_unlock(item)
-                G:save_notify(item)
-                table.sort(G.P_CENTER_POOLS["Back"], function(a, b)
-                    return (a.order - (a.unlocked and 100 or 0)) < (b.order - (b.unlocked and 100 or 0))
-                end)
-                G:save_progress()
-                if item.set == 'Back' then discover_card(item) end
-                G.FILE_HANDLER.force = true
-                -- notify_alert(item.key, item.set)
-            end
-
-            unlock = function(item_name)
+            function unlock(item_name)
                 local i = 1
                 while i <= #G.P_LOCKED do
                     local wasLocked = false
@@ -405,7 +394,7 @@ function APConnect()
                         item.discovered = true
                         wasLocked = true
 
-                        alert_unlock(item)
+                        G.FUNCS.AP_unlock_item(item)
                     end
 
                     if wasLocked == true then
