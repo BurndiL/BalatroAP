@@ -11,7 +11,6 @@
 -- Traps: Discard random cards, boss blinds
 -- Hint Pack
 -- 
-
 G.AP = {
     APAddress = "localhost",
     APPort = 38281,
@@ -522,7 +521,9 @@ G.FUNCS.AP_unlock_item = function(item)
         return (a.order - (a.unlocked and 100 or 0)) < (b.order - (b.unlocked and 100 or 0))
     end)
     G:save_progress()
-    if item.set == 'Back' then discover_card(item) end
+    if item.set == 'Back' then
+        discover_card(item)
+    end
     G.FILE_HANDLER.force = true
     notify_alert(item.key, item.set)
 end
@@ -722,7 +723,7 @@ function get_next_voucher_key(_from_tag)
     local get_next_voucher = get_next_voucher_keyRef(_from_tag)
     -- normally when no voucher is available it would put blank in shop, prevent that (if blank is not unlocked)
     if isAPProfileLoaded() then
-        if G.P_LOCKED[get_next_voucher] or get_next_voucher == 'v_rand_ap_item' or  get_next_voucher == "UNAVAILABLE" then
+        if G.P_LOCKED[get_next_voucher] or get_next_voucher == 'v_rand_ap_item' or get_next_voucher == "UNAVAILABLE" then
             return nil
         end
     end
@@ -820,10 +821,10 @@ G.FUNCS.initialize_shop_items = function()
 end
 
 SMODS.Atlas {
-	key = "ap_item_voucher",
-	path = "v_ap_item.png",
-	px = 118,
-	py = 186
+    key = "ap_item_voucher",
+    path = "v_ap_item.png",
+    px = 71,
+    py = 95
 }
 
 SMODS.Voucher {
@@ -839,7 +840,7 @@ SMODS.Voucher {
     requires = {'fuck!! shit!!!! (put here anything so it doesnt spawn naturally)'}
 }
 
-function get_shop_location() 
+function get_shop_location()
     for i, v in ipairs(G.AP.slot_data.shop_locations) do
         if (tableContains(G.APClient.missing_locations, v)) then
             return v
@@ -854,7 +855,7 @@ function Card:redeem()
     -- backup current round voucher in case AP Item Voucher was redeemed
     local current_round_voucher
     if (self.config.center_key == 'v_rand_ap_item') then
-        current_round_voucher = G.GAME.current_round.voucher 
+        current_round_voucher = G.GAME.current_round.voucher
     end
     redeemref(self)
     if self.config.center_key == 'v_rand_ap_item' then
@@ -867,7 +868,6 @@ function Card:redeem()
         G.GAME.current_round.voucher = current_round_voucher
     end
 end
-
 
 local game_update_shopRef = Game.update_shop
 
@@ -886,18 +886,18 @@ function Game:update_shop(dt)
                 delay = 0.3,
                 blockable = false,
                 func = function()
-                    
+
                     local voucher_key = 'v_rand_ap_item'
                     G.shop_vouchers.config.card_limit = G.shop_vouchers.config.card_limit + 1
                     local card = Card(G.shop_vouchers.T.x + G.shop_vouchers.T.w / 2, G.shop_vouchers.T.y, G.CARD_W,
-                    G.CARD_H, G.P_CARDS.empty, G.P_CENTERS[voucher_key], {
-                        bypass_discovery_center = true,
-                        bypass_discovery_ui = true
-                    })
+                        G.CARD_H, G.P_CARDS.empty, G.P_CENTERS[voucher_key], {
+                            bypass_discovery_center = true,
+                            bypass_discovery_ui = true
+                        })
                     create_shop_card_ui(card, 'Voucher', G.shop_vouchers)
                     card:start_materialize()
                     G.shop_vouchers:emplace(card)
-                    
+
                     return true
                 end
             }))
@@ -994,7 +994,6 @@ function create_UIBox_card_unlock(card_center)
     end
     return create_UIBox_card_unlockRef(card_center)
 end
-
 
 -- Here you can unlock checks
 

@@ -348,7 +348,13 @@ function APConnect()
         G.APClient:Get({"counter"}, extra)
         G.APClient:Set("counter", 0, true, {{"add", 1}}, extra)
         G.APClient:Set("empty_array", nil, true, {{"replace", AP.EMPTY_ARRAY}})
-        G.APClient:ConnectUpdate(nil, {"Lua-APClientPP", "DeathLink"})
+
+        local tags = {"Lua-APClientPP"}
+        if (G.AP.slot_data.deathlink) then
+            tags[#tags+1] = "DeathLink"
+        end
+
+        G.APClient:ConnectUpdate(nil, tags)
         -- G.APClient:LocationChecks({64000, 64001, 64002})
         print("Players:")
         local players = G.APClient:get_players()
