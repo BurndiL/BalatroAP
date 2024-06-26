@@ -945,11 +945,7 @@ G.FUNCS.delete_AP_profile = function(e)
 
 end
 
-
-
-
 local exit_overlay_menuRef = G.FUNCS.exit_overlay_menu
-
 G.FUNCS.exit_overlay_menu = function(e)
 
     if not isAPProfileLoaded() then
@@ -958,7 +954,6 @@ G.FUNCS.exit_overlay_menu = function(e)
     end
     return exit_overlay_menuRef(e)
 end
-
 
 -- When Load Profile Button is clicked
 local load_profile_funcRef = G.FUNCS.load_profile
@@ -998,20 +993,12 @@ function discover_card(card)
     return discover_cardRef(card)
 end
 
-local create_UIBox_deck_unlockRef = create_UIBox_deck_unlock
-function create_UIBox_deck_unlock(deck_center)
+local create_unlock_overlayRef = create_unlock_overlay
+function create_unlock_overlay(key)
     if isAPProfileLoaded() then
-        return nil
+        return
     end
-    return create_UIBox_deck_unlockRef(deck_center)
-end
-
-local create_UIBox_card_unlockRef = create_UIBox_card_unlock
-function create_UIBox_card_unlock(card_center)
-    if isAPProfileLoaded() then
-        return nil
-    end
-    return create_UIBox_card_unlockRef(card_center)
+    return create_unlock_overlayRef(key)
 end
 
 -- Here you can unlock checks
