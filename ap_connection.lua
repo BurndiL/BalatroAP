@@ -590,7 +590,6 @@ function APConnect()
 
     function on_location_checked(locations)
         print("Locations checked:" .. table.concat(locations, ", "))
-        print("Checked locations: " .. table.concat(G.APClient.checked_locations, ", "))
     end
 
     function on_data_package_changed(data_package)
