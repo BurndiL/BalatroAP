@@ -1102,10 +1102,116 @@ function sendGoalReached()
     end
 end
 
+local create_UIBox_notify_alertRef = create_UIBox_notify_alert
+function create_UIBox_notify_alert(_achievement, _type)
+    if _type == "location" then
+
+        -- change this sprite in the future
+        local _atlas = G.ASSET_ATLAS["icons"]
+        local t_s = Sprite(0, 0, 1.5 * (_atlas.px / _atlas.py), 1.5, _atlas, _c and _c.pos or {
+            x = 3,
+            y = 0
+        })
+        t_s.states.drag.can = false
+        t_s.states.hover.can = false
+        t_s.states.collide.can = false
+
+        local subtext = "Location cleared"
+        local name = "Archipelago"
+
+        return {
+            n = G.UIT.ROOT,
+            config = {
+                align = 'cl',
+                r = 0.1,
+                padding = 0.06,
+                colour = G.C.UI.TRANSPARENT_DARK
+            },
+            nodes = {{
+                n = G.UIT.R,
+                config = {
+                    align = "cl",
+                    padding = 0.2,
+                    minw = 20,
+                    r = 0.1,
+                    colour = G.C.BLACK,
+                    outline = 1.5,
+                    outline_colour = G.C.GREY
+                },
+                nodes = {{
+                    n = G.UIT.R,
+                    config = {
+                        align = "cm",
+                        r = 0.1
+                    },
+                    nodes = {{
+                        n = G.UIT.R,
+                        config = {
+                            align = "cm",
+                            r = 0.1
+                        },
+                        nodes = {{
+                            n = G.UIT.O,
+                            config = {
+                                object = t_s
+                            }
+                        }}
+                    }, {
+                        n = G.UIT.R,
+                        config = {
+                            align = "cm",
+                            padding = 0.04
+                        },
+                        nodes = {{
+                            n = G.UIT.R,
+                            config = {
+                                align = "cm",
+                                maxw = 3.4,
+                                padding = 0.1
+                            },
+                            nodes = {{
+                                n = G.UIT.T,
+                                config = {
+                                    text = name,
+                                    scale = 0.4,
+                                    colour = G.C.UI.TEXT_LIGHT,
+                                    shadow = true
+                                }
+                            }}
+                        }, {
+                            n = G.UIT.R,
+                            config = {
+                                align = "cm",
+                                maxw = 3.4
+                            },
+                            nodes = {{
+                                n = G.UIT.T,
+                                config = {
+                                    text = subtext,
+                                    scale = 0.3,
+                                    colour = G.C.FILTER,
+                                    shadow = true
+                                }
+                            }}
+                        }}
+                    }}
+                }}
+            }}
+        }
+
+    end
+
+    return create_UIBox_notify_alertRef(_achievement, _type)
+end
+
 function sendLocationCleared(id)
     if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
+
+        if (tableContains(G.APClient.missing_locations, id)) then
+            notify_alert(nil, "location")
+        end
         sendDebugMessage("sendLocationCleared: " .. tostring(id))
-        sendDebugMessage("Queuing LocationCheck was successful: " .. tostring(G.APClient:LocationChecks({id})))
+        G.APClient:LocationChecks({id})
     end
 end
 
