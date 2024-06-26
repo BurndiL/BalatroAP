@@ -1,4 +1,5 @@
-require(G.AP.this_mod.path .. "utils")
+
+NFS.load(G.AP.this_mod.path .. "utils.lua")()
 
 G.APItems = {
     -- Backs (=decks but referred to as backs)
@@ -316,8 +317,13 @@ function APConnect()
         print("Socket connected")
     end
 
+    local connection_attempts = 0
     function on_socket_error(msg)
         print("Socket error: " .. msg)
+        connection_attempts = connection_attempts + 1
+        if connection_attempts >= 3 then
+            G.FUNCS.APDisconnect()
+        end
     end
 
     function on_socket_disconnected()
@@ -643,7 +649,6 @@ function APConnect()
         end
     end
     local uuid = ""
-    print(server)
     G.APClient = AP(uuid, "Balatro", server);
 
     G.APClient:set_socket_connected_handler(on_socket_connected)
