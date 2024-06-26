@@ -549,7 +549,7 @@ function APConnect()
                             if G.STAGE == G.STAGES.RUN then
                                 G.E_MANAGER:add_event(Event({
                                     func = function()
-                                        G.GAME.interest_cap = G.GAME.interest_cap + 1
+                                        G.GAME.interest_cap = G.GAME.interest_cap + 5
                                         return true
                                     end
                                 }))
@@ -557,6 +557,46 @@ function APConnect()
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "maxinterest",
+                                idx = item.index
+                            }
+                        end
+                    elseif item_id == 306 then
+                        if G.AP.GameObjectInit then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.PROFILES[G.AP.profile_Id]["bonusjoker"] =
+                                (G.PROFILES[G.AP.profile_Id]["bonusjoker"] or 0) + 1
+                            if G.STAGE == G.STAGES.RUN then
+                                G.E_MANAGER:add_event(Event({
+                                    func = function()
+                                        if G.jokers then 
+                                            G.jokers.config.card_limit = G.jokers.config.card_limit + 1
+                                        end
+                                        return true
+                                    end
+                                }))
+                            end
+                        else
+                            G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
+                                type = "bonusjoker",
+                                idx = item.index
+                            }
+                        end
+                    elseif item_id == 307 then
+                        if G.AP.GameObjectInit then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.PROFILES[G.AP.profile_Id]["bonusconsumable"] =
+                                (G.PROFILES[G.AP.profile_Id]["bonusconsumable"] or 0) + 1
+                            if G.STAGE == G.STAGES.RUN then
+                                G.E_MANAGER:add_event(Event({
+                                    func = function()
+                                        G.consumeables.config.card_limit = G.consumeables.config.card_limit + 1
+                                        return true
+                                    end
+                                }))
+                            end
+                        else
+                            G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
+                                type = "bonusconsumable",
                                 idx = item.index
                             }
                         end

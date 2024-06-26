@@ -99,7 +99,14 @@ function Game:init_game_object()
                                                          (G.PROFILES[G.AP.profile_Id]["bonushandsize"] or 0)
 
         init_game_object.interest_cap = init_game_object.interest_cap +
-                                            (G.PROFILES[G.AP.profile_Id]["maxinterest"] or 0)
+                                            (G.PROFILES[G.AP.profile_Id]["maxinterest"] * 5 or 0)
+
+        init_game_object.starting_params.joker_slots = init_game_object.starting_params.joker_slots +
+                                                           (G.PROFILES[G.AP.profile_Id]["bonusjoker"] or 0)
+
+        init_game_object.starting_params.consumable_slots = init_game_object.starting_params.consumable_slots +
+                                                                (G.PROFILES[G.AP.profile_Id]["bonusconsumable"] or 0)
+
     end
 
     foreignDeathlink = false
@@ -677,6 +684,13 @@ function Game:init_item_prototypes()
                         (G.PROFILES[G.AP.profile_Id]["bonushandsize"] or 0) + 1
                 elseif (v.type == "maxinterest") then
                     G.PROFILES[G.AP.profile_Id]["maxinterest"] = (G.PROFILES[G.AP.profile_Id]["maxinterest"] or 0) + 1
+
+                elseif (v.type == "bonusjoker") then
+                    G.PROFILES[G.AP.profile_Id]["bonusjoker"] = (G.PROFILES[G.AP.profile_Id]["bonusjoker"] or 0) + 1
+
+                elseif (v.type == "bonusconsumable") then
+                    G.PROFILES[G.AP.profile_Id]["bonusconsumable"] =
+                        (G.PROFILES[G.AP.profile_Id]["bonusconsumable"] or 0) + 1
                 end
 
                 G.PROFILES[G.AP.profile_Id]["received_indeces"][v.idx] = true
@@ -698,6 +712,25 @@ function Game:init_item_prototypes()
 end
 
 -- handle shop cards
+
+local card_apply_to_runRef = Card.apply_to_run
+function Card:apply_to_run(center)
+    local center_table = {
+        name = center and center.name or self and self.ability.name,
+        extra = center and center.config.extra or self and self.ability.extra
+    }
+
+    -- properly handle seed money and money tree vouchers when bonus interest_cap was received already
+    if center_table.name == 'Seed Money' then
+        center_table.extra = center_table.extra + (G.GAME.interest_cap - 25)
+    end
+
+    if center_table.name == 'Money Tree' then
+        center_table.extra = center_table.extra + (G.GAME.interest_cap - 50)
+    end
+
+    return card_apply_to_runRef(self, center)
+end
 
 local can_redeem_APRef = G.FUNCS.can_redeem
 G.FUNCS.can_redeem = function(e)
@@ -742,14 +775,14 @@ function get_current_pool(_type, _rarity, _legendary, _append)
 
     local _pool, _pool_key = get_current_poolRef(_type, _rarity, _legendary, _append)
 
-    if isAPProfileLoaded() then
-        for k, v in pairs(_pool) do
-            -- if j_joker not unlocked, put pluto card there (not a pretty solution, will probably be changed in future TODO)
-            -- if G.P_LOCKED[v] and v == "j_joker" then
-            --     _pool[k] = "UNAVAILABLE"
-            -- end
-        end
-    end
+    -- if isAPProfileLoaded() then
+    --     for k, v in pairs(_pool) do
+    --         -- if j_joker not unlocked, put pluto card there (not a pretty solution, will probably be changed in future TODO)
+    --         -- if G.P_LOCKED[v] and v == "j_joker" then
+    --         --     _pool[k] = "UNAVAILABLE"
+    --         -- end
+    --     end
+    -- end
 
     return _pool, _pool_key
 end
@@ -1228,10 +1261,12 @@ G.FUNCS.set_up_APProfile = function()
     G.PROFILES[G.AP.profile_Id]["packs"] = {}
     G.PROFILES[G.AP.profile_Id]["consumables"] = {}
 
-    G.PROFILES[G.AP.profile_Id]["bonushands"] = 0
     G.PROFILES[G.AP.profile_Id]["bonusdiscards"] = 0
-    G.PROFILES[G.AP.profile_Id]["bonushandsize"] = 0
-    -- TODO add missing bonus lists
+    G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] = 0
+    G.PROFILES[G.AP.profile_Id]["bonushands"] = 0
+    G.PROFILES[G.AP.profile_Id]["maxinterest"] = 0
+    G.PROFILES[G.AP.profile_Id]["bonusjoker"] = 0
+    G.PROFILES[G.AP.profile_Id]["bonusconsumable"] = 0
 end
 
 local back_generate_UIRef = Back.generate_UI
