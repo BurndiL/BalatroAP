@@ -12,7 +12,7 @@
 -- Hint Pack
 -- 
 G.AP = {
-    APAddress = "localhost",
+    APAddress = "archipelago.gg",
     APPort = 38281,
     APSlot = "Player1",
     APPassword = "",
@@ -21,9 +21,10 @@ G.AP = {
 
 G.AP.this_mod = SMODS.current_mod
 
-require(G.AP.this_mod.path .. "ap_connection")
-require(G.AP.this_mod.path .. "utils")
-json = require(G.AP.this_mod.path .. "json")
+NFS.load(G.AP.this_mod.path .. "ap_connection.lua")()
+NFS.load(G.AP.this_mod.path .. "utils.lua")()
+
+json = NFS.load(G.AP.this_mod.path .. "json.lua")()
 AP = require('lua-apclientpp')
 
 local isInProfileTabCreation = false
@@ -47,7 +48,7 @@ function isAPProfileSelected()
 end
 
 G.FUNCS.can_APConnect = function(e)
-    if ((G.APClient and G.APClient:get_state() == AP.State.SLOT_CONNECTED)) then
+    if (G.APClient) then
         e.config.button = nil
         e.config.colour = G.C.UI.BACKGROUND_INACTIVE
     else
@@ -64,7 +65,7 @@ G.FUNCS.APConnect = function(e)
         APSlot = G.AP.APSlot,
         APPassword = G.AP.APPassword
     })
-    save_file('APSettings.json', APInfo)
+    NFS.write('APSettings.json', APInfo)
 
     APConnect()
 end
@@ -435,7 +436,10 @@ function G.UIDEF.profile_option(_profile)
         return t
 
     else -- if not AP profile behave normally
-
+        if not isAPProfileLoaded() then
+            G.APClient = nil
+            collectgarbage("collect")
+        end
         local profile_option = profile_optionRef(_profile)
         return profile_option
     end
@@ -498,7 +502,7 @@ function Game:load_profile(_profile)
 
     local game_load_profile = game_load_profileRef(self, _profile)
 
-    local APSettings = load_file('APSettings.json')
+    local APSettings = NFS.read('APSettings.json')
 
     if APSettings ~= nil then
         APSettings = json.decode(APSettings)
@@ -831,10 +835,10 @@ SMODS.Voucher {
     key = voucher_slug,
     loc_txt = {
         name = voucher_name,
-        text = {'Unlocks an AP Item when redeemed'}
+        text = {'Unlocks an AP Item ', 'when redeemed'}
     },
     atlas = 'ap_item_voucher',
-    cost = ran_cost,
+    cost = 0,
     unlocked = true,
     discovered = true,
     requires = {'fuck!! shit!!!! (put here anything so it doesnt spawn naturally)'}
@@ -940,6 +944,21 @@ G.FUNCS.delete_AP_profile = function(e)
     G.AP.CHECK_PROFILE_DATA = nil
 
 end
+
+
+
+
+local exit_overlay_menuRef = G.FUNCS.exit_overlay_menu
+
+G.FUNCS.exit_overlay_menu = function(e)
+
+    if not isAPProfileLoaded() then
+        G.APClient = nil
+        collectgarbage("collect")
+    end
+    return exit_overlay_menuRef(e)
+end
+
 
 -- When Load Profile Button is clicked
 local load_profile_funcRef = G.FUNCS.load_profile
