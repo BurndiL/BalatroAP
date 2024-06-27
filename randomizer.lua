@@ -794,12 +794,34 @@ function CardArea:emplace(card, location, stay_flipped)
     end
 
     local cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
+
     if (isAPProfileLoaded() and card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
             G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers or self == G.consumeables)) or
 
         (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and ap_items_in_shop > 1 and G.STATE ==
-            G.STATES.SHOP) then
+            G.STATES.SHOP) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) then
+
+        if card.config.center_key == "j_joker" then
+            local found_self = false
+            if self ~= G.jokers then
+                for k, v in pairs(self.cards) do
+                    if v.config.center.key == "j_joker" then
+
+                        if not found_self then
+                            found_self = true
+                        else
+                            self:remove_card(card, false)
+                            card:start_dissolve({G.C.RED}, true, 0)
+
+                            return cardAreaemplace
+                        end
+                    end
+                end
+            end
+            return cardAreaemplace
+        end
+
         self:remove_card(card, false)
         card:start_dissolve({G.C.RED}, true, 0)
     end
@@ -1137,7 +1159,7 @@ end
 
 local create_UIBox_notify_alertRef = create_UIBox_notify_alert
 function create_UIBox_notify_alert(_achievement, _type)
-    if _type == "location" then
+    if _type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral" then
 
         -- change this sprite in the future
         local _atlas = G.ASSET_ATLAS["icons"]
@@ -1151,6 +1173,15 @@ function create_UIBox_notify_alert(_achievement, _type)
 
         local subtext = "Location cleared"
         local name = "Archipelago"
+
+        if _type ~= "location" then
+            if _achievement and G.P_CENTERS[_achievement] then
+                subtext = G.P_CENTERS[_achievement].name
+            else
+                subtext = _type
+            end
+            name = "Unlocked"
+        end
 
         return {
             n = G.UIT.ROOT,
