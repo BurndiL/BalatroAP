@@ -1,4 +1,3 @@
-
 NFS.load(G.AP.this_mod.path .. "utils.lua")()
 
 G.APItems = {
@@ -357,7 +356,7 @@ function APConnect()
 
         local tags = {"Lua-APClientPP"}
         if (G.AP.slot_data.deathlink) then
-            tags[#tags+1] = "DeathLink"
+            tags[#tags + 1] = "DeathLink"
         end
 
         G.APClient:ConnectUpdate(nil, tags)
@@ -480,7 +479,7 @@ function APConnect()
 
                     -- Bonus Items
                 elseif item_id >= 300 and item_id < 320 then
-                    if item_id == 300 then
+                    if item_id == 301 then
                         if G.AP.GameObjectInit then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             G.PROFILES[G.AP.profile_Id]["bonusdiscards"] =
@@ -493,14 +492,6 @@ function APConnect()
                                 type = "bonusdiscards",
                                 idx = item.index
                             }
-                        end
-                    elseif item_id == 301 then
-                        -- bonus money (must be during a game)
-                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
-                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
-                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
-                            local amount = math.random(3, 8)
-                            ease_dollars(amount)
                         end
                     elseif item_id == 302 then
                         if G.AP.GameObjectInit then
@@ -568,7 +559,7 @@ function APConnect()
                             if G.STAGE == G.STAGES.RUN then
                                 G.E_MANAGER:add_event(Event({
                                     func = function()
-                                        if G.jokers then 
+                                        if G.jokers then
                                             G.jokers.config.card_limit = G.jokers.config.card_limit + 1
                                         end
                                         return true
@@ -600,6 +591,69 @@ function APConnect()
                                 idx = item.index
                             }
                         end
+                    elseif item_id == 310 then
+                        -- bonus money (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            local amount = math.random(3, 8)
+                            ease_dollars(amount)
+                        end
+                    elseif item_id == 311 then
+                        -- receive random Joker (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag('tag_buffoon'))
+                                    return true
+                                end)
+                            }))
+                        end
+                    elseif item_id == 312 then
+                        -- receive random consumable (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            
+
+                                local choices = {'tag_charm', 'tag_meteor', 'tag_ethereal'}
+
+                                local choice = choices[math.random(#choices)]
+
+                                G.E_MANAGER:add_event(Event({
+                                    func = (function()
+                                        add_tag(Tag(choice))
+                                        return true
+                                    end)
+                                }))
+                            
+                        end
+                    elseif item_id == 313 then
+                        -- plus 3 hand size next round (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag('tag_juggle'))
+                                    return true
+                                end)
+                            }))
+                        end
+                    elseif item_id == 314 then
+                        -- rerolls start at $0 next shop (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag('tag_d_six'))
+                                    return true
+                                end)
+                            }))
+                        end
                     end
 
                     -- traps (only trigger while in run)
@@ -614,6 +668,21 @@ function APConnect()
                     elseif item_id == 322 then
                         -- Lose 1 Hand
                         ease_hands_played(-1)
+                    elseif item_id == 323 then
+                        -- make joker perishable
+                        if G.jokers and #G.jokers.cards > 0 then
+                            G.jokers.cards[math.random(#G.jokers.cards)]:set_perishable(true)
+                        end
+                    elseif item_id == 324 then
+                        -- make joker eternal
+                        if G.jokers and #G.jokers.cards > 0 then
+                            G.jokers.cards[math.random(#G.jokers.cards)]:set_eternal(true)
+                        end
+                    elseif item_id == 325 then
+                        -- make joker rental
+                        if G.jokers and #G.jokers.cards > 0 then
+                            G.jokers.cards[math.random(#G.jokers.cards)]:set_rental(true)
+                        end
                     end
                 end
             end
