@@ -932,7 +932,7 @@ local game_update_shopRef = Game.update_shop
 
 function Game:update_shop(dt)
 
-    if not G.STATE_COMPLETE then
+    if isAPProfileLoaded() and not G.STATE_COMPLETE then
         ap_items_in_shop = 0
         local game_update_shop = game_update_shopRef(self, dt)
         -- first check if there are still shop locations to get
