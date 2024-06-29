@@ -403,6 +403,7 @@ function APConnect()
                     if item_name == item.name then
                         item.unlocked = true
                         item.discovered = true
+                        item.hidden = false
                         wasLocked = true
 
                         G.FUNCS.AP_unlock_item(item)
