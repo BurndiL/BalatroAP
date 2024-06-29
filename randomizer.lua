@@ -606,6 +606,7 @@ function Game:init_item_prototypes()
                 if G.PROFILES[G.AP.profile_Id]["jokers"][v.name] ~= nil then
                     v.unlocked = true
                     v.discovered = true
+                    v.hidden = false
 
                     if (G.AP.JokerQueue[v] == true) then
                         G.FUNCS.AP_unlock_item(v)
@@ -618,6 +619,7 @@ function Game:init_item_prototypes()
                 if G.PROFILES[G.AP.profile_Id]["backs"][v.name] ~= nil then
                     v.unlocked = true
                     v.discovered = true
+                    v.hidden = false
                     if (G.AP.BackQueue[v] == true) then
                         G.FUNCS.AP_unlock_item(v)
                     end
@@ -628,6 +630,7 @@ function Game:init_item_prototypes()
                 if G.PROFILES[G.AP.profile_Id]["vouchers"][v.name] ~= nil then
                     v.unlocked = true
                     v.discovered = true
+                    v.hidden = false
                     if (G.AP.VoucherQueue[v] == true) then
                         G.FUNCS.AP_unlock_item(v)
                     end
@@ -638,6 +641,7 @@ function Game:init_item_prototypes()
                 if G.PROFILES[G.AP.profile_Id]["packs"][v.name] ~= nil then
                     v.unlocked = true
                     v.discovered = true
+                    v.hidden = false
                     if (G.AP.PackQueue[v] == true) then
                         G.FUNCS.AP_unlock_item(v)
                     end
@@ -650,6 +654,7 @@ function Game:init_item_prototypes()
                 if G.PROFILES[G.AP.profile_Id]["consumables"][v.name] ~= nil then
                     v.unlocked = true
                     v.discovered = true
+                    v.hidden = false
                     if (G.AP.ConsumableQueue[v] == true) then
                         G.FUNCS.AP_unlock_item(v)
                     end
@@ -660,6 +665,7 @@ function Game:init_item_prototypes()
 
             if v.unlocked ~= nil and v.unlocked == false then
                 v.discovered = v.unlocked
+                v.hidden = true
                 self.P_LOCKED[#self.P_LOCKED + 1] = v
             end
 
