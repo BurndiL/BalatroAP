@@ -802,9 +802,18 @@ function CardArea:emplace(card, location, stay_flipped)
         (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and ap_items_in_shop > 1 and G.STATE ==
             G.STATES.SHOP) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) then
 
-        if card.config.center_key == "j_joker" then
+        if (card.config.center_key == "j_joker" and card.config.center.unlocked == true) then
             local found_self = false
             if self ~= G.jokers then
+                -- if you already have the Joker and don't have showman, delete
+                if next(find_joker("Joker")) and not next(find_joker("Showman")) then
+                    
+                    self:remove_card(card, false)
+                    card:start_dissolve({G.C.RED}, true, 0)
+
+                    return cardAreaemplace
+                end
+
                 for k, v in pairs(self.cards) do
                     if v.config.center.key == "j_joker" then
 
