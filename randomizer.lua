@@ -457,6 +457,9 @@ end
 
 local game_updateRef = Game.update
 function Game:update(dt)
+    if not dt then
+        return
+    end
     local game_update = game_updateRef(self, dt)
     if G.APClient ~= nil then
         G.APClient:poll()
