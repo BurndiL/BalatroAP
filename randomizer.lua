@@ -324,7 +324,7 @@ function G.UIDEF.profile_option(_profile)
                     },
                     nodes = {create_text_input({
                         w = 4,
-                        max_length = 16,
+                        max_length = 35,
                         prompt_text = 'Server Address',
                         ref_table = G.AP,
                         ref_value = 'APAddress',
@@ -335,7 +335,7 @@ function G.UIDEF.profile_option(_profile)
                         end
                     }), create_text_input({
                         w = 4,
-                        max_length = 16,
+                        max_length = 35,
                         prompt_text = 'PORT',
                         ref_table = G.AP,
                         ref_value = 'APPort',
@@ -360,7 +360,7 @@ function G.UIDEF.profile_option(_profile)
                     },
                     nodes = {create_text_input({
                         w = 4,
-                        max_length = 16,
+                        max_length = 35,
                         prompt_text = 'Slot name',
                         ref_table = G.AP,
                         ref_value = 'APSlot',
@@ -371,7 +371,7 @@ function G.UIDEF.profile_option(_profile)
                         end
                     }), create_text_input({
                         w = 4,
-                        max_length = 16,
+                        max_length = 35,
                         prompt_text = 'Password',
                         ref_table = G.AP,
                         ref_value = 'APPassword',
@@ -478,6 +478,38 @@ function Game:draw()
         if G.APClient:get_state() == AP.State.SLOT_CONNECTED then
             love.graphics.print("Connected to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort .. " as " ..
                                     G.AP.APSlot, 10, 30)
+
+            if G.AP.goal and G.STAGE == G.STAGES.MAIN_MENU and G.AP.GameObjectInit then
+                -- beat # of decks
+                if G.AP.goal == 0 then
+                    -- calculating this every frame is stupid
+                    local deck_wins = 0
+                    for k, v in pairs(G.P_CENTERS) do
+                        if string.find(tostring(k), '^b_') then
+                            if G.PROFILES[G.SETTINGS.profile] and G.PROFILES[G.SETTINGS.profile].deck_usage and
+                                G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
+                                G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
+                                #G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
+                                deck_wins = deck_wins + 1
+                            end
+                        end
+                    end
+                    love.graphics.print(
+                        "Goal: Beat " .. G.AP.slot_data.decks_win_goal .. " Decks. You already beat " ..
+                            tostring(deck_wins) .. " Decks.", 10, 60)
+                    -- unlock # of jokers
+                elseif G.AP.goal == 1 then
+                    local unlocked_jokers = (G.DISCOVER_TALLIES and G.DISCOVER_TALLIES.jokers and
+                                                G.DISCOVER_TALLIES.jokers.tally) or 0
+                    love.graphics.print("Goal: Unlock " .. G.AP.slot_data.jokers_unlock_goal ..
+                                            " Jokers. You already unlocked " .. tostring(unlocked_jokers) .. " Jokers.",
+                        10, 60)
+
+                    -- beat specific ante
+                elseif G.AP.goal == 2 then
+                    love.graphics.print("Goal: Beat Ante " .. G.AP.slot_data.ante_win_goal, 10, 60)
+                end
+            end
         else
             love.graphics.print("Connecting to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort, 10, 30)
         end
@@ -535,6 +567,11 @@ G.FUNCS.AP_unlock_item = function(item)
     if item.set == 'Back' then
         discover_card(item)
     end
+
+    if item.set == 'Joker' and G.DISCOVER_TALLIES and G.DISCOVER_TALLIES.jokers and G.DISCOVER_TALLIES.jokers.tally then
+        G.DISCOVER_TALLIES.jokers.tally = G.DISCOVER_TALLIES.jokers.tally + 1
+    end
+
     G.FILE_HANDLER.force = true
     notify_alert(item.key, item.set)
 end
@@ -806,22 +843,48 @@ function CardArea:emplace(card, location, stay_flipped)
             G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers or self == G.consumeables)) or
 
         (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and ap_items_in_shop > 1 and G.STATE ==
-            G.STATES.SHOP) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) then
+            G.STATES.SHOP) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
+        (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) or
+        (card.config.center_key == "c_strength" and card.config.center.unlocked == true) or
+        (card.config.center_key == "c_incantation" and card.config.center.unlocked == true) then
 
-        if (card.config.center_key == "j_joker" and card.config.center.unlocked == true) then
-            local found_self = false
-            if self ~= G.jokers then
-                -- if you already have the Joker and don't have showman, delete
-                if next(find_joker("Joker")) and not next(find_joker("Showman")) then
-                    
-                    self:remove_card(card, false)
-                    card:start_dissolve({G.C.RED}, true, 0)
+        -- following blocks handle standard cards appearing in packs/shop
+        if not next(find_joker("Showman")) and card.config.center.unlocked == true then
+            if (card.config.center_key == "j_joker" and card.config.center.unlocked == true) then
+                local found_self = false
+                if self ~= G.jokers then
+                    -- if you already have the Joker and don't have showman, delete
+                    if next(find_joker("Joker")) and not next(find_joker("Showman")) then
 
-                    return cardAreaemplace
+                        self:remove_card(card, false)
+                        card:start_dissolve({G.C.RED}, true, 0)
+
+                        return cardAreaemplace
+                    end
+
+                    for k, v in pairs(self.cards) do
+                        if v.config.center.key == "j_joker" then
+
+                            if not found_self then
+                                found_self = true
+                            else
+                                self:remove_card(card, false)
+                                card:start_dissolve({G.C.RED}, true, 0)
+
+                                return cardAreaemplace
+                            end
+                        end
+                    end
                 end
+                return cardAreaemplace
+            end
+
+            if (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) and
+                (G.STATE == G.STATES.PLANET_PACK or G.STATE == G.STATES.SHOP) then
+                local found_self = false
 
                 for k, v in pairs(self.cards) do
-                    if v.config.center.key == "j_joker" then
+                    if v.config.center.key == "c_pluto" then
 
                         if not found_self then
                             found_self = true
@@ -833,12 +896,61 @@ function CardArea:emplace(card, location, stay_flipped)
                         end
                     end
                 end
+
+                return cardAreaemplace
             end
-            return cardAreaemplace
+
+            if (card.config.center_key == "c_strength" and card.config.center.unlocked == true) and
+                (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SHOP) then
+                local found_self = false
+
+                for k, v in pairs(self.cards) do
+                    if v.config.center.key == "c_strength" then
+
+                        if not found_self then
+                            found_self = true
+                        else
+                            self:remove_card(card, false)
+                            card:start_dissolve({G.C.RED}, true, 0)
+
+                            return cardAreaemplace
+                        end
+                    end
+                end
+
+                return cardAreaemplace
+            end
+
+            if (card.config.center_key == "c_incantation" and card.config.center.unlocked == true) and
+                (G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.SHOP) then
+                local found_self = false
+
+                for k, v in pairs(self.cards) do
+                    if v.config.center.key == "c_incantation" then
+
+                        if not found_self then
+                            found_self = true
+                        else
+                            self:remove_card(card, false)
+                            card:start_dissolve({G.C.RED}, true, 0)
+
+                            return cardAreaemplace
+                        end
+                    end
+                end
+
+                return cardAreaemplace
+            end
+
         end
 
-        self:remove_card(card, false)
-        card:start_dissolve({G.C.RED}, true, 0)
+        if card.config.center.unlocked == false or
+            (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and ap_items_in_shop > 1 and G.STATE ==
+                G.STATES.SHOP) then
+            self:remove_card(card, false)
+            card:start_dissolve({G.C.RED}, true, 0)
+        end
+
     end
 
     return cardAreaemplace
@@ -915,7 +1027,7 @@ SMODS.Voucher {
 }
 
 function get_shop_location()
-    for i, v in ipairs(G.AP.slot_data.shop_locations) do
+    for i, v in ipairs(G.AP.slot_data["stake" .. tostring(G.GAME.stake) .. "_shop_locations"]) do
         if (tableContains(G.APClient.missing_locations, v)) then
             return v
         end
@@ -1142,7 +1254,6 @@ function check_for_unlock(args)
 
                 -- unlock # of jokers
             elseif G.AP.goal == 1 then
-
                 if G.PROFILES[G.AP.profile_Id]["jokers"] and #G.PROFILES[G.AP.profile_Id]["jokers"] >=
                     G.AP.slot_data.jokers_unlock_goal then
                     sendGoalReached()
