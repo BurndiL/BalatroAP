@@ -28,8 +28,14 @@ Your Balatro Folder should look something like this (highlighted files should be
 
 To install this mod create a new folder in `%AppData%/Roaming/Balatro/Mods/` called `BalatroAP` and put the files from this repository in there. You can get those from `BalatroAP.zip` in the latest release. 
 
-Your AppData Folder should look something like this:
+Your Mods folder should look something like this: 
+
+![Mod Folder](https://i.imgur.com/EI6MGeC.png)
+
+And the inside of the BalatroAP folder should look something like this:
+
 ![Your AppData Folder should look something like this](https://i.imgur.com/3JzrdlV.png).
+
 
 You should be good to go then! You can start the game normally over Steam and it should load the mod. If there are any issues, consider going to the [Archipelago After Dark Discord](https://discord.com/invite/fqvNCCRsu4) server, there is a Balatro thread somewhere. Or message me on Discord @Burndi. 
 
