@@ -384,9 +384,7 @@ function APConnect()
 
     function on_items_received(items)
         print("Items received:")
-        remove_locked = {}
         for _, item in ipairs(items) do
-            print(item.item)
             local item_id = item.item - G.AP.id_offset
             local item_name = G.APItems[item.item]
 
@@ -617,19 +615,18 @@ function APConnect()
                         if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
                             not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
-                            
 
-                                local choices = {'tag_charm', 'tag_meteor', 'tag_ethereal'}
+                            local choices = {'tag_charm', 'tag_meteor', 'tag_ethereal'}
 
-                                local choice = choices[math.random(#choices)]
+                            local choice = choices[math.random(#choices)]
 
-                                G.E_MANAGER:add_event(Event({
-                                    func = (function()
-                                        add_tag(Tag(choice))
-                                        return true
-                                    end)
-                                }))
-                            
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag(choice))
+                                    return true
+                                end)
+                            }))
+
                         end
                     elseif item_id == 313 then
                         -- plus 3 hand size next round (must be during a game)
@@ -684,6 +681,51 @@ function APConnect()
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_rental(true)
                         end
+                    end
+
+                    -- joker bundles
+                elseif item_id > 350 and item_id < 366 then
+                    sendDebugMessage("received Joker Bundle")
+                    if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                        local items_to_unlock = {}
+                        for k, v in ipairs(G.AP.slot_data["jokerbundle" .. tostring(item_id - 350)]) do
+                            items_to_unlock[#items_to_unlock + 1] = {index = "joker" .. tostring(item_id - 350) .. tostring(#items_to_unlock + 1), item = v} 
+                        end
+
+                        on_items_received(items_to_unlock)
+                    end
+                    -- tarot
+                elseif item_id == 371 then
+                    if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                        local items_to_unlock = {}
+                        for i = 213, 234, 1 do
+                            items_to_unlock[#items_to_unlock + 1] = {index = "tarot" .. tostring(i), item = i + G.AP.id_offset} 
+                        end
+                        on_items_received(items_to_unlock)
+
+                    end
+                    -- spectral
+                elseif item_id == 373 then
+                    if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                        local items_to_unlock = {}
+                        for i = 247, 264, 1 do
+                            items_to_unlock[#items_to_unlock + 1] = {index = "spectral" .. tostring(i), item = i + G.AP.id_offset}    
+                        end
+
+                        on_items_received(items_to_unlock)
+                    end
+                    -- planet
+                elseif item_id == 372 then
+                    if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                        G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                        local items_to_unlock = {}
+                        for i = 235, 246, 1 do
+                            items_to_unlock[#items_to_unlock + 1] = {index = "planet" .. tostring(i), item = i + G.AP.id_offset}    
+                        end
+                        on_items_received(items_to_unlock)
                     end
                 end
             end
