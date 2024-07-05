@@ -399,6 +399,18 @@ function APConnect()
                     local wasLocked = false
                     local item = G.P_LOCKED[i]
                     if item_name == item.name then
+
+                        -- progressive vouchers
+                        if item.requires then
+                            if (not G.P_CENTERS[item.requires[1]].unlocked) then
+                                G.P_CENTERS[item.requires[1]].nextVoucher = item
+                                item = G.P_CENTERS[item.requires[1]]
+                            end
+                            
+                        elseif item.nextVoucher then
+                            item = item.nextVoucher
+                        end
+
                         item.unlocked = true
                         item.discovered = true
                         item.hidden = false
