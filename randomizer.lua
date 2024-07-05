@@ -665,6 +665,16 @@ function Game:init_item_prototypes()
             elseif string.find(k, '^v_') and not string.find(k, '^v_rand_ap_item') then
                 v.unlocked = false
                 if G.PROFILES[G.AP.profile_Id]["vouchers"][v.name] ~= nil then
+                    -- progressive vouchers
+                    if v.requires then
+                        if (not G.P_CENTERS[v.requires[1]].unlocked) then
+                            G.P_CENTERS[v.requires[1]].nextVoucher = v
+                            v = G.P_CENTERS[v.requires[1]]
+                        end
+                    elseif v.nextVoucher then
+                        v = v.nextVoucher
+                    end
+
                     v.unlocked = true
                     v.discovered = true
                     v.hidden = false
@@ -1252,10 +1262,10 @@ function check_for_unlock(args)
                     sendGoalReached()
                 end
 
-                -- unlock # of jokers
-            elseif G.AP.goal == 1 then
-                if G.PROFILES[G.AP.profile_Id]["jokers"] and #G.PROFILES[G.AP.profile_Id]["jokers"] >=
-                    G.AP.slot_data.jokers_unlock_goal then
+                -- unlock # of jokers (must be in run to avoid cringe bugs when loading in)
+            elseif G.AP.goal == 1 and G.STAGE == G.STAGES.RUN then
+                if tonumber((G.DISCOVER_TALLIES and G.DISCOVER_TALLIES.jokers and G.DISCOVER_TALLIES.jokers.tally) or 0) >=
+                    tonumber(G.AP.slot_data.jokers_unlock_goal) then
                     sendGoalReached()
                 end
 
