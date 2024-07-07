@@ -489,7 +489,7 @@ function APConnect()
                     end
 
                     -- Bonus Items
-                elseif item_id >= 300 and item_id < 320 then
+                elseif item_id >= 300 and item_id < 330 then
                     if item_id == 301 then
                         if G.AP.GameObjectInit then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
@@ -509,6 +509,10 @@ function APConnect()
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] =
                                 (G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] or 0) + 1
+
+                                if G.STAGE == G.STAGES.RUN then
+                                    ease_dollars(1, true)
+                                end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusstartingmoney",
@@ -664,31 +668,115 @@ function APConnect()
                                 end)
                             }))
                         end
+                    elseif item_id == 315 then
+                        -- Free uncommon joker next shop (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag('tag_uncommon'))
+                                    return true
+                                end)
+                            }))
+                        end
+                    elseif item_id == 316 then
+                        -- Free rare joker next shop (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag('tag_rare'))
+                                    return true
+                                end)
+                            }))
+                        end
+                    elseif item_id == 317 then
+                        -- Free negative joker next shop (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag('tag_negative'))
+                                    return true
+                                end)
+                            }))
+                        end
+                    elseif item_id == 318 then
+                        -- Free foil joker next shop (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag('tag_foil'))
+                                    return true
+                                end)
+                            }))
+                        end
+                    elseif item_id == 319 then
+                        -- Free holographic joker next shop (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag('tag_holo'))
+                                    return true
+                                end)
+                            }))
+                        end
+                    elseif item_id == 320 then
+                        -- Free polychrome joker next shop (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag('tag_polychrome'))
+                                    return true
+                                end)
+                            }))
+                        end
+                    elseif item_id == 321 then
+                        -- Receive double tag (must be during a game)
+                        if G.AP.GameObjectInit and G.STAGE == G.STAGES.RUN and
+                            not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(Tag('tag_double'))
+                                    return true
+                                end)
+                            }))
+                        end
                     end
 
                     -- traps (only trigger while in run)
-                elseif item_id >= 320 and item_id < 330 and G.STAGE and G.STAGE == G.STAGES.RUN then
-                    if (item_id == 320) then
+                elseif item_id >= 330 and item_id < 340 and G.STAGE and G.STAGE == G.STAGES.RUN then
+                    if (item_id == 330) then
                         -- Lose All Money
                         ease_dollars(-G.GAME.dollars, true)
 
-                    elseif (item_id == 321) then
+                    elseif (item_id == 331) then
                         -- Lose 1 Discard
                         ease_discard(-1)
-                    elseif item_id == 322 then
+                    elseif item_id == 332 then
                         -- Lose 1 Hand
                         ease_hands_played(-1)
-                    elseif item_id == 323 then
+                    elseif item_id == 333 then
                         -- make joker perishable
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_perishable(true)
                         end
-                    elseif item_id == 324 then
+                    elseif item_id == 334 then
                         -- make joker eternal
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_eternal(true)
                         end
-                    elseif item_id == 325 then
+                    elseif item_id == 335 then
                         -- make joker rental
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_rental(true)
