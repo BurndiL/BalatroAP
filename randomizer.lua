@@ -473,49 +473,49 @@ end
 local game_drawRef = Game.draw
 function Game:draw()
     local game_draw = game_drawRef(self)
+    if G and G.STAGES and G.STAGE == G.STAGES.MAIN_MENU then
+        if G.APClient ~= nil then
+            if G.APClient:get_state() == AP.State.SLOT_CONNECTED then
+                love.graphics.print("Connected to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort .. " as " ..
+                                        G.AP.APSlot, 10, 30)
 
-    if G.APClient ~= nil then
-        if G.APClient:get_state() == AP.State.SLOT_CONNECTED then
-            love.graphics.print("Connected to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort .. " as " ..
-                                    G.AP.APSlot, 10, 30)
-
-            if G.AP.goal and G.STAGE == G.STAGES.MAIN_MENU and G.AP.GameObjectInit then
-                -- beat # of decks
-                if G.AP.goal == 0 then
-                    -- calculating this every frame is stupid
-                    local deck_wins = 0
-                    for k, v in pairs(G.P_CENTERS) do
-                        if string.find(tostring(k), '^b_') then
-                            if G.PROFILES[G.SETTINGS.profile] and G.PROFILES[G.SETTINGS.profile].deck_usage and
-                                G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
-                                G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
-                                #G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
-                                deck_wins = deck_wins + 1
+                if G.AP.goal and G.AP.GameObjectInit then
+                    -- beat # of decks
+                    if G.AP.goal == 0 then
+                        -- calculating this every frame is stupid
+                        local deck_wins = 0
+                        for k, v in pairs(G.P_CENTERS) do
+                            if string.find(tostring(k), '^b_') then
+                                if G.PROFILES[G.SETTINGS.profile] and G.PROFILES[G.SETTINGS.profile].deck_usage and
+                                    G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
+                                    G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
+                                    #G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
+                                    deck_wins = deck_wins + 1
+                                end
                             end
                         end
+                        love.graphics.print("Goal: Beat " .. G.AP.slot_data.decks_win_goal ..
+                                                " Decks. You already beat " .. tostring(deck_wins) .. " Decks.", 10, 60)
+                        -- unlock # of jokers
+                    elseif G.AP.goal == 1 then
+                        local unlocked_jokers = (G.DISCOVER_TALLIES and G.DISCOVER_TALLIES.jokers and
+                                                    G.DISCOVER_TALLIES.jokers.tally) or 0
+                        love.graphics.print("Goal: Unlock " .. G.AP.slot_data.jokers_unlock_goal ..
+                                                " Jokers. You already unlocked " .. tostring(unlocked_jokers) ..
+                                                " Jokers.", 10, 60)
+
+                        -- beat specific ante
+                    elseif G.AP.goal == 2 then
+                        love.graphics.print("Goal: Beat Ante " .. G.AP.slot_data.ante_win_goal, 10, 60)
                     end
-                    love.graphics.print(
-                        "Goal: Beat " .. G.AP.slot_data.decks_win_goal .. " Decks. You already beat " ..
-                            tostring(deck_wins) .. " Decks.", 10, 60)
-                    -- unlock # of jokers
-                elseif G.AP.goal == 1 then
-                    local unlocked_jokers = (G.DISCOVER_TALLIES and G.DISCOVER_TALLIES.jokers and
-                                                G.DISCOVER_TALLIES.jokers.tally) or 0
-                    love.graphics.print("Goal: Unlock " .. G.AP.slot_data.jokers_unlock_goal ..
-                                            " Jokers. You already unlocked " .. tostring(unlocked_jokers) .. " Jokers.",
-                        10, 60)
-
-                    -- beat specific ante
-                elseif G.AP.goal == 2 then
-                    love.graphics.print("Goal: Beat Ante " .. G.AP.slot_data.ante_win_goal, 10, 60)
                 end
+            else
+                love.graphics.print("Connecting to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort, 10, 30)
             end
-        else
-            love.graphics.print("Connecting to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort, 10, 30)
-        end
 
-    else
-        love.graphics.print("Not connected to Archipelago.", 10, 30)
+        else
+            love.graphics.print("Not connected to Archipelago.", 10, 30)
+        end
     end
 
     return game_draw
@@ -846,9 +846,16 @@ function CardArea:emplace(card, location, stay_flipped)
         ap_items_in_shop = ap_items_in_shop + 1
     end
 
-    local cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
+    local cardAreaemplace = nil
 
-    if (isAPProfileLoaded() and card.config.center.unlocked == false and
+    if (self.cards) then
+        cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
+    else
+        self:remove_card(card, false)
+        card:start_dissolve({G.C.RED}, true, 0)
+    end
+    
+    if self.cards and ((isAPProfileLoaded() and card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
             G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers or self == G.consumeables)) or
 
@@ -856,7 +863,7 @@ function CardArea:emplace(card, location, stay_flipped)
             G.STATES.SHOP) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_strength" and card.config.center.unlocked == true) or
-        (card.config.center_key == "c_incantation" and card.config.center.unlocked == true) then
+        (card.config.center_key == "c_incantation" and card.config.center.unlocked == true)) then
 
         -- following blocks handle standard cards appearing in packs/shop
         if not next(find_joker("Showman")) and card.config.center.unlocked == true then
@@ -969,14 +976,17 @@ end
 local can_skip_boosterRef = G.FUNCS.can_skip_booster
 G.FUNCS.can_skip_booster = function(e)
     if isAPProfileLoaded() then
-        if G.pack_cards and
+        if G.pack_cards and G.pack_cards.cards and 
             (G.STATE == G.STATES.PLANET_PACK or G.STATE == G.STATES.STANDARD_PACK or G.STATE == G.STATES.BUFFOON_PACK or
                 (G.hand and (G.hand.cards[1] or (G.hand.config.card_limit <= 0)))) then
             e.config.colour = G.C.GREY
             e.config.button = 'skip_booster'
-            return
+        else
+            e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+            e.config.button = nil
         end
 
+        return
     end
     return can_skip_boosterRef(e)
 end
