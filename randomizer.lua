@@ -764,6 +764,61 @@ function Game:init_item_prototypes()
     return game_init_item_prototypes
 end
 
+-- handle stakes
+
+local UIDEF_deck_stake_columnRef = G.UIDEF.deck_stake_column
+
+function G.UIDEF.deck_stake_column(_deck_key)
+
+    if isAPProfileLoaded() and G.AP.slot_data.stakesunlocked then
+        local foo = G.PROFILES[G.SETTINGS.profile].all_unlocked
+        G.PROFILES[G.SETTINGS.profile].all_unlocked = true
+
+        local UIDEF_deck_stake_column = UIDEF_deck_stake_columnRef(_deck_key)
+        G.PROFILES[G.SETTINGS.profile].all_unlocked = foo
+
+        return UIDEF_deck_stake_column
+    end
+
+    return UIDEF_deck_stake_columnRef(_deck_key)
+end
+
+local stake_optionRef = G.UIDEF.stake_option
+local is_in_stake_option_creation = false
+
+function G.UIDEF.stake_option(_type)
+    if isAPProfileLoaded() and G.AP.slot_data.stakesunlocked then
+        
+        local foo = G.PROFILES[G.SETTINGS.profile].all_unlocked
+        G.PROFILES[G.SETTINGS.profile].all_unlocked = true
+        
+        local stake_option = stake_optionRef(_type)
+        
+        G.PROFILES[G.SETTINGS.profile].all_unlocked = foo
+        
+        return stake_option
+    end
+    return stake_optionRef(_type)
+end
+
+local viewed_stake_optionRef = G.UIDEF.viewed_stake_option
+function G.UIDEF.viewed_stake_option()
+    if isAPProfileLoaded() and G.AP.slot_data.stakesunlocked then
+                
+        local foo = G.PROFILES[G.SETTINGS.profile].all_unlocked
+        G.PROFILES[G.SETTINGS.profile].all_unlocked = true
+        
+        
+        local viewed_stake_option = viewed_stake_optionRef()
+
+        G.PROFILES[G.SETTINGS.profile].all_unlocked = foo
+
+        return viewed_stake_option
+    end
+
+    return viewed_stake_optionRef()
+end
+
 -- handle shop cards
 
 local card_apply_to_runRef = Card.apply_to_run
@@ -854,7 +909,7 @@ function CardArea:emplace(card, location, stay_flipped)
         self:remove_card(card, false)
         card:start_dissolve({G.C.RED}, true, 0)
     end
-    
+
     if self.cards and ((isAPProfileLoaded() and card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
             G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers or self == G.consumeables)) or
@@ -976,7 +1031,7 @@ end
 local can_skip_boosterRef = G.FUNCS.can_skip_booster
 G.FUNCS.can_skip_booster = function(e)
     if isAPProfileLoaded() then
-        if G.pack_cards and G.pack_cards.cards and 
+        if G.pack_cards and G.pack_cards.cards and
             (G.STATE == G.STATES.PLANET_PACK or G.STATE == G.STATES.STANDARD_PACK or G.STATE == G.STATES.BUFFOON_PACK or
                 (G.hand and (G.hand.cards[1] or (G.hand.config.card_limit <= 0)))) then
             e.config.colour = G.C.GREY
@@ -996,7 +1051,19 @@ function Card:can_use_consumeable(any_state, skip_check)
     if (isAPProfileLoaded()) then
         if (self.config and self.config.center) then
             if self.config.center.unlocked == true then
-                return card_can_use_consumeableRef(self, any_state, skip_check)
+
+                -- to avoid weird bug 
+                if self.ability and self.ability.consumeable and self.ability.consumeable.mod_num == nil then
+                    self.ability.consumeable.mod_num = -1
+                end
+
+                local card_can_use_result = card_can_use_consumeableRef(self, any_state, skip_check)
+
+                if self.ability and self.ability.consumeable and self.ability.consumeable.mod_num == -1 then
+                    self.ability.consumeable.mod_num = nil
+                end
+
+                return card_can_use_result
             end
         end
         return false
@@ -1030,7 +1097,14 @@ SMODS.Atlas {
     key = "ap_item_voucher",
     path = "v_ap_item.png",
     px = 71,
-    py = 95
+    py = 98
+}
+
+SMODS.Atlas {
+    key = "ap_logo",
+    path = "ap_logo.png",
+    px = 66,
+    py = 66
 }
 
 SMODS.Voucher {
@@ -1047,9 +1121,11 @@ SMODS.Voucher {
 }
 
 function get_shop_location()
-    for i, v in ipairs(G.AP.slot_data["stake" .. tostring(G.GAME.stake) .. "_shop_locations"]) do
-        if (tableContains(G.APClient.missing_locations, v)) then
-            return v
+    if G.AP.slot_data["stake" .. tostring(G.GAME.stake) .. "_shop_locations"] then
+        for i, v in ipairs(G.AP.slot_data["stake" .. tostring(G.GAME.stake) .. "_shop_locations"]) do
+            if (tableContains(G.APClient.missing_locations, v)) then
+                return v
+            end
         end
     end
     return nil
@@ -1214,7 +1290,6 @@ function check_for_unlock(args)
             sendDebugMessage("args.type is ante_up")
             -- when an ante is beaten
             local deck_name = G.GAME.selected_back.name
-            local stake = get_deck_win_stake()
 
             sendDebugMessage("deck_name is " .. deck_name)
             -- specify the deck
@@ -1308,7 +1383,19 @@ function create_UIBox_notify_alert(_achievement, _type)
     if _type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral" then
 
         -- change this sprite in the future
-        local _atlas = G.ASSET_ATLAS["icons"]
+        -- local _atlas = SMODS.Atlas
+        local _c, _atlas = G.P_CENTERS[_achievement],
+            _type == "Tarot" and G.ASSET_ATLAS["Tarot"] or _type == "Planet" and G.ASSET_ATLAS["Tarot"] or _type ==
+                "Spectral" and G.ASSET_ATLAS["Tarot"] or _type == "Booster" and G.ASSET_ATLAS["Booster"] or _type ==
+                "location" and G.ASSET_ATLAS["rand_ap_logo"] or G.ASSET_ATLAS["icons"]
+
+        if not _c then
+            _c = {
+                x = 0,
+                y = 0
+            }
+        end
+
         local t_s = Sprite(0, 0, 1.5 * (_atlas.px / _atlas.py), 1.5, _atlas, _c and _c.pos or {
             x = 3,
             y = 0
