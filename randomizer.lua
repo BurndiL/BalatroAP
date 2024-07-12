@@ -1389,19 +1389,25 @@ function create_UIBox_notify_alert(_achievement, _type)
                 "Spectral" and G.ASSET_ATLAS["Tarot"] or _type == "Booster" and G.ASSET_ATLAS["Booster"] or _type ==
                 "location" and G.ASSET_ATLAS["rand_ap_logo"] or G.ASSET_ATLAS["icons"]
 
-        if (not _c) and _type == "location" then
-            _c = {
-                pos = {
-                    x = 0,
-                    y = 0
+        if not _c then
+            if _type == "location" then
+                _c = {
+                    pos = {
+                        x = 0,
+                        y = 0
+                    }
                 }
-            }
+            else -- moved to handle the trophy here because we need to set the x.y manually here for other icons anyway
+                _c = {
+                    pos = {
+                        x = 3,
+                        y = 0
+                    }
+                }
+            end -- there's probably a better way, but idk
         end
 
-        local t_s = Sprite(0, 0, 1.5 * (_atlas.px / _atlas.py), 1.5, _atlas, _c and _c.pos or {
-            x = 3,
-            y = 0
-        })
+        local t_s = Sprite(0, 0, 1.5 * (_atlas.px / _atlas.py), 1.5, _atlas, _c.pos)
         t_s.states.drag.can = false
         t_s.states.hover.can = false
         t_s.states.collide.can = false
