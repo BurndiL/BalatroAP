@@ -39,7 +39,7 @@ G.AP.GameObjectInit = false
 
 -- true if the profile was selected and loaded
 function isAPProfileLoaded()
-    return G.SETTINGS.profile == G.AP.profile_Id
+    return G.SETTINGS and G.AP and G.SETTINGS.profile == G.AP.profile_Id
 end
 
 -- true if the profile is selected in profile selection, does not have to be loaded yet
@@ -113,14 +113,14 @@ function Game:init_game_object()
     return init_game_object
 end
 
-local game_start_runRef = Game.start_run
-function Game:start_run(args)
-    local game_start_run = game_start_runRef(self, args)
+-- local game_start_runRef = Game.start_run
+-- function Game:start_run(args)
+--     local game_start_run = game_start_runRef(self, args)
 
-    -- remove this out of the normal voucher rotation immediately.
-    -- spawning the AP item is taken care of somewhere else.
-    return game_start_run
-end
+--     -- remove this out of the normal voucher rotation immediately.
+--     -- spawning the AP item is taken care of somewhere else.
+--     return game_start_run
+-- end
 
 -- DeathLink 
 
@@ -144,8 +144,8 @@ end
 
 local speech_bubbleref = G.UIDEF.speech_bubble
 function G.UIDEF.speech_bubble(text_key, loc_vars)
-    if not G.GAME.game_over_by_deathlink and G.AP.death_link_cause and G.AP.death_link_cause ~= "unknown" and loc_vars and
-        loc_vars.quip then
+    if isAPProfileLoaded() and (not G.GAME.game_over_by_deathlink and G.AP.death_link_cause and G.AP.death_link_cause ~= "unknown" and loc_vars and
+        loc_vars.quip) then
         -- split cause into chunks
         local lines = {}
         local count = 0
@@ -823,45 +823,25 @@ end
 
 local card_apply_to_runRef = Card.apply_to_run
 function Card:apply_to_run(center)
-    local center_table = {
-        name = center and center.name or self and self.ability.name,
-        extra = center and center.config.extra or self and self.ability.extra
-    }
-
-    -- properly handle seed money and money tree vouchers when bonus interest_cap was received already
-    if center_table.name == 'Seed Money' then
-        center_table.extra = center_table.extra + (G.GAME.interest_cap - 25)
-    end
-
-    if center_table.name == 'Money Tree' then
-        center_table.extra = center_table.extra + (G.GAME.interest_cap - 50)
+    if isAPProfileLoaded() then
+        
+        local center_table = {
+            name = center and center.name or self and self.ability.name,
+            extra = center and center.config.extra or self and self.ability.extra
+        }
+        
+        -- properly handle seed money and money tree vouchers when bonus interest_cap was received already
+        if center_table.name == 'Seed Money' then
+            center_table.extra = center_table.extra + (G.GAME.interest_cap - 25)
+        end
+        
+        if center_table.name == 'Money Tree' then
+            center_table.extra = center_table.extra + (G.GAME.interest_cap - 50)
+        end
     end
 
     return card_apply_to_runRef(self, center)
 end
-
-local can_redeem_APRef = G.FUNCS.can_redeem
-G.FUNCS.can_redeem = function(e)
-    -- if isAPProfileLoaded() and not e.config.ref_table.unlocked then
-    --     e.config.colour = G.C.UI.BACKGROUND_INACTIVE
-    --     e.config.button = nil
-    --     return
-    -- end
-
-    return can_redeem_APRef(e)
-end
-
--- local can_buy_APRef = G.FUNCS.can_buy
--- G.FUNCS.can_buy = function(e)
---     -- Planet cards cant be bought yet
---     if isAPProfileLoaded() and not e.config.ref_table.unlocked then
---         e.config.colour = G.C.UI.BACKGROUND_INACTIVE
---         e.config.button = nil
---         return
---     end
-
---     return can_buy_APRef(e)
--- end
 
 local get_next_voucher_keyRef = get_next_voucher_key
 function get_next_voucher_key(_from_tag)
@@ -874,25 +854,6 @@ function get_next_voucher_key(_from_tag)
     end
 
     return get_next_voucher
-end
-
-local get_current_poolRef = get_current_pool
-function get_current_pool(_type, _rarity, _legendary, _append)
-
-    -- to fix bugs, overwrite create_cards() instead and catch issues there
-
-    local _pool, _pool_key = get_current_poolRef(_type, _rarity, _legendary, _append)
-
-    -- if isAPProfileLoaded() then
-    --     for k, v in pairs(_pool) do
-    --         -- if j_joker not unlocked, put pluto card there (not a pretty solution, will probably be changed in future TODO)
-    --         -- if G.P_LOCKED[v] and v == "j_joker" then
-    --         --     _pool[k] = "UNAVAILABLE"
-    --         -- end
-    --     end
-    -- end
-
-    return _pool, _pool_key
 end
 
 local cardArea_emplaceRef = CardArea.emplace
@@ -1380,7 +1341,7 @@ end
 
 local create_UIBox_notify_alertRef = create_UIBox_notify_alert
 function create_UIBox_notify_alert(_achievement, _type)
-    if _type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral" then
+    if isAPProfileLoaded() and (_type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral") then
 
         -- change this sprite in the future
         -- local _atlas = SMODS.Atlas
@@ -1539,13 +1500,6 @@ G.FUNCS.set_up_APProfile = function()
     G.PROFILES[G.AP.profile_Id]["maxinterest"] = 0
     G.PROFILES[G.AP.profile_Id]["bonusjoker"] = 0
     G.PROFILES[G.AP.profile_Id]["bonusconsumable"] = 0
-end
-
-local back_generate_UIRef = Back.generate_UI
-function Back:generate_UI(other, ui_scale, min_dims, challenge)
-    local back_generate_UI = back_generate_UIRef(self, other, ui_scale, min_dims, challenge)
-
-    return back_generate_UI
 end
 
 -- prevent achievements from being unlocked
