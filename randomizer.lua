@@ -1389,10 +1389,12 @@ function create_UIBox_notify_alert(_achievement, _type)
                 "Spectral" and G.ASSET_ATLAS["Tarot"] or _type == "Booster" and G.ASSET_ATLAS["Booster"] or _type ==
                 "location" and G.ASSET_ATLAS["rand_ap_logo"] or G.ASSET_ATLAS["icons"]
 
-        if not _c then
+        if not _c and _type == "location" then
             _c = {
-                x = 0,
-                y = 0
+                pos = {
+                    x = 0,
+                    y = 0
+                }
             }
         end
 
