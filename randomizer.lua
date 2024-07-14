@@ -1322,37 +1322,30 @@ function check_for_unlock(args)
 
             sendDebugMessage("deck_name is " .. deck_name)
             -- specify the deck
-            if deck_name == 'Red Deck' then
-                sendLocationCleared(G.AP.id_offset + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Blue Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Yellow Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 2 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Green Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 3 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Black Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 4 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Magic Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 5 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Nebula Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 6 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Ghost Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 7 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Abandoned Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 8 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Checkered Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 9 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Zodiac Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 10 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Painted Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 11 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Anaglyph Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 12 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Plasma Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 13 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
-            elseif deck_name == 'Erratic Deck' then
-                sendLocationCleared(G.AP.id_offset + 64 * 14 + (args.ante - 2) * 8 + (G.GAME.stake - 1))
+            local deck_list = {}
+            deck_list[0] = 'Red Deck'
+            deck_list[1] = 'Blue Deck'
+            deck_list[2] = 'Yellow Deck'
+            deck_list[3] = 'Green Deck'
+            deck_list[4] = 'Black Deck'
+            deck_list[5] = 'Magic Deck'
+            deck_list[6] = 'Nebula Deck'
+            deck_list[7] = 'Ghost Deck'
+            deck_list[8] = 'Abandoned Deck'
+            deck_list[9] = 'Checkered Deck'
+            deck_list[10] = 'Zodiac Deck'
+            deck_list[11] = 'Painted Deck'
+            deck_list[12] = 'Anaglyph Deck'
+            deck_list[13] = 'Plasma Deck'
+            deck_list[14] = 'Erratic Deck'
+
+            for k,v in pairs(deck_list) do
+                if deck_name == v then
+                    sendLocationCleared(G.AP.id_offset + (64 * k) + (args.ante - 2) * 8 + (G.GAME.stake - 1))
+                    break -- break the loop once the correct deck is found
+                end
             end
+            
         end
 
         -- also need to check for goal completions!
