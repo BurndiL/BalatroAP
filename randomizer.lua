@@ -1285,23 +1285,22 @@ function check_for_unlock(args)
 
             sendDebugMessage("deck_name is " .. deck_name)
             -- specify the deck
-            local deck_list = {
-                0 = 'Red Deck',
-                1 = 'Blue Deck',
-                2 = 'Yellow Deck',
-                3 = 'Green Deck',
-                4 = 'Black Deck',
-                5 = 'Magic Deck',
-                6 = 'Nebula Deck',
-                7 = 'Ghost Deck',
-                8 = 'Abandoned Deck',
-                9 = 'Checkered Deck',
-                10 = 'Zodiac Deck',
-                11 = 'Painted Deck',
-                12 = 'Anaglyph Deck',
-                13 = 'Plasma Deck',
-                14 = 'Erratic Deck'
-            }
+            local deck_list = {}
+            deck_list[0] = 'Red Deck'
+            deck_list[1] = 'Blue Deck'
+            deck_list[2] = 'Yellow Deck'
+            deck_list[3] = 'Green Deck'
+            deck_list[4] = 'Black Deck'
+            deck_list[5] = 'Magic Deck'
+            deck_list[6] = 'Nebula Deck'
+            deck_list[7] = 'Ghost Deck'
+            deck_list[8] = 'Abandoned Deck'
+            deck_list[9] = 'Checkered Deck'
+            deck_list[10] = 'Zodiac Deck'
+            deck_list[11] = 'Painted Deck'
+            deck_list[12] = 'Anaglyph Deck'
+            deck_list[13] = 'Plasma Deck'
+            deck_list[14] = 'Erratic Deck'
 
             for k,v in pairs(deck_list) do
                 if deck_name == v then
