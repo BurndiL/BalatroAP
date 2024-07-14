@@ -877,10 +877,6 @@ function APConnect()
     end
 
     function on_location_info(items)
-        print("Locations scouted:")
-        for _, item in ipairs(items) do
-            print(item.item)
-        end
     end
 
     function on_location_checked(locations)
