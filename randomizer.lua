@@ -19,6 +19,8 @@ G.AP = {
     id_offset = 5606000
 }
 
+G.AP.shop_id_to_name = {}
+
 G.AP.this_mod = SMODS.current_mod
 
 NFS.load(G.AP.this_mod.path .. "ap_connection.lua")()
@@ -859,6 +861,35 @@ function get_next_voucher_key(_from_tag)
     return get_next_voucher
 end
 
+
+local create_cardRef = create_card
+
+function create_card(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
+
+
+    if isAPProfileLoaded() and G.STATE == G.STATES.BUFFOON_PACK and _type == 'Joker' and (G.P_CENTERS) then
+        for k, v in pairs(G.P_CENTERS) do
+            if string.find(tostring(k), '^j_') then
+                v.foo = v.unlocked
+                v.unlocked = v.ap_unlocked 
+            end
+        end
+    end
+
+    local create_card = create_cardRef(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
+
+    if isAPProfileLoaded() and G.STATE == G.STATES.BUFFOON_PACK and _type == 'Joker' and (G.P_CENTERS) then
+        for k, v in pairs(G.P_CENTERS) do
+            if string.find(tostring(k), '^j_') then
+                v.unlocked = v.foo
+                v.foo = nil
+            end
+        end
+    end
+
+    return create_card
+end
+
 local cardArea_emplaceRef = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
     if (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and G.STATE == G.STATES.SHOP) then
@@ -886,34 +917,40 @@ function CardArea:emplace(card, location, stay_flipped)
 
         -- following blocks handle standard cards appearing in packs/shop
         if not next(find_joker("Showman")) and card.config.center.unlocked == true then
-            -- if (card.config.center_key == "j_joker" and card.config.center.unlocked == true) then
-            --     local found_self = false
-            --     if self ~= G.jokers then
-            --         -- if you already have the Joker and don't have showman, delete
-            --         if next(find_joker("Joker")) and not next(find_joker("Showman")) then
+            if (card.config.center_key == "j_joker" and card.config.center.unlocked == true) and self == G.pack_cards then
+                local found_self = false
+                -- if you already have the Joker and don't have showman, delete
+                if next(find_joker("Joker")) and not next(find_joker("Showman")) then
 
-            --             self:remove_card(card, false)
-            --             card:start_dissolve({G.C.RED}, true, 0)
+                    self:remove_card(card, false)
+                    card:start_dissolve({G.C.RED}, true, 0)
 
-            --             return cardAreaemplace
-            --         end
+                    return cardAreaemplace
+                end
 
-            --         for k, v in pairs(self.cards) do
-            --             if v.config.center.key == "j_joker" then
+                for k, v in pairs(self.cards) do
+                    if v.config.center.key == "j_joker" then
+                        if v.config.center.ap_unlocked then
+                            if not found_self then
+                                found_self = true
+                            else
+                                self:remove_card(card, false)
+                                card:start_dissolve({G.C.RED}, true, 0)
+    
+                                return cardAreaemplace
+                            end
+                            
+                        else
+                            self:remove_card(card, false)
+                            card:start_dissolve({G.C.RED}, true, 0)
 
-            --                 if not found_self then
-            --                     found_self = true
-            --                 else
-            --                     self:remove_card(card, false)
-            --                     card:start_dissolve({G.C.RED}, true, 0)
-
-            --                     return cardAreaemplace
-            --                 end
-            --             end
-            --         end
-            --     end
-            --     return cardAreaemplace
-            -- end
+                            return cardAreaemplace
+                        end
+                    end
+                end
+            
+                return cardAreaemplace
+            end
 
             if (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) and
                 (G.STATE == G.STATES.PLANET_PACK or G.STATE == G.STATES.SHOP) then
@@ -1369,6 +1406,16 @@ function sendGoalReached()
     end
 end
 
+function scoutShopLocations() 
+    if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
+        for i = 8, 1, -1 do
+            if (G.AP.slot_data["stake" .. tostring(i) .. "_shop_locations"]) then
+                G.APClient:LocationScouts(G.AP.slot_data["stake" .. tostring(G.GAME.stake) .. "_shop_locations"])
+            end
+        end
+    end
+end
+
 local create_UIBox_notify_alertRef = create_UIBox_notify_alert
 function create_UIBox_notify_alert(_achievement, _type)
     if isAPProfileLoaded() and
@@ -1406,6 +1453,10 @@ function create_UIBox_notify_alert(_achievement, _type)
 
         local subtext = "Location cleared"
         local name = "Archipelago"
+
+        if _type == "location" then
+            
+        end
 
         if _type ~= "location" then
             if _achievement and G.P_CENTERS[_achievement] then
@@ -1505,7 +1556,7 @@ function sendLocationCleared(id)
     if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
 
         if (tableContains(G.APClient.missing_locations, id)) then
-            notify_alert(nil, "location")
+            notify_alert(id, "location")
         end
         sendDebugMessage("sendLocationCleared: " .. tostring(id))
         G.APClient:LocationChecks({id})
