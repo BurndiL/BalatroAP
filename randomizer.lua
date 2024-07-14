@@ -144,8 +144,9 @@ end
 
 local speech_bubbleref = G.UIDEF.speech_bubble
 function G.UIDEF.speech_bubble(text_key, loc_vars)
-    if isAPProfileLoaded() and (not G.GAME.game_over_by_deathlink and G.AP.death_link_cause and G.AP.death_link_cause ~= "unknown" and loc_vars and
-        loc_vars.quip) then
+    if isAPProfileLoaded() and
+        (not G.GAME.game_over_by_deathlink and G.AP.death_link_cause and G.AP.death_link_cause ~= "unknown" and loc_vars and
+            loc_vars.quip) then
         -- split cause into chunks
         local lines = {}
         local count = 0
@@ -498,8 +499,7 @@ function Game:draw()
                                                 " Decks. You already beat " .. tostring(deck_wins) .. " Decks.", 10, 60)
                         -- unlock # of jokers
                     elseif G.AP.goal == 1 then
-                        local unlocked_jokers = (G.DISCOVER_TALLIES and G.DISCOVER_TALLIES.jokers and
-                                                    G.DISCOVER_TALLIES.jokers.tally) or 0
+                        local unlocked_jokers = get_unlocked_jokers()
                         love.graphics.print("Goal: Unlock " .. G.AP.slot_data.jokers_unlock_goal ..
                                                 " Jokers. You already unlocked " .. tostring(unlocked_jokers) ..
                                                 " Jokers.", 10, 60)
@@ -639,11 +639,15 @@ function Game:init_item_prototypes()
         for k, v in pairs(self.P_CENTERS) do
             -- for jokers
             if string.find(k, '^j_') then
-                v.unlocked = false
+                v.unlocked = true
+                v.discovered = true
+                v.hidden = false
+                v.ap_unlocked = false
                 if G.PROFILES[G.AP.profile_Id]["jokers"][v.name] ~= nil then
-                    v.unlocked = true
-                    v.discovered = true
-                    v.hidden = false
+                    -- v.unlocked = true
+                    -- v.discovered = true
+                    -- v.hidden = false
+                    v.ap_unlocked = true
 
                     if (G.AP.JokerQueue[v] == true) then
                         G.FUNCS.AP_unlock_item(v)
@@ -710,9 +714,9 @@ function Game:init_item_prototypes()
 
             v.unlock_condition = v.unlock_condition or {}
 
-            if v.unlocked ~= nil and v.unlocked == false then
+            if (v.unlocked ~= nil and v.unlocked == false) or v.ap_unlocked == false then
                 v.discovered = v.unlocked
-                v.hidden = true
+                v.hidden = not v.unlocked
                 self.P_LOCKED[#self.P_LOCKED + 1] = v
             end
 
@@ -788,14 +792,14 @@ local is_in_stake_option_creation = false
 
 function G.UIDEF.stake_option(_type)
     if isAPProfileLoaded() and G.AP.slot_data.stakesunlocked then
-        
+
         local foo = G.PROFILES[G.SETTINGS.profile].all_unlocked
         G.PROFILES[G.SETTINGS.profile].all_unlocked = true
-        
+
         local stake_option = stake_optionRef(_type)
-        
+
         G.PROFILES[G.SETTINGS.profile].all_unlocked = foo
-        
+
         return stake_option
     end
     return stake_optionRef(_type)
@@ -804,11 +808,10 @@ end
 local viewed_stake_optionRef = G.UIDEF.viewed_stake_option
 function G.UIDEF.viewed_stake_option()
     if isAPProfileLoaded() and G.AP.slot_data.stakesunlocked then
-                
+
         local foo = G.PROFILES[G.SETTINGS.profile].all_unlocked
         G.PROFILES[G.SETTINGS.profile].all_unlocked = true
-        
-        
+
         local viewed_stake_option = viewed_stake_optionRef()
 
         G.PROFILES[G.SETTINGS.profile].all_unlocked = foo
@@ -824,17 +827,17 @@ end
 local card_apply_to_runRef = Card.apply_to_run
 function Card:apply_to_run(center)
     if isAPProfileLoaded() then
-        
+
         local center_table = {
             name = center and center.name or self and self.ability.name,
             extra = center and center.config.extra or self and self.ability.extra
         }
-        
+
         -- properly handle seed money and money tree vouchers when bonus interest_cap was received already
         if center_table.name == 'Seed Money' then
             center_table.extra = center_table.extra + (G.GAME.interest_cap - 25)
         end
-        
+
         if center_table.name == 'Money Tree' then
             center_table.extra = center_table.extra + (G.GAME.interest_cap - 50)
         end
@@ -883,34 +886,34 @@ function CardArea:emplace(card, location, stay_flipped)
 
         -- following blocks handle standard cards appearing in packs/shop
         if not next(find_joker("Showman")) and card.config.center.unlocked == true then
-            if (card.config.center_key == "j_joker" and card.config.center.unlocked == true) then
-                local found_self = false
-                if self ~= G.jokers then
-                    -- if you already have the Joker and don't have showman, delete
-                    if next(find_joker("Joker")) and not next(find_joker("Showman")) then
+            -- if (card.config.center_key == "j_joker" and card.config.center.unlocked == true) then
+            --     local found_self = false
+            --     if self ~= G.jokers then
+            --         -- if you already have the Joker and don't have showman, delete
+            --         if next(find_joker("Joker")) and not next(find_joker("Showman")) then
 
-                        self:remove_card(card, false)
-                        card:start_dissolve({G.C.RED}, true, 0)
+            --             self:remove_card(card, false)
+            --             card:start_dissolve({G.C.RED}, true, 0)
 
-                        return cardAreaemplace
-                    end
+            --             return cardAreaemplace
+            --         end
 
-                    for k, v in pairs(self.cards) do
-                        if v.config.center.key == "j_joker" then
+            --         for k, v in pairs(self.cards) do
+            --             if v.config.center.key == "j_joker" then
 
-                            if not found_self then
-                                found_self = true
-                            else
-                                self:remove_card(card, false)
-                                card:start_dissolve({G.C.RED}, true, 0)
+            --                 if not found_self then
+            --                     found_self = true
+            --                 else
+            --                     self:remove_card(card, false)
+            --                     card:start_dissolve({G.C.RED}, true, 0)
 
-                                return cardAreaemplace
-                            end
-                        end
-                    end
-                end
-                return cardAreaemplace
-            end
+            --                     return cardAreaemplace
+            --                 end
+            --             end
+            --         end
+            --     end
+            --     return cardAreaemplace
+            -- end
 
             if (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) and
                 (G.STATE == G.STATES.PLANET_PACK or G.STATE == G.STATES.SHOP) then
@@ -985,8 +988,24 @@ function CardArea:emplace(card, location, stay_flipped)
         end
 
     end
+    if isAPProfileLoaded() and card.config.center.unlocked == true and card.config.center.ap_unlocked == false then
+        card:set_debuff(true)
+    end
 
     return cardAreaemplace
+end
+
+local card_set_debuffRef = Card.set_debuff
+
+
+function Card:set_debuff(should_debuff)
+
+    if isAPProfileLoaded() and self.config.center.ap_unlocked == false and should_debuff == false then
+        should_debuff = true
+    end
+
+    return card_set_debuffRef(self, should_debuff)
+
 end
 
 local can_skip_boosterRef = G.FUNCS.can_skip_booster
@@ -1240,6 +1259,18 @@ function create_unlock_overlay(key)
     return create_unlock_overlayRef(key)
 end
 
+function get_unlocked_jokers()
+    local count = 0
+    if (G.P_CENTERS) then
+        for k, v in pairs(G.P_CENTERS) do
+            if string.find(tostring(k), '^j_') and v.ap_unlocked == true then
+                count = count + 1
+            end
+        end
+    end
+    return count
+end
+
 -- Here you can unlock checks
 
 local check_for_unlockRef = check_for_unlock
@@ -1310,8 +1341,7 @@ function check_for_unlock(args)
 
                 -- unlock # of jokers (must be in run to avoid cringe bugs when loading in)
             elseif G.AP.goal == 1 and G.STAGE == G.STAGES.RUN then
-                if tonumber((G.DISCOVER_TALLIES and G.DISCOVER_TALLIES.jokers and G.DISCOVER_TALLIES.jokers.tally) or 0) >=
-                    tonumber(G.AP.slot_data.jokers_unlock_goal) then
+                if tonumber(get_unlocked_jokers() or 0) >= tonumber(G.AP.slot_data.jokers_unlock_goal) then
                     sendGoalReached()
                 end
 
@@ -1341,7 +1371,8 @@ end
 
 local create_UIBox_notify_alertRef = create_UIBox_notify_alert
 function create_UIBox_notify_alert(_achievement, _type)
-    if isAPProfileLoaded() and (_type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral") then
+    if isAPProfileLoaded() and
+        (_type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral") then
 
         -- change this sprite in the future
         -- local _atlas = SMODS.Atlas

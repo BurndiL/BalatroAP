@@ -406,9 +406,40 @@ function APConnect()
                                 G.P_CENTERS[item.requires[1]].nextVoucher = item
                                 item = G.P_CENTERS[item.requires[1]]
                             end
-                            
+
                         elseif item.nextVoucher then
                             item = item.nextVoucher
+                        end
+
+                        if item.set == "Joker" then
+                            item.ap_unlocked = true
+                            if G.jokers and G.jokers.cards then
+                                for k, v in pairs(G.jokers.cards) do
+                                    if v and type(v) == 'table' and v.config.center.name == item.name then
+                                        v:set_debuff(false)
+                                        v:juice_up()
+                                    end
+                                end
+                            end
+                            if G.STATES then
+                                if G.STATE == G.STATES.SHOP and G.shop_jokers and G.shop_jokers.cards then
+                                    for k, v in pairs(G.shop_jokers.cards) do
+                                        if v and type(v) == 'table' and v.config.center.name == item.name then
+                                            v:set_debuff(false)
+                                            v:juice_up()
+                                        end
+                                    end
+                                end
+                                if G.STATE == G.STATES.BUFFOON_PACK and G.pack_cards and G.pack_cards.cards then
+                                    for k, v in pairs(G.pack_cards.cards) do
+                                        if v and type(v) == 'table' and v.config.center.name == item.name then
+                                            v:set_debuff(false)
+                                            v:juice_up()
+                                        end
+                                    end
+                                end
+                            end
+
                         end
 
                         item.unlocked = true
@@ -510,9 +541,9 @@ function APConnect()
                             G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] =
                                 (G.PROFILES[G.AP.profile_Id]["bonusstartingmoney"] or 0) + 1
 
-                                if G.STAGE == G.STAGES.RUN then
-                                    ease_dollars(1, true)
-                                end
+                            if G.STAGE == G.STAGES.RUN then
+                                ease_dollars(1, true)
+                            end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusstartingmoney",
@@ -790,7 +821,10 @@ function APConnect()
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                         local items_to_unlock = {}
                         for k, v in ipairs(G.AP.slot_data["jokerbundle" .. tostring(item_id - 350)]) do
-                            items_to_unlock[#items_to_unlock + 1] = {index = "joker" .. tostring(item_id - 350) .. tostring(#items_to_unlock + 1), item = v} 
+                            items_to_unlock[#items_to_unlock + 1] = {
+                                index = "joker" .. tostring(item_id - 350) .. tostring(#items_to_unlock + 1),
+                                item = v
+                            }
                         end
 
                         on_items_received(items_to_unlock)
@@ -801,7 +835,10 @@ function APConnect()
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                         local items_to_unlock = {}
                         for i = 213, 234, 1 do
-                            items_to_unlock[#items_to_unlock + 1] = {index = "tarot" .. tostring(i), item = i + G.AP.id_offset} 
+                            items_to_unlock[#items_to_unlock + 1] = {
+                                index = "tarot" .. tostring(i),
+                                item = i + G.AP.id_offset
+                            }
                         end
                         on_items_received(items_to_unlock)
 
@@ -812,7 +849,10 @@ function APConnect()
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                         local items_to_unlock = {}
                         for i = 247, 264, 1 do
-                            items_to_unlock[#items_to_unlock + 1] = {index = "spectral" .. tostring(i), item = i + G.AP.id_offset}    
+                            items_to_unlock[#items_to_unlock + 1] = {
+                                index = "spectral" .. tostring(i),
+                                item = i + G.AP.id_offset
+                            }
                         end
 
                         on_items_received(items_to_unlock)
@@ -823,7 +863,10 @@ function APConnect()
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                         local items_to_unlock = {}
                         for i = 235, 246, 1 do
-                            items_to_unlock[#items_to_unlock + 1] = {index = "planet" .. tostring(i), item = i + G.AP.id_offset}    
+                            items_to_unlock[#items_to_unlock + 1] = {
+                                index = "planet" .. tostring(i),
+                                item = i + G.AP.id_offset
+                            }
                         end
                         on_items_received(items_to_unlock)
                     end
