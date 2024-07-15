@@ -19,7 +19,7 @@ G.AP = {
     id_offset = 5606000
 }
 
-G.AP.shop_id_to_name = {}
+G.AP.location_id_to_item_name = {}
 
 G.AP.this_mod = SMODS.current_mod
 
@@ -115,15 +115,6 @@ function Game:init_game_object()
     return init_game_object
 end
 
--- local game_start_runRef = Game.start_run
--- function Game:start_run(args)
---     local game_start_run = game_start_runRef(self, args)
-
---     -- remove this out of the normal voucher rotation immediately.
---     -- spawning the AP item is taken care of somewhere else.
---     return game_start_run
--- end
-
 -- DeathLink 
 
 G.FUNCS.die = function()
@@ -142,6 +133,20 @@ G.FUNCS.die = function()
     end
 end
 
+function split_text_to_lines(text)
+    local lines = {}
+    local count = 0
+    for word in text:gmatch("%S+") do
+        if count % 4 == 0 then
+            lines[#lines + 1] = ""
+        end
+        count = count + 1
+        lines[#lines] = lines[#lines] .. " " .. word
+    end
+
+    return lines
+end
+
 -- jimbo yaps about deathlink cause
 
 local speech_bubbleref = G.UIDEF.speech_bubble
@@ -150,15 +155,7 @@ function G.UIDEF.speech_bubble(text_key, loc_vars)
         (not G.GAME.game_over_by_deathlink and G.AP.death_link_cause and G.AP.death_link_cause ~= "unknown" and loc_vars and
             loc_vars.quip) then
         -- split cause into chunks
-        local lines = {}
-        local count = 0
-        for word in G.AP.death_link_cause:gmatch("%S+") do
-            if count % 4 == 0 then
-                lines[#lines + 1] = ""
-            end
-            count = count + 1
-            lines[#lines] = lines[#lines] .. " " .. word
-        end
+        local lines = split_text_to_lines(G.AP.death_link_cause)
 
         G.localization.quips_parsed.ap_death = {
             multi_line = true
@@ -861,22 +858,21 @@ function get_next_voucher_key(_from_tag)
     return get_next_voucher
 end
 
-
 local create_cardRef = create_card
 
 function create_card(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
-
-
+    -- to properly generate only unlocked jokers in buffoon packs
     if isAPProfileLoaded() and G.STATE == G.STATES.BUFFOON_PACK and _type == 'Joker' and (G.P_CENTERS) then
         for k, v in pairs(G.P_CENTERS) do
             if string.find(tostring(k), '^j_') then
                 v.foo = v.unlocked
-                v.unlocked = v.ap_unlocked 
+                v.unlocked = v.ap_unlocked
             end
         end
     end
 
-    local create_card = create_cardRef(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
+    local create_card = create_cardRef(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key,
+        key_append)
 
     if isAPProfileLoaded() and G.STATE == G.STATES.BUFFOON_PACK and _type == 'Joker' and (G.P_CENTERS) then
         for k, v in pairs(G.P_CENTERS) do
@@ -907,7 +903,8 @@ function CardArea:emplace(card, location, stay_flipped)
 
     if self.cards and ((isAPProfileLoaded() and card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
-            G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.jokers or self == G.consumeables)) or
+            G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.shop_jokers or self == G.jokers or
+            self == G.consumeables or self == G.pack_cards)) or
 
         (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and ap_items_in_shop > 1 and G.STATE ==
             G.STATES.SHOP) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
@@ -936,10 +933,10 @@ function CardArea:emplace(card, location, stay_flipped)
                             else
                                 self:remove_card(card, false)
                                 card:start_dissolve({G.C.RED}, true, 0)
-    
+
                                 return cardAreaemplace
                             end
-                            
+
                         else
                             self:remove_card(card, false)
                             card:start_dissolve({G.C.RED}, true, 0)
@@ -948,7 +945,7 @@ function CardArea:emplace(card, location, stay_flipped)
                         end
                     end
                 end
-            
+
                 return cardAreaemplace
             end
 
@@ -1033,7 +1030,6 @@ function CardArea:emplace(card, location, stay_flipped)
 end
 
 local card_set_debuffRef = Card.set_debuff
-
 
 function Card:set_debuff(should_debuff)
 
@@ -1137,10 +1133,17 @@ SMODS.Voucher {
     requires = {'fuck!! shit!!!! (put here anything so it doesnt spawn naturally)'}
 }
 
+G.FUNCS.resolve_location_id_to_name = function(id)
+    if not G.AP.location_id_to_item_name[id] then
+        G.APClient:LocationScouts({id})
+    end
+end
+
 function get_shop_location()
     if G.AP.slot_data["stake" .. tostring(G.GAME.stake) .. "_shop_locations"] then
         for i, v in ipairs(G.AP.slot_data["stake" .. tostring(G.GAME.stake) .. "_shop_locations"]) do
             if (tableContains(G.APClient.missing_locations, v)) then
+                G.FUNCS.resolve_location_id_to_name(v)
                 return v
             end
         end
@@ -1176,15 +1179,30 @@ function Game:update_shop(dt)
         ap_items_in_shop = 0
         local game_update_shop = game_update_shopRef(self, dt)
         -- first check if there are still shop locations to get
-        if (get_shop_location() ~= nil) then
+        local current_ap_shopitem = get_shop_location()
+        if (current_ap_shopitem ~= nil) then
             -- give new random cost each time 
             G.P_CENTERS['v_rand_ap_item'].cost = math.random(min_cost, max_cost)
 
             G.E_MANAGER:add_event(Event({
+
                 trigger = 'after',
                 delay = 0.3,
                 blockable = false,
                 func = function()
+                    local text = 'AP Item'
+
+                    if G.AP.location_id_to_item_name[current_ap_shopitem] and
+                        G.AP.location_id_to_item_name[current_ap_shopitem].item_name then
+                        text = 'Unlock ' .. G.AP.location_id_to_item_name[current_ap_shopitem].item_name .. ' for ' ..
+                                   G.AP.location_id_to_item_name[current_ap_shopitem].player_name
+                    end
+
+                    local lines = split_text_to_lines(text)
+                    G.localization.descriptions.Voucher['v_rand_ap_item'].text_parsed = {}
+                    for k, v in ipairs(lines) do
+                        G.localization.descriptions.Voucher['v_rand_ap_item'].text_parsed[k] = loc_parse_string(v)
+                    end
 
                     local voucher_key = 'v_rand_ap_item'
                     G.shop_vouchers.config.card_limit = G.shop_vouchers.config.card_limit + 1
@@ -1316,11 +1334,9 @@ function check_for_unlock(args)
     if isAPProfileLoaded() then
         -- check if the 10 here is correct
         if args.type == 'ante_up' and args.ante and args.ante > 1 and args.ante < 10 then
-            sendDebugMessage("args.type is ante_up")
             -- when an ante is beaten
             local deck_name = G.GAME.selected_back.name
 
-            sendDebugMessage("deck_name is " .. deck_name)
             -- specify the deck
             local deck_list = {}
             deck_list[0] = 'Red Deck'
@@ -1339,13 +1355,13 @@ function check_for_unlock(args)
             deck_list[13] = 'Plasma Deck'
             deck_list[14] = 'Erratic Deck'
 
-            for k,v in pairs(deck_list) do
+            for k, v in pairs(deck_list) do
                 if deck_name == v then
                     sendLocationCleared(G.AP.id_offset + (64 * k) + (args.ante - 2) * 8 + (G.GAME.stake - 1))
                     break -- break the loop once the correct deck is found
                 end
             end
-            
+
         end
 
         -- also need to check for goal completions!
@@ -1399,16 +1415,6 @@ function sendGoalReached()
     end
 end
 
-function scoutShopLocations() 
-    if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
-        for i = 8, 1, -1 do
-            if (G.AP.slot_data["stake" .. tostring(i) .. "_shop_locations"]) then
-                G.APClient:LocationScouts(G.AP.slot_data["stake" .. tostring(G.GAME.stake) .. "_shop_locations"])
-            end
-        end
-    end
-end
-
 local create_UIBox_notify_alertRef = create_UIBox_notify_alert
 function create_UIBox_notify_alert(_achievement, _type)
     if isAPProfileLoaded() and
@@ -1447,8 +1453,10 @@ function create_UIBox_notify_alert(_achievement, _type)
         local subtext = "Location cleared"
         local name = "Archipelago"
 
-        if _type == "location" then
-            
+        -- this might be nil if server communication is too slow -> will default to "location cleared"
+        if _type == "location" and G.AP.location_id_to_item_name[_achievement] then
+            subtext = "Sent " .. G.AP.location_id_to_item_name[_achievement].item_name .. " to " ..
+                          G.AP.location_id_to_item_name[_achievement].player_name
         end
 
         if _type ~= "location" then
@@ -1549,9 +1557,19 @@ function sendLocationCleared(id)
     if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
 
         if (tableContains(G.APClient.missing_locations, id)) then
-            notify_alert(id, "location")
+            G.FUNCS.resolve_location_id_to_name(id)
+            -- delay this a bit so the locationscout can finish
+            G.E_MANAGER:add_event(Event({
+
+                trigger = 'after',
+                delay = 0.5,
+                blockable = true,
+                func = function()
+                    notify_alert(id, "location")
+                    return true
+                end
+            }))
         end
-        sendDebugMessage("sendLocationCleared: " .. tostring(id))
         G.APClient:LocationChecks({id})
     end
 end
