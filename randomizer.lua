@@ -1194,8 +1194,8 @@ function Game:update_shop(dt)
 
                     if G.AP.location_id_to_item_name[current_ap_shopitem] and
                         G.AP.location_id_to_item_name[current_ap_shopitem].item_name then
-                        text = 'Unlock ' .. G.AP.location_id_to_item_name[current_ap_shopitem].item_name .. ' for ' ..
-                                   G.AP.location_id_to_item_name[current_ap_shopitem].player_name
+                        text = G.AP.location_id_to_item_name[current_ap_shopitem].player_name .. '\'s ' ..
+                                   G.AP.location_id_to_item_name[current_ap_shopitem].item_name
                     end
 
                     local lines = split_text_to_lines(text)
@@ -1455,8 +1455,9 @@ function create_UIBox_notify_alert(_achievement, _type)
 
         -- this might be nil if server communication is too slow -> will default to "location cleared"
         if _type == "location" and G.AP.location_id_to_item_name[_achievement] then
-            subtext = "Sent " .. G.AP.location_id_to_item_name[_achievement].item_name .. " to " ..
-                          G.AP.location_id_to_item_name[_achievement].player_name
+            subtext = G.AP.location_id_to_item_name[_achievement].player_name .. '\'s ' ..
+                          G.AP.location_id_to_item_name[_achievement].item_name
+
         end
 
         if _type ~= "location" then
@@ -1537,7 +1538,7 @@ function create_UIBox_notify_alert(_achievement, _type)
                                 n = G.UIT.T,
                                 config = {
                                     text = subtext,
-                                    scale = 0.3,
+                                    scale = 0.7,
                                     colour = G.C.FILTER,
                                     shadow = true
                                 }
