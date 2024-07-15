@@ -331,7 +331,7 @@ function APConnect()
 
     function on_room_info()
         print("Room info")
-        G.APClient:ConnectSlot(slot, password, 7, {"Lua-APClientPP"}, {0, 4, 4})
+        G.APClient:ConnectSlot(slot, password, 7, {"Lua-APClientPP"}, {0, 5, 0})
     end
 
     function on_slot_connected(slot_data)
@@ -341,17 +341,17 @@ function APConnect()
         G.AP.slot_data = slot_data
         G.AP.goal = slot_data.goal
 
-        -- print("missing locations: " .. table.concat(G.APClient.missing_locations, ", "))
-        -- print("checked locations: " .. table.concat(G.APClient.checked_locations, ", "))
-        G.APClient:Say("Hello World!")
-        G.APClient:Bounce({
-            name = "test"
-        }, {"Balatro"})
-        local extra = {
-            nonce = 123
-        } -- optional extra data will be in the server reply
-        G.APClient:Get({"counter"}, extra)
-        G.APClient:Set("counter", 0, true, {{"add", 1}}, extra)
+        -- -- print("missing locations: " .. table.concat(G.APClient.missing_locations, ", "))
+        -- -- print("checked locations: " .. table.concat(G.APClient.checked_locations, ", "))
+        -- G.APClient:Say("Hello World!")
+        -- G.APClient:Bounce({
+        --     name = "test"
+        -- }, {"Balatro"})
+        -- local extra = {
+        --     nonce = 123
+        -- } -- optional extra data will be in the server reply
+        -- G.APClient:Get({"counter"}, extra)
+        -- G.APClient:Set("counter", 0, true, {{"add", 1}}, extra)
         G.APClient:Set("empty_array", nil, true, {{"replace", AP.EMPTY_ARRAY}})
 
         local tags = {"Lua-APClientPP"}
@@ -876,16 +876,37 @@ function APConnect()
 
     end
 
+    local player_to_game = {}
+    local player_to_alias = {}
+
     function on_location_info(items)
+        for _, item in ipairs(items) do
+            if not G.AP.location_id_to_item_name[item.location] then
+                
+                local player = item.player
+
+                if not player_to_alias[player] then
+                    player_to_alias[player] = G.APClient:get_player_alias(item.player)
+                end
+                
+                if not player_to_game[player] then
+                    player_to_game[player] = G.APClient:get_player_game(item.player)
+                end
+                
+                local player_alias = player_to_alias[player]
+                local game = player_to_game[player]
+                G.AP.location_id_to_item_name[item.location] = {item_name = G.APClient:get_item_name(item.item, game), player_name = player_alias} 
+
+            end
+        end
+
     end
 
     function on_location_checked(locations)
-        print("Locations checked:" .. table.concat(locations, ", "))
+        --print("Locations checked:" .. table.concat(locations, ", "))
     end
 
     function on_data_package_changed(data_package)
-        print("Data package changed:")
-        print(data_package)
     end
 
     function on_print(msg)
@@ -893,15 +914,15 @@ function APConnect()
     end
 
     function on_print_json(msg, extra)
-        print(G.APClient:render_json(msg, AP.RenderFormat.TEXT))
-        for key, value in pairs(extra) do
-            sendDebugMessage("  " .. tostring(key) .. ": " .. tostring(value))
-        end
+        -- print(G.APClient:render_json(msg, AP.RenderFormat.TEXT))
+        -- for key, value in pairs(extra) do
+        --     sendDebugMessage("  " .. tostring(key) .. ": " .. tostring(value))
+        -- end
     end
 
     function on_bounced(bounce)
-        print("Bounced:")
-        print(tostring(bounce))
+        -- print("Bounced:")
+        -- print(tostring(bounce))
         if bounce ~= nil and bounce.tags and tbl_contains(bounce.tags, "DeathLink") and bounce.data then
             G.AP.death_link_cause = bounce.data.cause or "unknown"
             G.AP.death_link_source = bounce.data.source or "unknown"
