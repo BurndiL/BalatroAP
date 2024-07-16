@@ -635,6 +635,7 @@ function Game:init_item_prototypes()
         end
 
         self.P_LOCKED = {}
+        local home_for_red = true
         for k, v in pairs(self.P_CENTERS) do
             -- for jokers
             if string.find(k, '^j_') then
@@ -664,6 +665,22 @@ function Game:init_item_prototypes()
                         G.FUNCS.AP_unlock_item(v)
                     end
                 end
+
+                if not tableContains(G.AP.slot_data.included_decks, k) then
+                    if (self.P_CENTERS['b_red'] == v) then
+                        home_for_red = false
+                    end
+                    SMODS.Back:take_ownership(k, {}):delete()
+                elseif not home_for_red then
+                    home_for_red = true
+
+                    -- because the red deck is the default deck, removing it will cause problems.
+                    -- this is why we will just reference an available deck through b_red. 
+                    -- This might cause problems in the future. 
+                    self.P_CENTERS['b_red'] = v
+                    
+                end
+
                 -- for vouchers
             elseif string.find(k, '^v_') and not string.find(k, '^v_rand_ap_item') then
                 v.unlocked = false
@@ -1324,6 +1341,18 @@ function get_unlocked_jokers()
         end
     end
     return count
+end
+
+-- remove backs 
+
+local UIDEF_run_setup_optionRef = G.UIDEF.run_setup_option
+function G.UIDEF.run_setup_option(type)
+
+    if type == 'New Run' then
+
+    end
+
+    return UIDEF_run_setup_optionRef(type)
 end
 
 -- Here you can unlock checks
