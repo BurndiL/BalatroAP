@@ -1,16 +1,10 @@
 --- STEAMODDED HEADER
 --- MOD_NAME: Randomizer
 --- MOD_ID: Rando
---- MOD_AUTHOR: [Burndi, Silvris]
+--- MOD_AUTHOR: [Burndi, SpaD_Overolls, Myst, Silvris]
 --- MOD_DESCRIPTION: Archipelago
 ----------------------------------------------
 ------------MOD CODE -------------------------
--- TODO
--- FEATURES:
--- 
--- Traps: Discard random cards, boss blinds
--- Hint Pack
--- 
 G.AP = {
     APAddress = "archipelago.gg",
     APPort = 38281,
@@ -35,6 +29,23 @@ local unloadAPProfile = false
 local foreignDeathlink = false
 local ap_profile_delete = false
 local ap_items_in_shop = 0
+
+local deck_list = {}
+deck_list[0] = 'Red Deck'
+deck_list[1] = 'Blue Deck'
+deck_list[2] = 'Yellow Deck'
+deck_list[3] = 'Green Deck'
+deck_list[4] = 'Black Deck'
+deck_list[5] = 'Magic Deck'
+deck_list[6] = 'Nebula Deck'
+deck_list[7] = 'Ghost Deck'
+deck_list[8] = 'Abandoned Deck'
+deck_list[9] = 'Checkered Deck'
+deck_list[10] = 'Zodiac Deck'
+deck_list[11] = 'Painted Deck'
+deck_list[12] = 'Anaglyph Deck'
+deck_list[13] = 'Plasma Deck'
+deck_list[14] = 'Erratic Deck'
 
 G.AP.profile_Id = -1
 G.AP.GameObjectInit = false
@@ -555,6 +566,16 @@ function Game:load_profile(_profile)
     return game_load_profile
 end
 
+local standard_deck = nil
+
+local back_initRef = Back.init
+function Back:init(selected_back)
+
+    if isAPProfileLoaded() and not selected_back then
+        selected_back = G.P_CENTERS[standard_deck or 'b_red']
+    end
+    return back_initRef(self, selected_back)
+end
 -- unlock Items based on APItems
 
 G.FUNCS.AP_unlock_item = function(item)
@@ -635,7 +656,6 @@ function Game:init_item_prototypes()
         end
 
         self.P_LOCKED = {}
-        local home_for_red = true
         for k, v in pairs(self.P_CENTERS) do
             -- for jokers
             if string.find(k, '^j_') then
@@ -667,18 +687,9 @@ function Game:init_item_prototypes()
                 end
 
                 if not tableContains(G.AP.slot_data.included_decks, k) then
-                    if (self.P_CENTERS['b_red'] == v) then
-                        home_for_red = false
-                    end
                     SMODS.Back:take_ownership(k, {}):delete()
-                elseif not home_for_red then
-                    home_for_red = true
-
-                    -- because the red deck is the default deck, removing it will cause problems.
-                    -- this is why we will just reference an available deck through b_red. 
-                    -- This might cause problems in the future. 
-                    self.P_CENTERS['b_red'] = v
-                    
+                elseif not standard_deck then
+                    standard_deck = k
                 end
 
                 -- for vouchers
@@ -780,6 +791,8 @@ function Game:init_item_prototypes()
         G.AP.GameObjectInit = true
 
         G.FUNCS.initialize_shop_items()
+
+        self.P_CENTERS['b_red'] = self.P_CENTERS[standard_deck]
     end
     return game_init_item_prototypes
 end
@@ -1168,6 +1181,26 @@ function get_shop_location()
     return nil
 end
 
+local select_blindRef = G.FUNCS.select_blind
+
+G.FUNCS.select_blind = function(e)
+    -- scout upcoming locations semi regularly
+    get_shop_location()
+    local deck_name = G.GAME.selected_back.name
+
+    if (G.GAME.round_resets.ante >= 1 and G.GAME.round_resets.ante <= 8) then
+        for k, v in pairs(deck_list) do
+            if deck_name == v then
+                G.APClient:LocationScouts({G.AP.id_offset + (64 * k) + (G.GAME.round_resets.ante - 1) * 8 +
+                    (G.GAME.stake - 1)})
+                break -- break the loop once the correct deck is found
+            end
+        end
+    end
+
+    return select_blindRef(e)
+end
+
 local redeemref = Card.redeem
 
 function Card:redeem()
@@ -1361,28 +1394,9 @@ local check_for_unlockRef = check_for_unlock
 function check_for_unlock(args)
     local check_for_unlock = check_for_unlockRef(args)
     if isAPProfileLoaded() then
-        -- check if the 10 here is correct
         if args.type == 'ante_up' and args.ante and args.ante > 1 and args.ante < 10 then
             -- when an ante is beaten
             local deck_name = G.GAME.selected_back.name
-
-            -- specify the deck
-            local deck_list = {}
-            deck_list[0] = 'Red Deck'
-            deck_list[1] = 'Blue Deck'
-            deck_list[2] = 'Yellow Deck'
-            deck_list[3] = 'Green Deck'
-            deck_list[4] = 'Black Deck'
-            deck_list[5] = 'Magic Deck'
-            deck_list[6] = 'Nebula Deck'
-            deck_list[7] = 'Ghost Deck'
-            deck_list[8] = 'Abandoned Deck'
-            deck_list[9] = 'Checkered Deck'
-            deck_list[10] = 'Zodiac Deck'
-            deck_list[11] = 'Painted Deck'
-            deck_list[12] = 'Anaglyph Deck'
-            deck_list[13] = 'Plasma Deck'
-            deck_list[14] = 'Erratic Deck'
 
             for k, v in pairs(deck_list) do
                 if deck_name == v then
@@ -1393,41 +1407,42 @@ function check_for_unlock(args)
 
         end
 
-        -- also need to check for goal completions!
+        -- also need to check for goal completions! (only check during run so accidental loading of a profile doesn't release/collect)
         if G.AP.goal then
-            -- beat # of decks goal
-            if G.AP.goal == 0 then
+            if G.STAGE == G.STAGES.RUN then
+                -- beat # of decks goal
+                if G.AP.goal == 0 then
 
-                -- get all individual deck wins 
-                local deck_wins = 0
-                for k, v in pairs(G.P_CENTERS) do
-                    if string.find(tostring(k), '^b_') then
-                        if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
-                            G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
-                            #G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
-                            deck_wins = deck_wins + 1
+                    -- get all individual deck wins 
+                    local deck_wins = 0
+                    for k, v in pairs(G.P_CENTERS) do
+                        if string.find(tostring(k), '^b_') then
+                            if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
+                                G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
+                                #G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
+                                deck_wins = deck_wins + 1
+                            end
                         end
                     end
-                end
 
-                if deck_wins >= G.AP.slot_data.decks_win_goal then
-                    sendGoalReached()
-                end
+                    if deck_wins >= G.AP.slot_data.decks_win_goal then
+                        sendGoalReached()
+                    end
 
-                -- unlock # of jokers (must be in run to avoid cringe bugs when loading in)
-            elseif G.AP.goal == 1 and G.STAGE == G.STAGES.RUN then
-                if tonumber(get_unlocked_jokers() or 0) >= tonumber(G.AP.slot_data.jokers_unlock_goal) then
-                    sendGoalReached()
-                end
+                    -- unlock # of jokers (must be in run to avoid cringe bugs when loading in)
+                elseif G.AP.goal == 1 then
+                    if tonumber(get_unlocked_jokers() or 0) >= tonumber(G.AP.slot_data.jokers_unlock_goal) then
+                        sendGoalReached()
+                    end
 
-                -- beat ante
-            elseif G.AP.goal == 2 then
-                if args.type == 'ante_up' and args.ante >= G.AP.slot_data.ante_win_goal then
-                    sendGoalReached()
-                end
+                    -- beat ante
+                elseif G.AP.goal == 2 then
+                    if args.type == 'ante_up' and args.ante >= G.AP.slot_data.ante_win_goal then
+                        sendGoalReached()
+                    end
 
+                end
             end
-
         else
             sendDebugMessage("No goal available, this is not good")
         end
@@ -1588,17 +1603,7 @@ function sendLocationCleared(id)
 
         if (tableContains(G.APClient.missing_locations, id)) then
             G.FUNCS.resolve_location_id_to_name(id)
-            -- delay this a bit so the locationscout can finish
-            G.E_MANAGER:add_event(Event({
-
-                trigger = 'after',
-                delay = 0.5,
-                blockable = true,
-                func = function()
-                    notify_alert(id, "location")
-                    return true
-                end
-            }))
+            notify_alert(id, "location")
         end
         G.APClient:LocationChecks({id})
     end
