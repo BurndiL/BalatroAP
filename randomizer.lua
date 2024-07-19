@@ -799,21 +799,86 @@ end
 
 -- handle stakes
 
+function check_stake_unlock(_stake, _deck_key)
+	-- [Mode 0] all unlocked mode
+	if G.AP.slot_data.stake_unlock_mode == tonumber(0) then return true end
+	
+	-- [Mode 1] linear progression (vanilla)
+	-- (beating a stake unlocks the next one in the list)
+	-- (per deck)
+	if G.AP.slot_data.stake_unlock_mode == tonumber(1) then
+		if G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key] then
+			local _stake_progress = 0
+			for k, v in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].wins) do
+				_stake_progress = math.max(_stake_progress, k)
+			end
+			
+			if _stake <= _stake_progress+1 then return true end 
+		elseif _stake == 1 then return true end
+		
+		return false
+	end
+	
+	-- [Mode 2] global unlocks
+	-- (stakes are unlocked if their .unlocked exists and is true)
+	-- intended for making stakes into items
+	if G.AP.slot_data.stake_unlock_mode == tonumber(2) then
+		if G.P_CENTER_POOLS.Stake[_stake].unlocked then 
+		return G.P_CENTER_POOLS.Stake[_stake].unlocked end
+		
+		return false
+	end
+	
+	-- [Mode 3] individual unlocks
+	-- (stakes are unlocked if their entry in deck_usage.stake_unlocks exists and is true)
+	-- intended for making each deck's stakes into items
+	
+	-- (if used, the decks should be removed from the pool and be unlocked when
+	-- the player receives a stake for that deck)
+	if G.AP.slot_data.stake_unlock_mode == tonumber(3) then
+		
+		if G.PROFILES[G.SETTINGS.profile].deck_usage and G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key] and
+		G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks then
+			return G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks[_stake] or false
+		end
+		
+	end
+	
+	return false
+end
+
+
+
 local UIDEF_deck_stake_columnRef = G.UIDEF.deck_stake_column
 
 function G.UIDEF.deck_stake_column(_deck_key)
-
-    if isAPProfileLoaded() and G.AP.slot_data.stakesunlocked then
-        local foo = G.PROFILES[G.SETTINGS.profile].all_unlocked
-        G.PROFILES[G.SETTINGS.profile].all_unlocked = true
-
-        local UIDEF_deck_stake_column = UIDEF_deck_stake_columnRef(_deck_key)
-        G.PROFILES[G.SETTINGS.profile].all_unlocked = foo
-
-        return UIDEF_deck_stake_column
+    --hijack to use custom logic in AP
+    if isAPProfileLoaded() then
+        local deck_usage = G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key]
+		local stake_col = {}
+		local valid_option = nil
+		local num_stakes = 0
+		
+		for i = #G.AP.slot_data.included_stakes, 1, -1 do
+			if check_stake_unlock(i, _deck_key) == true then
+				num_stakes = #G.AP.slot_data.included_stakes
+				break
+			end
+		end
+		
+		for i = num_stakes, 1, -1 do
+			valid_option = false
+			local _wins = deck_usage and deck_usage.wins[i] or 0
+			if check_stake_unlock(i, _deck_key) == true then valid_option = true end
+			
+			stake_col[#stake_col + 1] = {n = G.UIT.R, config = {id = i, align = "cm", colour = _wins > 0 and G.C.GREY or G.C.CLEAR, outline = 0, outline_colour = G.C.WHITE, r = 0.1, minh = 2 / 8, minw = valid_option and 0.45 or 0.25, func = 'RUN_SETUP_check_back_stake_highlight'}, nodes = {
+				{n = G.UIT.R, config = {align = "cm", minh = valid_option and 1.36 / 8 or 1.04 / 8, minw = valid_option and 0.37 or 0.13, colour = _wins > 0 and get_stake_col(i) or G.C.UI.TRANSPARENT_LIGHT, r = 0.1}, nodes = {}}}}
+			if i > 1 then stake_col[#stake_col + 1] = {n = G.UIT.R, config = {align = "cm", minh = 0.8 / 8, minw = 0.04 }, nodes = {} } end
+		end
+		return {n = G.UIT.ROOT, config = {align = 'cm', colour = G.C.CLEAR}, nodes = stake_col}
+    else
+        return UIDEF_deck_stake_columnRef(_deck_key)
     end
-
-    return UIDEF_deck_stake_columnRef(_deck_key)
 end
 
 local stake_optionRef = G.UIDEF.stake_option
