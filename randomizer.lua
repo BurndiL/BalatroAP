@@ -697,6 +697,19 @@ function Game:init_item_prototypes()
                     standard_deck = k
                 end
 
+		-- create (or fix) deck_usage (for stake unlocks)
+		if not G.PROFILES[G.AP.profile_Id].deck_usage then G.PROFILES[G.AP.profile_Id].deck_usage = {} end
+		if not G.PROFILES[G.AP.profile_Id].deck_usage[k] then G.PROFILES[G.AP.profile_Id].deck_usage[k] = {} end
+		if not G.PROFILES[G.AP.profile_Id].deck_usage[k].count then G.PROFILES[G.AP.profile_Id].deck_usage[k].count = 0 end
+		if not G.PROFILES[G.AP.profile_Id].deck_usage[k].wins then G.PROFILES[G.AP.profile_Id].deck_usage[k].wins = {} end
+		if not G.PROFILES[G.AP.profile_Id].deck_usage[k].losses then G.PROFILES[G.AP.profile_Id].deck_usage[k].losses = {} end
+		if not G.PROFILES[G.AP.profile_Id].deck_usage[k].stake_unlocks then
+			G.PROFILES[G.AP.profile_Id].deck_usage[k].stake_unlocks = {}
+			for i = 1, 8, 1 do
+				G.PROFILES[G.AP.profile_Id].deck_usage[k].stake_unlocks[i] = false
+			end
+		end
+
                 -- for vouchers
             elseif string.find(k, '^v_') and not string.find(k, '^v_rand_ap_item') then
                 v.unlocked = false
@@ -754,6 +767,15 @@ function Game:init_item_prototypes()
 
         end
 
+	-- Handle global stake unlock save data
+	if not G.PROFILES[G.AP.profile_Id].stake_unlocks then
+		G.PROFILES[G.AP.profile_Id].stake_unlocks = {}
+		for i = 1, 8, 1 do
+			G.PROFILES[G.AP.profile_Id].stake_unlocks[i] = false
+		end
+		G.PROFILES[G.AP.profile_Id].stake_unlocks[1] = true
+	end
+	
         -- Handle Queued Bonus stuff
 
         for k, v in pairs(G.AP.BonusQueue) do
@@ -804,7 +826,7 @@ end
 
 -- handle stakes
 
--- reinsert the stakes in the desired order, 
+-- reinsert the stakes in the desired order, removing the modded ones
 function init_AP_stakes()
 	
 	local _defaul_stakes = {}
@@ -967,8 +989,8 @@ function init_AP_stakes()
 		G.P_CENTER_POOLS.Stake[i].loc_txt = _defaul_stakes[_stake_list[i]].loc_txt
 		G.P_CENTER_POOLS.Stake[i].stake_level = _stake_list[i]
 		
-		-- globally unlock the first stake in the list by default, lock the rest
-		G.P_CENTER_POOLS.Stake[i].unlocked = i == 1 and true or false
+		-- read global unlock from the profile
+		G.P_CENTER_POOLS.Stake[i].unlocked = G.PROFILES[G.AP.profile_Id].stake_unlocks[i]
 		
 		-- set the unlocked stake data if not last in/outside of included list
 		G.P_CENTER_POOLS.Stake[i].unlocked_stake = i < #G.AP.slot_data.included_stakes and _defaul_stakes[_stake_list[i+1]].original_key or nil
@@ -983,6 +1005,7 @@ function init_AP_stakes()
 	for i = 1, #G.P_CENTER_POOLS.Stake do
 		G.C.STAKES[i] = G.P_CENTER_POOLS.Stake[i].colour or G.C.WHITE
 	end
+
 end
 
 function check_stake_unlock(_stake, _deck_key)
