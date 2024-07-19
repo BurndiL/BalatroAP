@@ -882,21 +882,41 @@ function G.UIDEF.deck_stake_column(_deck_key)
 end
 
 local stake_optionRef = G.UIDEF.stake_option
-local is_in_stake_option_creation = false
 
 function G.UIDEF.stake_option(_type)
-    if isAPProfileLoaded() and G.AP.slot_data.stakesunlocked then
-
-        local foo = G.PROFILES[G.SETTINGS.profile].all_unlocked
-        G.PROFILES[G.SETTINGS.profile].all_unlocked = true
-
-        local stake_option = stake_optionRef(_type)
-
-        G.PROFILES[G.SETTINGS.profile].all_unlocked = foo
-
-        return stake_option
-    end
-    return stake_optionRef(_type)
+	--hijack the logic when AP is loaded
+	if isAPProfileLoaded() then
+		local middle = {n=G.UIT.R, config={align = "cm", minh = 1.7, minw = 7.3}, nodes={
+		{n=G.UIT.O, config={id = nil, func = 'RUN_SETUP_check_stake2', object = Moveable()}},}}
+		
+		local stake_options = {}
+		-- add unlocked stakes as options
+		for i = 1, #G.AP.slot_data.included_stakes, 1 do
+			if check_stake_unlock(i, G.GAME.viewed_back.effect.center.key) == true then
+				stake_options[#stake_options+1] = i
+			end
+		end
+	
+		-- when everything is locked, force the cursor into the bottom slot
+		if #stake_options == 0 then
+			G.viewed_stake = 1
+			G.viewed_stake_act[1] = 1
+			G.viewed_stake_act[2] = G.viewed_stake_act[2]
+		else
+			for i = 1, #stake_options, 1 do
+				if stake_options[i] <= G.viewed_stake_act[2] then
+					G.viewed_stake_act[1] = i
+				end
+			end
+			G.viewed_stake = stake_options[G.viewed_stake_act[1]]
+			G.viewed_stake_act[2] = stake_options[G.viewed_stake_act[1]]
+		end
+	  
+		return  {n=G.UIT.ROOT, config={align = "tm", colour = G.C.CLEAR, minh = 2.03, minw = 8.3}, nodes={_type == 'Continue' and middle or create_option_cycle({options = stake_options,
+		opt_callback = 'change_stake', current_option = G.viewed_stake_act[1], colour = G.C.RED, w = 6, mid = middle})}}
+	else
+    		return stake_optionRef(_type)
+	end
 end
 
 local viewed_stake_optionRef = G.UIDEF.viewed_stake_option
