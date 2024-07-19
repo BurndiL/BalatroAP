@@ -1918,7 +1918,7 @@ function create_UIBox_notify_alert(_achievement, _type)
         t_s.states.collide.can = false
 
 	-- second layer for the soul, the hologramm and the legendaries
-	if G.P_CENTERS[_achievement].soul_pos then
+	if G.P_CENTERS[_achievement] and G.P_CENTERS[_achievement].soul_pos then
 		local _soul_atlas = _achievement == 'c_soul' and G.ASSET_ATLAS["centers"] or G.ASSET_ATLAS["Joker"]
 		local _soul_pos = _achievement == 'c_soul' and {x = 0, y = 1} or G.P_CENTERS[_achievement].soul_pos
 		local _soul_t_s = Sprite(t_s.T.x,t_s.T.y,1.5*(_soul_atlas.px/_soul_atlas.py),1.5,_soul_atlas, _soul_pos)
