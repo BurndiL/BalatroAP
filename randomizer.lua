@@ -1885,14 +1885,45 @@ end
 local create_UIBox_notify_alertRef = create_UIBox_notify_alert
 function create_UIBox_notify_alert(_achievement, _type)
     if isAPProfileLoaded() and
-        (_type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral" or (_type == "Joker" and G.P_CENTERS[_achievement].soul_pos)) then
+        (_type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral"
+		or (_type == "Joker" and G.P_CENTERS[_achievement].soul_pos)) or _type == "Stake" or _type == "BackStake" then
 
-        -- change this sprite in the future
-        -- local _atlas = SMODS.Atlas
         local _c, _atlas = G.P_CENTERS[_achievement],
             _type == "Tarot" and G.ASSET_ATLAS["Tarot"] or _type == "Planet" and G.ASSET_ATLAS["Tarot"] or _type ==
                 "Spectral" and G.ASSET_ATLAS["Tarot"] or _type == "Booster" and G.ASSET_ATLAS["Booster"] or _type ==
-                "location" and G.ASSET_ATLAS["rand_ap_logo"] or G.ASSET_ATLAS["icons"]
+                "location" and G.ASSET_ATLAS["rand_ap_logo"] or _type == 'Stake' and G.ASSET_ATLAS["chips"] or _type == 
+		'BackStake' and G.ASSET_ATLAS["centers"] or G.ASSET_ATLAS["icons"]
+
+	--stake-specific _c
+	if _type == 'Stake' then
+		_c = {pos = {x = 0, y = 0}}
+		for i = 1, 8, 1 do
+			if G.P_CENTER_POOLS.Stake[i].key == _achievement then
+				_c.pos = G.P_CENTER_POOLS.Stake[i].pos
+				_c.name = G.P_CENTER_POOLS.Stake[i].name
+				break
+			end
+		end
+	end
+	
+	if _type == 'BackStake' then
+		_c = {pos = {x = 0, y = 0}, soul_pos = {x = 0, y = 0}, name = ""}
+		for i = 1, 8, 1 do
+			if string.find(_achievement, G.P_CENTER_POOLS.Stake[i].key) then
+				_c.soul_pos = G.P_CENTER_POOLS.Stake[i].sticker_pos
+				_c.name = G.P_CENTER_POOLS.Stake[i].name.." ("
+				break
+			end
+		end
+		
+		for k, v in pairs(G.P_CENTER_POOLS.Back) do
+			if string.find(_achievement, G.P_CENTER_POOLS.Back[k].key) then
+				_c.pos = G.P_CENTER_POOLS.Back[k].pos
+				_c.name = _c.name..G.P_CENTER_POOLS.Back[k].name..")"
+				break
+			end
+		end
+	end
 	
         if not _c then
             if _type == "location" then
@@ -1917,10 +1948,25 @@ function create_UIBox_notify_alert(_achievement, _type)
         t_s.states.hover.can = false
         t_s.states.collide.can = false
 
+	-- gold stake shader
+	if _type == 'Stake' then
+		if _achievement == "stake_gold" then
+			t_s.draw = function(_sprite)
+				_sprite.ARGS.send_to_shader = _sprite.ARGS.send_to_shader or {}
+				_sprite.ARGS.send_to_shader[1] = math.min(_sprite.VT.r*3, 1) + G.TIMERS.REAL/(18) + (_sprite.juice and _sprite.juice.r*20 or 0) + 1
+				_sprite.ARGS.send_to_shader[2] = G.TIMERS.REAL
+
+				Sprite.draw_shader(_sprite, 'dissolve')
+				Sprite.draw_shader(_sprite, 'voucher', nil, _sprite.ARGS.send_to_shader)
+			end
+		end
+	end
+	
 	-- second layer for the soul, the hologramm and the legendaries
-	if G.P_CENTERS[_achievement] and G.P_CENTERS[_achievement].soul_pos then
-		local _soul_atlas = _achievement == 'c_soul' and G.ASSET_ATLAS["centers"] or G.ASSET_ATLAS["Joker"]
-		local _soul_pos = _achievement == 'c_soul' and {x = 0, y = 1} or G.P_CENTERS[_achievement].soul_pos
+	if _c and _c.soul_pos then
+		local _soul_atlas = _achievement == 'c_soul' and G.ASSET_ATLAS["centers"] or 
+			_type == 'BackStake' and G.ASSET_ATLAS["stickers"] or G.ASSET_ATLAS["Joker"]
+		local _soul_pos = _achievement == 'c_soul' and {x = 0, y = 1} or _c.soul_pos
 		local _soul_t_s = Sprite(t_s.T.x,t_s.T.y,1.5*(_soul_atlas.px/_soul_atlas.py),1.5,_soul_atlas, _soul_pos)
 		_soul_t_s.states.drag.can = false
 		_soul_t_s.states.hover.can = false
@@ -1943,8 +1989,8 @@ function create_UIBox_notify_alert(_achievement, _type)
         end
 
         if _type ~= "location" then
-            if _achievement and G.P_CENTERS[_achievement] then
-                subtext = G.P_CENTERS[_achievement].name
+            if _achievement and _c then
+                subtext = _c.name
             else
                 subtext = _type
             end
