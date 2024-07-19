@@ -1885,7 +1885,7 @@ end
 local create_UIBox_notify_alertRef = create_UIBox_notify_alert
 function create_UIBox_notify_alert(_achievement, _type)
     if isAPProfileLoaded() and
-        (_type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral") then
+        (_type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral" or (_type == "Joker" and G.P_CENTERS[_achievement].soul_pos)) then
 
         -- change this sprite in the future
         -- local _atlas = SMODS.Atlas
@@ -1893,7 +1893,7 @@ function create_UIBox_notify_alert(_achievement, _type)
             _type == "Tarot" and G.ASSET_ATLAS["Tarot"] or _type == "Planet" and G.ASSET_ATLAS["Tarot"] or _type ==
                 "Spectral" and G.ASSET_ATLAS["Tarot"] or _type == "Booster" and G.ASSET_ATLAS["Booster"] or _type ==
                 "location" and G.ASSET_ATLAS["rand_ap_logo"] or G.ASSET_ATLAS["icons"]
-
+	
         if not _c then
             if _type == "location" then
                 _c = {
@@ -1916,6 +1916,21 @@ function create_UIBox_notify_alert(_achievement, _type)
         t_s.states.drag.can = false
         t_s.states.hover.can = false
         t_s.states.collide.can = false
+
+	-- second layer for the soul, the hologramm and the legendaries
+	if G.P_CENTERS[_achievement].soul_pos then
+		local _soul_atlas = _achievement == 'c_soul' and G.ASSET_ATLAS["centers"] or G.ASSET_ATLAS["Joker"]
+		local _soul_pos = _achievement == 'c_soul' and {x = 0, y = 1} or G.P_CENTERS[_achievement].soul_pos
+		local _soul_t_s = Sprite(t_s.T.x,t_s.T.y,1.5*(_soul_atlas.px/_soul_atlas.py),1.5,_soul_atlas, _soul_pos)
+		_soul_t_s.states.drag.can = false
+		_soul_t_s.states.hover.can = false
+		_soul_t_s.states.collide.can = false
+		
+		t_s.children.floating_sprite = _soul_t_s
+		t_s.children.floating_sprite.role.draw_major = t_s
+		_soul_t_s.T = t_s.T
+		_soul_t_s.VT = t_s.VT
+	end
 
         local subtext = "Location cleared"
         local name = "Archipelago"
