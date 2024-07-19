@@ -50,6 +50,11 @@ deck_list[14] = 'Erratic Deck'
 G.AP.profile_Id = -1
 G.AP.GameObjectInit = false
 
+--stake cursor used for AP logic
+G.viewed_stake_act = {}
+G.viewed_stake_act[1] = 1
+G.viewed_stake_act[2] = 1
+
 -- true if the profile was selected and loaded
 function isAPProfileLoaded()
     return G.SETTINGS and G.AP and G.SETTINGS.profile == G.AP.profile_Id
@@ -798,6 +803,187 @@ function Game:init_item_prototypes()
 end
 
 -- handle stakes
+
+-- reinsert the stakes in the desired order, 
+function init_AP_stakes()
+	
+	local _defaul_stakes = {}
+	_defaul_stakes[1] = {
+        name = "White Stake",
+        key = "stake_white",
+	original_key = "white",
+        applied_stakes = {},
+		atlas = "chips",
+        pos = { x = 0, y = 0 },
+        sticker_pos = { x = 1, y = 0 },
+        colour = G.C.WHITE,
+	shiny = false,
+        loc_txt = {}
+    }
+	
+	_defaul_stakes[2] = {
+        name = "Red Stake",
+        key = "stake_red",
+	original_key = "red",
+        applied_stakes = { "white" },
+	atlas = "chips",
+        pos = { x = 1, y = 0 },
+        sticker_pos = { x = 2, y = 0 },
+        modifiers = function()
+            G.GAME.modifiers.no_blind_reward = G.GAME.modifiers.no_blind_reward or {}
+            G.GAME.modifiers.no_blind_reward.Small = true
+        end,
+        colour = G.C.RED,
+	shiny = false,
+        loc_txt = {}
+    }
+	
+	_defaul_stakes[3] = {
+        name = "Green Stake",
+        key = "stake_green",
+	original_key = "green",
+        applied_stakes = { "red" },
+	atlas = "chips",
+        pos = { x = 2, y = 0 },
+        sticker_pos = { x = 3, y = 0 },
+        modifiers = function()
+            G.GAME.modifiers.scaling = math.max(G.GAME.modifiers.scaling or 0, 2)
+        end,
+        colour = G.C.GREEN,
+	shiny = false,
+        loc_txt = {}
+    }
+	
+	_defaul_stakes[4] = {
+        name = "Black Stake",
+        key = "stake_black",
+	original_key = "black",
+        applied_stakes = { "green" },
+	atlas = "chips",
+        pos = { x = 4, y = 0 },
+        sticker_pos = { x = 0, y = 1 },
+        modifiers = function()
+            G.GAME.modifiers.enable_eternals_in_shop = true
+        end,
+        colour = G.C.BLACK,
+	shiny = false,
+        loc_txt = {}
+    }
+	
+	_defaul_stakes[5] = {
+        name = "Blue Stake",
+	key = "stake_blue",
+        original_key = "blue",
+        applied_stakes = { "black" },
+	atlas = "chips",
+        pos = { x = 3, y = 0 },
+        sticker_pos = { x = 4, y = 0 },
+        modifiers = function()
+            G.GAME.starting_params.discards = G.GAME.starting_params.discards - 1
+        end,
+        colour = G.C.BLUE,
+		shiny = false,
+        loc_txt = {}
+    }
+	
+	_defaul_stakes[6] = {
+        name = "Purple Stake",
+	key = "stake_purple",
+        original_key = "purple",
+        applied_stakes = { "blue" },
+	atlas = "chips",
+        pos = { x = 0, y = 1 },
+        sticker_pos = { x = 1, y = 1 },
+        modifiers = function()
+            G.GAME.modifiers.scaling = math.max(G.GAME.modifiers.scaling or 0, 3)
+        end,
+        colour = G.C.PURPLE,
+	shiny = false,
+        loc_txt = {}
+    }
+	
+	_defaul_stakes[7] = {
+        name = "Orange Stake",
+        key = "stake_orange",
+	original_key = "orange",
+        applied_stakes = { "purple" },
+	atlas = "chips",
+        pos = { x = 1, y = 1 },
+        sticker_pos = { x = 2, y = 1 },
+        modifiers = function()
+            G.GAME.modifiers.enable_perishables_in_shop = true
+        end,
+        colour = G.C.ORANGE,
+	shiny = false,
+        loc_txt = {}
+    }
+	
+	_defaul_stakes[8] = {
+        name = "Gold Stake",
+	key = "stake_gold",
+        original_key = "gold",
+        applied_stakes = { "orange" },
+	atlas = "chips",
+        pos = { x = 2, y = 1 },
+        sticker_pos = { x = 3, y = 1 },
+        modifiers = function()
+            G.GAME.modifiers.enable_rentals_in_shop = true
+        end,
+        colour = G.C.GOLD,
+        shiny = true,
+        loc_txt = {}
+    }
+	
+	-- create a copy of included stake list
+	local _stake_list = {}
+	for i = 1, #G.AP.slot_data.included_stakes, 1 do
+		_stake_list[i] = G.AP.slot_data.included_stakes[i]
+	end
+	
+	-- insert unused stakes at the end of the list
+	-- (we must have all 8 stakes existing, otherwise
+	-- the game crashes when trying to apply a nonexistent stake)
+	--      (^ could be solved by rerouting the applied stakes)
+	--      (but that changes the difficulties of the stakes)
+	for i = 1, 8, 1 do
+		if not tableContains(_stake_list, i) then
+			_stake_list[#_stake_list+1] = i
+		end
+	end
+
+
+	for i = 1, 8, 1 do
+		-- just copy these values
+		G.P_CENTER_POOLS.Stake[i].name = _defaul_stakes[_stake_list[i]].name
+		G.P_CENTER_POOLS.Stake[i].key = _defaul_stakes[_stake_list[i]].key
+		G.P_CENTER_POOLS.Stake[i].original_key = _defaul_stakes[_stake_list[i]].original_key
+		G.P_CENTER_POOLS.Stake[i].applied_stakes = _defaul_stakes[_stake_list[i]].applied_stakes
+		G.P_CENTER_POOLS.Stake[i].atlas = _defaul_stakes[_stake_list[i]].atlas
+		G.P_CENTER_POOLS.Stake[i].pos = _defaul_stakes[_stake_list[i]].pos
+		G.P_CENTER_POOLS.Stake[i].sticker_pos = _defaul_stakes[_stake_list[i]].sticker_pos
+		G.P_CENTER_POOLS.Stake[i].modifiers = _defaul_stakes[_stake_list[i]].modifiers
+		G.P_CENTER_POOLS.Stake[i].colour = _defaul_stakes[_stake_list[i]].colour
+		G.P_CENTER_POOLS.Stake[i].shiny = _defaul_stakes[_stake_list[i]].shiny
+		G.P_CENTER_POOLS.Stake[i].loc_txt = _defaul_stakes[_stake_list[i]].loc_txt
+		G.P_CENTER_POOLS.Stake[i].stake_level = _stake_list[i]
+		
+		-- globally unlock the first stake in the list by default, lock the rest
+		G.P_CENTER_POOLS.Stake[i].unlocked = i == 1 and true or false
+		
+		-- set the unlocked stake data if not last in/outside of included list
+		G.P_CENTER_POOLS.Stake[i].unlocked_stake = i < #G.AP.slot_data.included_stakes and _defaul_stakes[_stake_list[i+1]].original_key or nil
+	end
+	
+	--remove excess stakes generated by other mods
+	while #G.P_CENTER_POOLS.Stake > 8 do
+		table.remove(G.P_CENTER_POOLS.Stake, #G.P_CENTER_POOLS.Stake)
+	end
+	
+	--update the colors
+	for i = 1, #G.P_CENTER_POOLS.Stake do
+		G.C.STAKES[i] = G.P_CENTER_POOLS.Stake[i].colour or G.C.WHITE
+	end
+end
 
 function check_stake_unlock(_stake, _deck_key)
 	-- [Mode 0] all unlocked mode
