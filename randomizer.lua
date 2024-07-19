@@ -55,6 +55,8 @@ G.viewed_stake_act = {}
 G.viewed_stake_act[1] = 1
 G.viewed_stake_act[2] = 1
 
+AP_stakes_init = false
+
 -- true if the profile was selected and loaded
 function isAPProfileLoaded()
     return G.SETTINGS and G.AP and G.SETTINGS.profile == G.AP.profile_Id
@@ -1056,6 +1058,27 @@ function check_stake_unlock(_stake, _deck_key)
 	return false
 end
 
+GUIDEFrun_setup_option = G.UIDEF.run_setup_option
+function G.UIDEF.run_setup_option(type)
+	if isAPProfileLoaded() then
+		-- initiate stake swap (i need stakes to exist to do it)
+		if AP_stakes_init == false then init_AP_stakes() end
+		
+		if not G.SAVED_GAME then
+			G.SAVED_GAME = get_compressed(G.SETTINGS.profile..'/'..'save.jkr')
+			if G.SAVED_GAME ~= nil then G.SAVED_GAME = STR_UNPACK(G.SAVED_GAME) end
+		end
+
+		-- fix AP stake cursor when viewing the continue screen
+		if G.SAVED_GAME ~= nil then
+			saved_game = G.SAVED_GAME
+			G.viewed_stake = saved_game.GAME.stake or 1
+			G.viewed_stake_act[2] = saved_game.GAME.stake or 1
+			G.viewed_stake_act[1] = 0
+		end
+	end
+	return GUIDEFrun_setup_option(type)
+end
 
 
 local UIDEF_deck_stake_columnRef = G.UIDEF.deck_stake_column
@@ -1128,21 +1151,41 @@ function G.UIDEF.stake_option(_type)
 	end
 end
 
-local viewed_stake_optionRef = G.UIDEF.viewed_stake_option
-function G.UIDEF.viewed_stake_option()
-    if isAPProfileLoaded() and G.AP.slot_data.stakesunlocked then
-
-        local foo = G.PROFILES[G.SETTINGS.profile].all_unlocked
-        G.PROFILES[G.SETTINGS.profile].all_unlocked = true
-
-        local viewed_stake_option = viewed_stake_optionRef()
-
-        G.PROFILES[G.SETTINGS.profile].all_unlocked = foo
-
-        return viewed_stake_option
-    end
-
-    return viewed_stake_optionRef()
+-- cursor logic
+GFUNCSchange_stakeRef = G.FUNCS.change_stake
+G.FUNCS.change_stake = function(args)
+	if isAPProfileLoaded() then
+		local valid_stakes = {}
+		for i = 1, #G.AP.slot_data.included_stakes, 1 do
+			if check_stake_unlock(i, G.GAME.viewed_back.effect.center.key) == true then valid_stakes[#valid_stakes+1] = i end
+		end
+		
+		if args.cycle_config then
+			G.viewed_stake_act[1] = args.to_key
+			G.viewed_stake_act[2] = valid_stakes[G.viewed_stake_act[1]]
+		else
+			for k,v in pairs(valid_stakes) do
+				if v == args.to_key then
+					G.viewed_stake_act[1] = k
+					G.viewed_stake_act[2] = valid_stakes[G.viewed_stake_act[1]]
+					break
+				end
+			end
+		end
+	
+		if #valid_stakes == 0 then
+			G.viewed_stake = 1
+			G.viewed_stake_act[1] = 1
+			G.viewed_stake_act[2] = 1
+			G.PROFILES[G.SETTINGS.profile].MEMORY.stake = 1
+		else
+			G.viewed_stake = valid_stakes[G.viewed_stake_act[1]]
+			G.PROFILES[G.SETTINGS.profile].MEMORY.stake = G.viewed_stake
+			G.viewed_stake_act[2] = valid_stakes[G.viewed_stake_act[1]]
+		end
+	else
+		return GFUNCSchange_stakeRef(args)
+	end
 end
 
 -- handle shop cards
@@ -1668,18 +1711,6 @@ function get_unlocked_jokers()
         end
     end
     return count
-end
-
--- remove backs 
-
-local UIDEF_run_setup_optionRef = G.UIDEF.run_setup_option
-function G.UIDEF.run_setup_option(type)
-
-    if type == 'New Run' then
-
-    end
-
-    return UIDEF_run_setup_optionRef(type)
 end
 
 -- Here you can unlock checks
