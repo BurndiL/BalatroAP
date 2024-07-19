@@ -1605,8 +1605,8 @@ G.FUNCS.resolve_location_id_to_name = function(id)
 end
 
 function get_shop_location()
-    if G.AP.slot_data["stake" .. tostring(G.GAME.stake) .. "_shop_locations"] then
-        for i, v in ipairs(G.AP.slot_data["stake" .. tostring(G.GAME.stake) .. "_shop_locations"]) do
+    if G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) .. "_shop_locations"] then
+        for i, v in ipairs(G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) .. "_shop_locations"]) do
             if (tableContains(G.APClient.missing_locations, v)) then
                 G.FUNCS.resolve_location_id_to_name(v)
                 return v
@@ -1627,7 +1627,7 @@ G.FUNCS.select_blind = function(e)
         for k, v in pairs(deck_list) do
             if deck_name == v then
                 G.APClient:LocationScouts({G.AP.id_offset + (64 * k) + (G.GAME.round_resets.ante - 1) * 8 +
-                    (G.GAME.stake - 1)})
+                    (G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level - 1)})
                 break -- break the loop once the correct deck is found
             end
         end
@@ -1823,7 +1823,7 @@ function check_for_unlock(args)
 
             for k, v in pairs(deck_list) do
                 if deck_name == v then
-                    sendLocationCleared(G.AP.id_offset + (64 * k) + (args.ante - 2) * 8 + (G.GAME.stake - 1))
+                    sendLocationCleared(G.AP.id_offset + (64 * k) + (args.ante - 2) * 8 + (G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level - 1))
                     break -- break the loop once the correct deck is found
                 end
             end
