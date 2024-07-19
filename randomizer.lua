@@ -1058,7 +1058,7 @@ function check_stake_unlock(_stake, _deck_key)
 	return false
 end
 
-GUIDEFrun_setup_option = G.UIDEF.run_setup_option
+local GUIDEFrun_setup_option = G.UIDEF.run_setup_option
 function G.UIDEF.run_setup_option(type)
 	if isAPProfileLoaded() then
 		-- initiate stake swap (i need stakes to exist to do it)
@@ -1082,7 +1082,6 @@ end
 
 
 local UIDEF_deck_stake_columnRef = G.UIDEF.deck_stake_column
-
 function G.UIDEF.deck_stake_column(_deck_key)
     --hijack to use custom logic in AP
     if isAPProfileLoaded() then
@@ -1114,7 +1113,6 @@ function G.UIDEF.deck_stake_column(_deck_key)
 end
 
 local stake_optionRef = G.UIDEF.stake_option
-
 function G.UIDEF.stake_option(_type)
 	--hijack the logic when AP is loaded
 	if isAPProfileLoaded() then
@@ -1152,7 +1150,7 @@ function G.UIDEF.stake_option(_type)
 end
 
 -- cursor logic
-GFUNCSchange_stakeRef = G.FUNCS.change_stake
+local GFUNCSchange_stakeRef = G.FUNCS.change_stake
 G.FUNCS.change_stake = function(args)
 	if isAPProfileLoaded() then
 		local valid_stakes = {}
@@ -1187,6 +1185,106 @@ G.FUNCS.change_stake = function(args)
 		return GFUNCSchange_stakeRef(args)
 	end
 end
+
+-- handle stakes (stuff that can be easily handled by patches)
+--white highlight on stake selection
+local GFUNCSRUN_SETUP_check_back_stake_highlightRef = G.FUNCS.RUN_SETUP_check_back_stake_highlight
+G.FUNCS.RUN_SETUP_check_back_stake_highlight= function(e) 
+	if isAPProfileLoaded() then
+		if G.viewed_stake_act[2] == e.config.id and e.config.outline < 0.1 then 
+			e.config.outline = check_stake_unlock(G.viewed_stake_act[2], G.GAME.viewed_back.effect.center.key) == true and 0.8 or 0
+		elseif G.viewed_stake_act[2] ~= e.config.id and e.config.outline > 0.1 then
+			e.config.outline = 0
+		end
+	else
+		return GFUNCSRUN_SETUP_check_back_stake_highlightRef(e)
+	end
+end
+
+--deck win stickers (check stake level instead of slot)
+local get_deck_win_stickerRef = get_deck_win_sticker
+function get_deck_win_sticker(_center)
+	if isAPProfileLoaded() then
+		if G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key] and G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key].wins then 
+			local _w = -1
+			for k, v in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key].wins) do
+				if v > 0 then
+					_w = math.max(G.P_CENTER_POOLS.Stake[k].stake_level, _w)
+				end
+	   		end
+	   		if _w > 0 then return G.sticker_map[_w] end
+		end
+	else
+		return get_deck_win_sticker(_center)
+	end
+end
+
+-- joker win stickers (check stake level instead of slot)
+local get_joker_win_stickerRef = get_joker_win_sticker
+function get_joker_win_sticker(_center, index)
+	if isAPProfileLoaded() then
+		if G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key] and G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins then 
+			local _w = 0
+			for k, v in pairs(G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins) do
+				_w = math.max(G.P_CENTER_POOLS.Stake[k].stake_level, _w)
+			end
+			if index then return _w end
+			if _w > 0 then return G.sticker_map[_w] end
+		end
+		if index then return 0 end
+	else
+		return get_joker_win_stickerRef(_center, index)
+	end
+end
+
+-- set deck win (prevent higher stake wins from counting as a win for previous stakes)
+local set_deck_winRef = set_deck_win
+function set_deck_win()
+	if isAPProfileLoaded() then
+		if G.GAME.selected_back and G.GAME.selected_back.effect and G.GAME.selected_back.effect.center and G.GAME.selected_back.effect.center.key then
+			local deck_key = G.GAME.selected_back.effect.center.key
+			if not G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] then G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] = {count = 1, order = G.GAME.selected_back.effect.center.order, wins = {}, losses = {}} end
+			if G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] then
+				G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[G.GAME.stake] = (G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[G.GAME.stake] or 0) + 1
+			end
+			set_challenge_unlock()
+			G:save_settings()
+		end
+	else
+		return set_deck_winRef()
+	end
+end
+
+-- stakes button
+local GUIDEFrun_infoRef = G.UIDEF.run_info
+function G.UIDEF.run_info()
+	local _run_info = GUIDEFrun_infoRef()
+	
+	if isAPProfileLoaded() then
+		local _stake_slot = G.GAME.stake
+		G.GAME.stake = G.P_CENTER_POOLS.Stake[_stake_slot].stake_level
+		_run_info = GUIDEFrun_infoRef()
+		G.GAME.stake = _stake_slot
+	end
+
+	return _run_info
+end
+
+-- "also applies" in stakes menu
+local GUIDEFcurrent_stakeRef = G.UIDEF.current_stake
+function G.UIDEF.current_stake()
+	local _current_stake = GUIDEFcurrent_stakeRef()
+	
+	if isAPProfileLoaded() then
+		local _stake_slot = G.GAME.stake
+		G.GAME.stake = G.P_CENTER_POOLS.Stake[_stake_slot].stake_level
+		_current_stake = GUIDEFcurrent_stakeRef()
+		G.GAME.stake = _stake_slot
+	end
+	
+	return _current_stake
+end
+
 
 -- handle shop cards
 
