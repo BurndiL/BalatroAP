@@ -55,8 +55,6 @@ G.viewed_stake_act = {}
 G.viewed_stake_act[1] = 1
 G.viewed_stake_act[2] = 1
 
-AP_stakes_init = false
-
 -- true if the profile was selected and loaded
 function isAPProfileLoaded()
     return G.SETTINGS and G.AP and G.SETTINGS.profile == G.AP.profile_Id
@@ -775,7 +773,8 @@ function Game:init_item_prototypes()
 		for i = 1, 8, 1 do
 			G.PROFILES[G.AP.profile_Id].stake_unlocks[i] = false
 		end
-		G.PROFILES[G.AP.profile_Id].stake_unlocks[1] = true
+		-- G.PROFILES[G.AP.profile_Id].stake_unlocks[1] = true
+		-- ^ uncomment to force the first stake to be always open 
 	end
 	
         -- Handle Queued Bonus stuff
@@ -1061,8 +1060,6 @@ end
 local GUIDEFrun_setup_option = G.UIDEF.run_setup_option
 function G.UIDEF.run_setup_option(type)
 	if isAPProfileLoaded() then
-		-- initiate stake swap (i need stakes to exist to do it)
-		if AP_stakes_init == false then init_AP_stakes() end
 		
 		if not G.SAVED_GAME then
 			G.SAVED_GAME = get_compressed(G.SETTINGS.profile..'/'..'save.jkr')
@@ -1184,6 +1181,13 @@ G.FUNCS.change_stake = function(args)
 	else
 		return GFUNCSchange_stakeRef(args)
 	end
+end
+
+local game_splash_screenRef = Game.splash_screen
+function Game:splash_screen()
+-- initiate stake swap (i need stakes to exist to do it)
+	if isAPProfileLoaded() then init_AP_stakes() end
+	return game_splash_screenRef(self)
 end
 
 -- handle stakes (stuff that can be easily handled by patches)
