@@ -1170,6 +1170,34 @@ function G.UIDEF.stake_option(_type)
 	end
 end
 
+
+local GUIDEFviewed_stake_optionRef = G.UIDEF.viewed_stake_option
+function G.UIDEF.viewed_stake_option()
+	if isAPProfileLoaded() then
+		G.viewed_stake = G.viewed_stake or 1
+		G.viewed_stake_act[1] = G.viewed_stake_act[1] or 1
+		G.viewed_stake_act[2] = G.viewed_stake_act[2] or 1
+		
+		if _type ~= 'Continue' then G.PROFILES[G.SETTINGS.profile].MEMORY.stake = G.viewed_stake end
+
+		local stake_sprite = get_stake_sprite(G.viewed_stake)
+
+		return  {n=G.UIT.ROOT, config={align = "cm", colour = G.C.BLACK, r = 0.1}, nodes={
+			{n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
+			  {n=G.UIT.T, config={text = localize('k_stake'), scale = 0.4, colour = G.C.L_BLACK, vert = true}}
+			}},
+			{n=G.UIT.C, config={align = "cm", padding = 0.1}, nodes={
+			  {n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
+				{n=G.UIT.O, config={colour = G.C.BLUE, object = stake_sprite, hover = true, can_collide = false}},
+			  }},
+			  G.UIDEF.stake_description(G.viewed_stake)
+			}}
+		  }}
+	else
+		return GUIDEFviewed_stake_optionRef()
+	end
+end
+
 -- cursor logic
 local GFUNCSchange_stakeRef = G.FUNCS.change_stake
 G.FUNCS.change_stake = function(args)
@@ -1921,7 +1949,7 @@ function create_UIBox_notify_alert(_achievement, _type)
             _type == "Tarot" and G.ASSET_ATLAS["Tarot"] or _type == "Planet" and G.ASSET_ATLAS["Tarot"] or _type ==
                 "Spectral" and G.ASSET_ATLAS["Tarot"] or _type == "Booster" and G.ASSET_ATLAS["Booster"] or _type ==
                 "location" and G.ASSET_ATLAS["rand_ap_logo"] or _type == 'Stake' and G.ASSET_ATLAS["chips"] or _type == 
-		'BackStake' and G.ASSET_ATLAS["centers"] or G.ASSET_ATLAS["icons"]
+		'BackStake' and G.ASSET_ATLAS["centers"] or _type == 'Joker' and G.ASSET_ATLAS["Joker"] or G.ASSET_ATLAS["icons"]
 
 	--stake-specific _c
 	if _type == 'Stake' then
@@ -1956,19 +1984,11 @@ function create_UIBox_notify_alert(_achievement, _type)
 	
         if not _c then
             if _type == "location" then
-                _c = {
-                    pos = {
-                        x = 0,
-                        y = 0
-                    }
-                }
+                _c = {pos = {x = 0,
+                        y = 0}}
             else -- moved to handle the trophy here because we need to set the x.y manually here for other icons anyway
-                _c = {
-                    pos = {
-                        x = 3,
-                        y = 0
-                    }
-                }
+                _c = {pos = {x = 3,
+                        y = 0}}
             end -- there's probably a better way, but idk
         end
 
@@ -1992,7 +2012,7 @@ function create_UIBox_notify_alert(_achievement, _type)
 	end
 	
 	-- second layer for the soul, the hologramm and the legendaries
-	if _c and _c.soul_pos then
+	if (_c and _c.soul_pos) or _achievement == 'c_soul' then
 		local _soul_atlas = _achievement == 'c_soul' and G.ASSET_ATLAS["centers"] or 
 			_type == 'BackStake' and G.ASSET_ATLAS["stickers"] or G.ASSET_ATLAS["Joker"]
 		local _soul_pos = _achievement == 'c_soul' and {x = 0, y = 1} or _c.soul_pos
