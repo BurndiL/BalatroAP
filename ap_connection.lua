@@ -961,6 +961,80 @@ function APConnect()
                         end
                     end
 
+                elseif item_id >= 400 then
+                    local deck_name = ""
+                    local stake_name = ""
+                    if item_id <= 407 then
+                        deck_name = "b_red"
+                        on_items_received({{index = "reddeck", item = 1 + G.AP.id_offset}})
+                    elseif item_id <= 415 then
+                        deck_name = "b_blue"
+                        on_items_received({{index = "bluedeck", item = 2+ G.AP.id_offset}})
+                    elseif item_id <= 423 then
+                        deck_name = "b_yellow"
+                        on_items_received({{index = "yellowdeck", item = 3+ G.AP.id_offset}})
+                    elseif item_id <= 431 then
+                        deck_name = "b_green"
+                        on_items_received({{index = "greendeck", item = 4+ G.AP.id_offset}})
+                    elseif item_id <= 439 then
+                        deck_name = "b_black"
+                        on_items_received({{index = "blackdeck", item = 5+ G.AP.id_offset}})
+                    elseif item_id <= 447 then
+                        deck_name = "b_magic"
+                        on_items_received({{index = "magicdeck", item = 6+ G.AP.id_offset}})
+                    elseif item_id <= 455 then
+                        deck_name = "b_nebula"
+                        on_items_received({{index = "nebuladeck", item = 7+ G.AP.id_offset}})
+                    elseif item_id <= 463 then
+                        deck_name = "b_ghost"
+                        on_items_received({{index = "ghostdeck", item = 8+ G.AP.id_offset}})
+                    elseif item_id <= 471 then
+                        deck_name = "b_abandoned"
+                        on_items_received({{index = "abandoneddeck", item = 9+ G.AP.id_offset}})
+                    elseif item_id <= 479 then
+                        deck_name = "b_checkered"
+                        on_items_received({{index = "checkdeck", item = 10+ G.AP.id_offset}})
+                    elseif item_id <= 487 then
+                        deck_name = "b_zodiac"
+                        on_items_received({{index = "zodiacdeck", item = 11+ G.AP.id_offset}})
+                    elseif item_id <= 495 then
+                        deck_name = "b_painted"
+                        on_items_received({{index = "painteddeck", item = 12+ G.AP.id_offset}})
+                    elseif item_id <= 503 then
+                        deck_name = "b_anaglyph"
+                        on_items_received({{index = "anaglyphdeck", item = 13+ G.AP.id_offset}})
+                    elseif item_id <= 411 then
+                        deck_name = "b_plasma"
+                        on_items_received({{index = "plasmadeck", item = 14+ G.AP.id_offset}})
+                    elseif item_id <= 419 then
+                        deck_name = "b_erratic"
+                        on_items_received({{index = "erraticdeck", item = 15+ G.AP.id_offset}})
+                    end
+
+
+                    if item_id % 8 == 0 then
+                        stake_name = "stake_white"
+                    elseif (item_id - 1) % 8 == 0 then
+                        stake_name = "stake_red"
+                    elseif (item_id - 2) % 8 == 0 then
+                        stake_name = "stake_green"
+                    elseif (item_id - 3) % 8 == 0 then
+                        stake_name = "stake_black"
+                    elseif (item_id - 4) % 8 == 0 then
+                        stake_name = "stake_blue"
+                    elseif (item_id - 5) % 8 == 0 then
+                        stake_name = "stake_purple"
+                    elseif (item_id - 6) % 8 == 0 then
+                        stake_name = "stake_orange"
+                    elseif (item_id - 7) % 8 == 0 then
+                        stake_name = "stake_gold"
+                    end
+
+                    if (G.AP.StakesInit) then 
+                        G.FUNCS.AP_unlock_stake_per_deck(stake_name, deck_name)
+                    else
+                        G.AP.StakeQueue[#G.AP.StakeQueue + 1] = {stake = stake_name, deck = deck_name}
+                    end
                 end
 
             end

@@ -616,6 +616,19 @@ G.FUNCS.AP_unlock_stake = function(stake_name)
     end
 end
 
+G.FUNCS.AP_unlock_stake_per_deck = function(stake_key, deck_key)
+
+    sendDebugMessage("Unlocking " .. tostring(stake_key) .. " for deck " .. tostring(deck_key))
+    G.PROFILES[G.AP.profile_Id].deck_usage[deck_key].stake_unlocks[stake_key] = true
+
+    if G.AP.StakesInit then
+        notify_alert(stake_key .. deck_key, 'BackStake')
+    end
+
+
+   
+end
+
 local game_init_item_prototypesRef = Game.init_item_prototypes
 function Game:init_item_prototypes()
     local game_init_item_prototypes = game_init_item_prototypesRef(self)
@@ -844,7 +857,6 @@ end
 
 -- handle stakes
 
-
 -- reinsert the stakes in the desired order, removing the modded ones
 function init_AP_stakes()
 	
@@ -1027,7 +1039,11 @@ function init_AP_stakes()
 
     -- empty queue
     for i = 1, #G.AP.StakeQueue do
-		G.FUNCS.AP_unlock_stake(G.AP.StakeQueue[i])
+        if type(G.AP.StakeQueue[i]) == "table" then
+            G.FUNCS.AP_unlock_stake_per_deck(G.AP.StakeQueue[i].stake, G.AP.StakeQueue[i].deck)
+        elseif type(G.AP.StakeQueue[i]) == "string" then
+            G.FUNCS.AP_unlock_stake(G.AP.StakeQueue[i])
+        end    
 	end
 
     G.AP.StakeQueue = {}
