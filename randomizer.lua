@@ -1170,6 +1170,34 @@ function G.UIDEF.stake_option(_type)
 	end
 end
 
+
+local GUIDEFviewed_stake_optionRef = G.UIDEF.viewed_stake_option
+function G.UIDEF.viewed_stake_option()
+	if isAPProfileLoaded() then
+		G.viewed_stake = G.viewed_stake or 1
+		G.viewed_stake_act[1] = G.viewed_stake_act[1] or 1
+		G.viewed_stake_act[2] = G.viewed_stake_act[2] or 1
+		
+		if _type ~= 'Continue' then G.PROFILES[G.SETTINGS.profile].MEMORY.stake = G.viewed_stake end
+
+		local stake_sprite = get_stake_sprite(G.viewed_stake)
+
+		return  {n=G.UIT.ROOT, config={align = "cm", colour = G.C.BLACK, r = 0.1}, nodes={
+			{n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
+			  {n=G.UIT.T, config={text = localize('k_stake'), scale = 0.4, colour = G.C.L_BLACK, vert = true}}
+			}},
+			{n=G.UIT.C, config={align = "cm", padding = 0.1}, nodes={
+			  {n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
+				{n=G.UIT.O, config={colour = G.C.BLUE, object = stake_sprite, hover = true, can_collide = false}},
+			  }},
+			  G.UIDEF.stake_description(G.viewed_stake)
+			}}
+		  }}
+	else
+		return GUIDEFviewed_stake_optionRef()
+	end
+end
+
 -- cursor logic
 local GFUNCSchange_stakeRef = G.FUNCS.change_stake
 G.FUNCS.change_stake = function(args)
