@@ -1949,7 +1949,7 @@ function create_UIBox_notify_alert(_achievement, _type)
             _type == "Tarot" and G.ASSET_ATLAS["Tarot"] or _type == "Planet" and G.ASSET_ATLAS["Tarot"] or _type ==
                 "Spectral" and G.ASSET_ATLAS["Tarot"] or _type == "Booster" and G.ASSET_ATLAS["Booster"] or _type ==
                 "location" and G.ASSET_ATLAS["rand_ap_logo"] or _type == 'Stake' and G.ASSET_ATLAS["chips"] or _type == 
-		'BackStake' and G.ASSET_ATLAS["centers"] or G.ASSET_ATLAS["icons"]
+		'BackStake' and G.ASSET_ATLAS["centers"] or _type == 'Joker' and G.ASSET_ATLAS["Joker"] or G.ASSET_ATLAS["icons"]
 
 	--stake-specific _c
 	if _type == 'Stake' then
@@ -1984,19 +1984,11 @@ function create_UIBox_notify_alert(_achievement, _type)
 	
         if not _c then
             if _type == "location" then
-                _c = {
-                    pos = {
-                        x = 0,
-                        y = 0
-                    }
-                }
+                _c = {pos = {x = 0,
+                        y = 0}}
             else -- moved to handle the trophy here because we need to set the x.y manually here for other icons anyway
-                _c = {
-                    pos = {
-                        x = 3,
-                        y = 0
-                    }
-                }
+                _c = {pos = {x = 3,
+                        y = 0}}
             end -- there's probably a better way, but idk
         end
 
@@ -2020,7 +2012,7 @@ function create_UIBox_notify_alert(_achievement, _type)
 	end
 	
 	-- second layer for the soul, the hologramm and the legendaries
-	if _c and _c.soul_pos then
+	if (_c and _c.soul_pos) or _achievement == 'c_soul' then
 		local _soul_atlas = _achievement == 'c_soul' and G.ASSET_ATLAS["centers"] or 
 			_type == 'BackStake' and G.ASSET_ATLAS["stickers"] or G.ASSET_ATLAS["Joker"]
 		local _soul_pos = _achievement == 'c_soul' and {x = 0, y = 1} or _c.soul_pos
