@@ -49,6 +49,7 @@ deck_list[14] = 'Erratic Deck'
 
 G.AP.profile_Id = -1
 G.AP.GameObjectInit = false
+G.AP.StakesInit = false
 
 --stake cursor used for AP logic
 G.viewed_stake_act = {}
@@ -91,6 +92,7 @@ end
 -- gets called when connection wants to be ended (for example when selecting non AP profile)
 G.FUNCS.APDisconnect = function()
     G.APClient = nil
+    G.AP.StakesInit = false
     collectgarbage("collect")
     unloadAPProfile = true
 
@@ -601,6 +603,19 @@ G.FUNCS.AP_unlock_item = function(item)
     notify_alert(item.key, item.set)
 end
 
+G.FUNCS.AP_unlock_stake = function(stake_name)
+    for k, v in ipairs(G.P_CENTER_POOLS.Stake) do
+        if (v.name == stake_name) then
+            G.PROFILES[G.AP.profile_Id].stake_unlocks[k] = true
+            v.unlocked = true
+            if G.AP.StakesInit then
+                notify_alert(G.P_CENTER_POOLS.Stake[k].key, 'Stake')
+            end
+
+        end
+    end
+end
+
 local game_init_item_prototypesRef = Game.init_item_prototypes
 function Game:init_item_prototypes()
     local game_init_item_prototypes = game_init_item_prototypesRef(self)
@@ -821,11 +836,14 @@ function Game:init_item_prototypes()
         G.FUNCS.initialize_shop_items()
 
         self.P_CENTERS['b_red'] = self.P_CENTERS[standard_deck]
+
+        init_AP_stakes()
     end
     return game_init_item_prototypes
 end
 
 -- handle stakes
+
 
 -- reinsert the stakes in the desired order, removing the modded ones
 function init_AP_stakes()
@@ -1007,16 +1025,23 @@ function init_AP_stakes()
 		G.C.STAKES[i] = G.P_CENTER_POOLS.Stake[i].colour or G.C.WHITE
 	end
 
+    -- empty queue
+    for i = 1, #G.AP.StakeQueue do
+		G.FUNCS.AP_unlock_stake(G.AP.StakeQueue[i])
+	end
+
+    G.AP.StakeQueue = {}
+    G.AP.StakesInit = true
 end
 
 function check_stake_unlock(_stake, _deck_key)
 	-- [Mode 0] all unlocked mode
-	if G.AP.slot_data.stake_unlock_mode == tonumber(0) then return true end
+	if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(0) then return true end
 	
 	-- [Mode 1] linear progression (vanilla)
 	-- (beating a stake unlocks the next one in the list)
 	-- (per deck)
-	if G.AP.slot_data.stake_unlock_mode == tonumber(1) then
+	if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(1) then
 		if G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key] then
 			local _stake_progress = 0
 			for k, v in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].wins) do
@@ -1032,7 +1057,7 @@ function check_stake_unlock(_stake, _deck_key)
 	-- [Mode 2] global unlocks
 	-- (stakes are unlocked if their .unlocked exists and is true)
 	-- intended for making stakes into items
-	if G.AP.slot_data.stake_unlock_mode == tonumber(2) then
+	if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(2) then
 		if G.P_CENTER_POOLS.Stake[_stake].unlocked then 
 		return G.P_CENTER_POOLS.Stake[_stake].unlocked end
 		
@@ -1045,8 +1070,7 @@ function check_stake_unlock(_stake, _deck_key)
 	
 	-- (if used, the decks should be removed from the pool and be unlocked when
 	-- the player receives a stake for that deck)
-	if G.AP.slot_data.stake_unlock_mode == tonumber(3) then
-		
+	if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(3) then
 		if G.PROFILES[G.SETTINGS.profile].deck_usage and G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key] and
 		G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks then
 			return G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks[_stake] or false
@@ -1142,7 +1166,7 @@ function G.UIDEF.stake_option(_type)
 		return  {n=G.UIT.ROOT, config={align = "tm", colour = G.C.CLEAR, minh = 2.03, minw = 8.3}, nodes={_type == 'Continue' and middle or create_option_cycle({options = stake_options,
 		opt_callback = 'change_stake', current_option = G.viewed_stake_act[1], colour = G.C.RED, w = 6, mid = middle})}}
 	else
-    		return stake_optionRef(_type)
+        return stake_optionRef(_type)
 	end
 end
 
@@ -1183,12 +1207,12 @@ G.FUNCS.change_stake = function(args)
 	end
 end
 
-local game_splash_screenRef = Game.splash_screen
-function Game:splash_screen()
--- initiate stake swap (i need stakes to exist to do it)
-	if isAPProfileLoaded() then init_AP_stakes() end
-	return game_splash_screenRef(self)
-end
+-- local game_splash_screenRef = Game.splash_screen
+-- function Game:splash_screen()
+-- -- initiate stake swap (i need stakes to exist to do it)
+-- 	if isAPProfileLoaded() then init_AP_stakes() end
+-- 	return game_splash_screenRef(self)
+-- end
 
 -- handle stakes (stuff that can be easily handled by patches)
 --white highlight on stake selection
@@ -1219,7 +1243,7 @@ function get_deck_win_sticker(_center)
 	   		if _w > 0 then return G.sticker_map[_w] end
 		end
 	else
-		return get_deck_win_sticker(_center)
+		return get_deck_win_stickerRef(_center)
 	end
 end
 
@@ -1764,6 +1788,7 @@ G.FUNCS.load_profile = function(delete_prof_data)
     if isAPProfileLoaded() and not isAPProfileSelected() and G.APClient ~= nil then
         G.FUNCS.APDisconnect()
         G.AP.GameObjectInit = false
+        G.AP.StakesInit = false
     end
     ap_profile_delete = false
     return load_profile_funcRef(delete_prof_data)

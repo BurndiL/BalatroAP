@@ -311,6 +311,7 @@ function APConnect()
     G.AP.BonusQueue = {}
     G.AP.PackQueue = {}
     G.AP.ConsumableQueue = {}
+    G.AP.StakeQueue = {}
 
     function on_socket_connected()
         print("Socket connected")
@@ -870,7 +871,98 @@ function APConnect()
                         end
                         on_items_received(items_to_unlock)
                     end
+                elseif item_id >= 390 and item_id <= 397 then
+                    if item_id == 390 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('White Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'White Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 391 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Red Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Red Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 392 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Green Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Green Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 393 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Black Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Black Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 394 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Blue Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Blue Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 395 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Purple Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Purple Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 396 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Orange Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Orange Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 397 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Gold Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Gold Stake'
+                            end
+
+                        end
+                    end
+
                 end
+
             end
         end
 
@@ -882,20 +974,23 @@ function APConnect()
     function on_location_info(items)
         for _, item in ipairs(items) do
             if not G.AP.location_id_to_item_name[item.location] then
-                
+
                 local player = item.player
 
                 if not player_to_alias[player] then
                     player_to_alias[player] = G.APClient:get_player_alias(item.player)
                 end
-                
+
                 if not player_to_game[player] then
                     player_to_game[player] = G.APClient:get_player_game(item.player)
                 end
-                
+
                 local player_alias = player_to_alias[player]
                 local game = player_to_game[player]
-                G.AP.location_id_to_item_name[item.location] = {item_name = G.APClient:get_item_name(item.item, game), player_name = player_alias} 
+                G.AP.location_id_to_item_name[item.location] = {
+                    item_name = G.APClient:get_item_name(item.item, game),
+                    player_name = player_alias
+                }
 
             end
         end
@@ -903,7 +998,7 @@ function APConnect()
     end
 
     function on_location_checked(locations)
-        --print("Locations checked:" .. table.concat(locations, ", "))
+        -- print("Locations checked:" .. table.concat(locations, ", "))
     end
 
     function on_data_package_changed(data_package)
