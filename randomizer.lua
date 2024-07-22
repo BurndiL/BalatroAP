@@ -904,6 +904,7 @@ function Game:init_item_prototypes()
         self.P_CENTERS['b_red'] = self.P_CENTERS[standard_deck]
 
         init_AP_stakes()
+	G:save_progress()
     end
     return game_init_item_prototypes
 end
