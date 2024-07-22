@@ -524,6 +524,31 @@ function Game:draw()
                         -- beat specific ante
                     elseif G.AP.goal == 2 then
                         love.graphics.print("Goal: Beat Ante " .. G.AP.slot_data.ante_win_goal, 10, 60)
+
+			-- beat # decks on at least # stake
+		    elseif G.AP.goal == 3 then
+			local _line = "Goal: Beat " .. G.AP.slot_data.decks_win_goal .. " Decks on at least "
+
+			if G.AP.StakesInit then
+				_line = _line .. G.P_CENTER_POOLS[tonumber(G.AP.slot_data.required_stake)].name
+			else
+				_line = _line .. "Stake " .. tostring(G.AP.slot_data.required_stake)
+			end
+			
+			_line = _line .. "difficulty. You already beat " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Decks."
+			love.graphics.print(_line, 10, 60)
+			-- win with # jokers on at least # stake
+		    elseif G.AP.goal == 4 then
+			local _line = "Goal: Win with " .. G.AP.slot_data.jokers_unlock_goal .. " Jokers on at least "
+
+			if G.AP.StakesInit then
+				_line = _line .. G.P_CENTER_POOLS[tonumber(G.AP.slot_data.required_stake)].name
+			else
+				_line = _line .. "Stake " .. tostring(G.AP.slot_data.required_stake)
+			end
+			
+			_line = _line .. "difficulty. You have already won with " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Jokers."
+			love.graphics.print(_line, 10, 60)
                     end
                 end
             else
@@ -820,6 +845,19 @@ function Game:init_item_prototypes()
             -- ^ uncomment to force the first stake to be always open 
         end
 
+	-- AP goal progress
+	if not G.PROFILES[G.AP.profile_Id].ap_progress then
+		G.PROFILES[G.AP.profile_Id].ap_progress = 0
+	end
+
+	-- Pick the hardest stake as the required one if AP.slot_data lacks one
+	if G.AP.slot_data.required_stake == nil then
+		G.AP.slot_data.required_stake = 1
+		for i = 1, #G.AP.slot_data.included_stakes, 1 do
+			 G.AP.slot_data.required_stake = math.max(G.AP.slot_data.required_stake, G.AP.slot_data.included_stakes[i])
+		end
+	end
+
         -- Handle Queued Bonus stuff
 
         for k, v in pairs(G.AP.BonusQueue) do
@@ -866,6 +904,7 @@ function Game:init_item_prototypes()
         self.P_CENTERS['b_red'] = self.P_CENTERS[standard_deck]
 
         init_AP_stakes()
+	G:save_progress()
     end
     return game_init_item_prototypes
 end
@@ -1299,6 +1338,7 @@ function G.UIDEF.stake_option(_type)
             G.viewed_stake_act[1] = 1
             G.viewed_stake_act[2] = G.viewed_stake_act[2]
         else
+	    G.viewed_stake_act[2] = G.viewed_stake_act[2] or 1
             for i = 1, #stake_options, 1 do
                 if stake_options[i] <= G.viewed_stake_act[2] then
                     G.viewed_stake_act[1] = i
@@ -1433,13 +1473,6 @@ G.FUNCS.change_stake = function(args)
     end
 end
 
--- local game_splash_screenRef = Game.splash_screen
--- function Game:splash_screen()
--- -- initiate stake swap (i need stakes to exist to do it)
--- 	if isAPProfileLoaded() then init_AP_stakes() end
--- 	return game_splash_screenRef(self)
--- end
-
 -- handle stakes (stuff that can be easily handled by patches)
 -- white highlight on stake selection
 local GFUNCSRUN_SETUP_check_back_stake_highlightRef = G.FUNCS.RUN_SETUP_check_back_stake_highlight
@@ -1532,7 +1565,7 @@ end
 -- stakes button
 local GUIDEFrun_infoRef = G.UIDEF.run_info
 function G.UIDEF.run_info()
-    local _run_info = GUIDEFrun_infoRef()
+    local _run_info = nil
 
     if isAPProfileLoaded() then
         local _stake_slot = G.GAME.stake
@@ -1540,24 +1573,85 @@ function G.UIDEF.run_info()
         _run_info = GUIDEFrun_infoRef()
         G.GAME.stake = _stake_slot
     end
-
+	
+	if _run_info == nil then 
+		_run_info = GUIDEFrun_infoRef()
+	end
+	
     return _run_info
 end
 
 -- "also applies" in stakes menu
 local GUIDEFcurrent_stakeRef = G.UIDEF.current_stake
 function G.UIDEF.current_stake()
-    local _current_stake = GUIDEFcurrent_stakeRef()
-
-    if isAPProfileLoaded() then
-        local _stake_slot = G.GAME.stake
-        G.GAME.stake = G.P_CENTER_POOLS.Stake[_stake_slot].stake_level
-        _current_stake = GUIDEFcurrent_stakeRef()
-        G.GAME.stake = _stake_slot
-    end
-
-    return _current_stake
+	local _current_stake = GUIDEFcurrent_stakeRef()
+	
+	if isAPProfileLoaded() then
+		if G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level < 3 then
+			_current_stake.nodes[2] = nil
+		else
+			other_col = nil
+			
+			local stake_desc_rows = {{n=G.UIT.R, config={align = "cm", padding = 0.05}, 
+			nodes={{n=G.UIT.T, config={text = localize('k_also_applied'), scale = 0.4, colour = G.C.WHITE}}}}}
+			
+			local _applied_stakes = {}
+			for i = G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level-1, 1, -1 do
+				for k, v in pairs(G.P_CENTER_POOLS.Stake) do
+					if v.stake_level == i then
+						_applied_stakes[i] = k
+						break
+					end
+				end
+			end
+			
+			
+			for i = #_applied_stakes, 2, -1 do
+				local _stake_desc = {}
+				local _stake_center = G.P_CENTER_POOLS.Stake[_applied_stakes[i]]
+				
+				localize { type = 'descriptions', key = _stake_center.key, set = _stake_center.set, nodes = _stake_desc }
+				local _full_desc = {}
+				for k, v in ipairs(_stake_desc) do
+					_full_desc[#_full_desc + 1] = {n = G.UIT.R, config = {align = "cm"}, nodes = v}
+				end
+				_full_desc[#_full_desc] = nil -- remove to show "also applies previous stakes"
+				stake_desc_rows[#stake_desc_rows + 1] = {n = G.UIT.R, config = {align = "cm" }, nodes = {
+					{n = G.UIT.C, config = {align = 'cm'}, nodes = { 
+						{n = G.UIT.C, config = {align = "cm", colour = get_stake_col(_applied_stakes[i]), r = 0.1, minh = 0.35, minw = 0.35, emboss = 0.05 }, nodes = {}},
+						{n = G.UIT.B, config = {w = 0.1, h = 0.1}}}},
+					{n = G.UIT.C, config = {align = "cm", padding = 0.03, colour = G.C.WHITE, r = 0.1, minh = 0.7, minw = 4.8 }, nodes =
+						_full_desc},}}
+			end
+			
+			other_col = {n=G.UIT.R, config={align = "cm", padding = 0.05, r = 0.1, colour = G.C.L_BLACK}, nodes=stake_desc_rows}
+			_current_stake.nodes[2] = other_col
+		end
+	end
+	
+	return _current_stake
 end
+
+-- setup stake before run
+local SMODSsetup_stakeRef = SMODS.setup_stake
+function SMODS.setup_stake(i)
+	if isAPProfileLoaded() then
+		if G.P_CENTER_POOLS['Stake'][i].modifiers then
+			G.P_CENTER_POOLS['Stake'][i].modifiers()
+		end
+		if G.P_CENTER_POOLS['Stake'][i].applied_stakes then
+			for k, v in pairs(G.P_CENTER_POOLS['Stake']) do
+				if v.original_key == G.P_CENTER_POOLS['Stake'][i].applied_stakes[1] then
+					SMODS.setup_stake(k)
+					break
+				end
+			end
+		end
+	else
+		SMODSsetup_stakeRef(i)
+	end
+end
+
 
 -- handle shop cards
 
@@ -2139,7 +2233,41 @@ function check_for_unlock(args)
                     if args.type == 'ante_up' and args.ante >= G.AP.slot_data.ante_win_goal then
                         sendGoalReached()
                     end
+		    -- (completionist++ edition) deck wins on at least # stake
+		elseif G.AP.goal == 3 then
+		   local deck_stickers = 0
 
+		   for _, d in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
+		      for k, v in pairs(d.wins) do
+		        if G.P_CENTER_POOLS.Stake[k].stake_level >= G.AP.slot_data.required_stake and v > 0 then
+		            deck_stickers = deck_stickers + 1
+		            break 
+		        end
+		      end
+		   end
+		
+		   if deck_stickers >= tonumber(G.AP.slot_data.decks_win_goal) then 
+		     sendGoalReached() 
+		   end
+
+		   G.PROFILES[G.AP.profile_Id].ap_progress = deck_stickers
+		   -- (completionist+++ edition) win with # of jokers on at least # stake
+		elseif G.AP.goal == 4 then
+		  local joker_stickers = 0
+
+		  for _, v in pairs(G.P_CENTERS) do
+		      if v.set == 'Joker' then
+		        if get_joker_win_sticker(v, true) >= G.AP.slot_data.required_stake then 
+		            joker_stickers = joker_stickers + 1
+		        end
+		      end
+		  end
+		
+		  if joker_stickers >= tonumber(G.AP.slot_data.jokers_unlock_goal) then
+		      sendGoalReached() 
+		  end
+		  
+		  G.PROFILES[G.AP.profile_Id].ap_progress = joker_stickers
                 end
             end
         else
@@ -2162,7 +2290,8 @@ local create_UIBox_notify_alertRef = create_UIBox_notify_alert
 function create_UIBox_notify_alert(_achievement, _type)
     if isAPProfileLoaded() and
         (_type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral" or
-            (_type == "Joker" and G.P_CENTERS[_achievement].soul_pos)) or _type == "Stake" or _type == "BackStake" then
+            (_type == "Joker" and G.P_CENTERS[_achievement].soul_pos)) or _type == "Stake" or _type == "BackStake" or
+		_type == "Trap" then
 
         local _c, _atlas = G.P_CENTERS[_achievement],
             _type == "Tarot" and G.ASSET_ATLAS["Tarot"] or _type == "Planet" and G.ASSET_ATLAS["Tarot"] or _type ==
@@ -2217,6 +2346,42 @@ function create_UIBox_notify_alert(_achievement, _type)
             end
         end
 
+	if _type == "Trap" then
+		_c = {}
+		if tableContains({"t_eternal", "t_perishable", "t_rental"}, _achievement) then
+			_atlas = G.ASSET_ATLAS["Joker"]
+			_trap_soul = {
+				t_eternal = {x = 0, y = 0},
+				t_perishable = {x = 0, y = 2},
+				t_rental = {x = 1, y = 2}
+			}
+			
+			_c.soul_pos = _trap_soul[_achievement]
+		else
+			_atlas =  G.ASSET_ATLAS["Voucher"]
+		end
+		
+		local _trap_name = { --TODO: localization files
+			t_eternal = "A random Joker is Eternal!",
+			t_perishable = "A random Joker is Perishable!",
+			t_rental = "A random Joker is Rental!",
+			t_hand = "-1 hand this round.",
+			t_discard = "-1 discard this round.",
+			t_money = "Lose all money."
+			}
+		
+		local _trap_pos = {
+			t_eternal = {x = 0, y = 0},
+			t_perishable = {x = 0, y = 0},
+			t_rental = {x = 0, y = 0},
+			t_hand = {x = 5, y = 0},
+			t_discard = {x = 6, y = 0},
+			t_money = {x = 3, y = 1}
+		}
+		_c.name = _trap_name[_achievement]
+		_c.pos = _trap_pos[_achievement]
+	end
+
         if not _c then
             if _type == "location" then
                 _c = {
@@ -2257,8 +2422,8 @@ function create_UIBox_notify_alert(_achievement, _type)
 
         -- second layer for the soul, the hologramm and the legendaries
         if (_c and _c.soul_pos) or _achievement == 'c_soul' then
-            local _soul_atlas = _achievement == 'c_soul' and G.ASSET_ATLAS["centers"] or _type == 'BackStake' and
-                                    G.ASSET_ATLAS["stickers"] or G.ASSET_ATLAS["Joker"]
+            local _soul_atlas = _achievement == 'c_soul' and G.ASSET_ATLAS["centers"] or _type == 'Joker' and
+                                    G.ASSET_ATLAS["Joker"] or G.ASSET_ATLAS["stickers"]
             local _soul_pos = _achievement == 'c_soul' and {
                 x = 0,
                 y = 1
@@ -2275,6 +2440,22 @@ function create_UIBox_notify_alert(_achievement, _type)
             _soul_t_s.VT = t_s.VT
         end
 
+	--negative shader for traps
+	if _type == 'Trap' then
+		t_s.draw = function(_sprite)
+			_sprite.ARGS.send_to_shader = _sprite.ARGS.send_to_shader or {}
+			_sprite.ARGS.send_to_shader[1] = math.min(_sprite.VT.r*3, 1) + G.TIMERS.REAL/(28) + (_sprite.juice and _sprite.juice.r*20 or 0)
+			_sprite.ARGS.send_to_shader[2] = G.TIMERS.REAL
+			
+			Sprite.draw_shader(_sprite, 'negative', nil, _sprite.ARGS.send_to_shader)
+			Sprite.draw_shader(_sprite, 'negative_shine', nil, _sprite.ARGS.send_to_shader)
+			
+			if _sprite.children.floating_sprite then
+				Sprite.draw_shader(_sprite.children.floating_sprite, 'dissolve')
+			end
+		end
+	end
+		
         local subtext = "Location cleared"
         local name = "Archipelago"
 
@@ -2291,7 +2472,7 @@ function create_UIBox_notify_alert(_achievement, _type)
             else
                 subtext = _type
             end
-            name = "Unlocked"
+            name = _type == "Trap" and "A Trap!" or "Unlocked"
         end
 
         return {
@@ -2363,7 +2544,7 @@ function create_UIBox_notify_alert(_achievement, _type)
                                 n = G.UIT.T,
                                 config = {
                                     text = subtext,
-                                    scale = 0.7,
+                                    scale = _type == "Trap" and 0.4 or 0.7,
                                     colour = G.C.FILTER,
                                     shadow = true
                                 }
@@ -2384,7 +2565,11 @@ function sendLocationCleared(id)
 
         if (tableContains(G.APClient.missing_locations, id)) then
             G.FUNCS.resolve_location_id_to_name(id)
-            notify_alert(id, "location")
+	
+	    -- dont send out a location alert if sending item to yourself
+	    if G.AP.location_id_to_item_name[id].player_name ~= G.AP.APSlot then
+                notify_alert(id, "location")
+	    end
         end
         G.APClient:LocationChecks({id})
     end
