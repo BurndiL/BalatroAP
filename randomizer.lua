@@ -524,6 +524,31 @@ function Game:draw()
                         -- beat specific ante
                     elseif G.AP.goal == 2 then
                         love.graphics.print("Goal: Beat Ante " .. G.AP.slot_data.ante_win_goal, 10, 60)
+
+			-- beat # decks on at least # stake
+		    elseif G.AP.goal == 3
+			local _line = "Goal: Beat " .. G.AP.slot_data.decks_win_goal .. " Decks on at least "
+
+			if G.AP.StakesInit then
+				_line = _line .. G.P_CENTER_POOLS[tonumber(G.AP.slot_data.required_stake)].name
+			else
+				_line = _line .. "Stake " .. tostring(G.AP.slot_data.required_stake)
+			end
+			
+			_line = _line .. "difficulty. You already beat " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Decks.
+			love.graphics.print(_line, 10, 60)
+			-- win with # jokers on at least # stake
+		    elseif G.AP.goal == 4
+			local _line = "Goal: Win with " .. G.AP.slot_data.jokers_unlock_goal .. " Jokers on at least "
+
+			if G.AP.StakesInit then
+				_line = _line .. G.P_CENTER_POOLS[tonumber(G.AP.slot_data.required_stake)].name
+			else
+				_line = _line .. "Stake " .. tostring(G.AP.slot_data.required_stake)
+			end
+			
+			_line = _line .. "difficulty. You have already won with " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Jokers.
+			love.graphics.print(_line, 10, 60)
                     end
                 end
             else
@@ -819,6 +844,19 @@ function Game:init_item_prototypes()
             -- G.PROFILES[G.AP.profile_Id].stake_unlocks[1] = true
             -- ^ uncomment to force the first stake to be always open 
         end
+
+	-- AP goal progress
+	if not G.PROFILES[G.AP.profile_Id].ap_progress then
+		G.PROFILES[G.AP.profile_Id].ap_progress = 0
+	end
+
+	-- Pick the hardest stake as the required one if AP.slot_data lacks one
+	if G.AP.slot_data.required_stake == nil then
+		G.AP.slot_data.required_stake = 1
+		for i = 1, #G.AP.slot_data.included_stakes, 1 do
+			 G.AP.slot_data.required_stake = math.max(G.AP.slot_data.required_stake, G.AP.slot_data.included_stakes[i])
+		end
+	end
 
         -- Handle Queued Bonus stuff
 
@@ -1432,13 +1470,6 @@ G.FUNCS.change_stake = function(args)
         return GFUNCSchange_stakeRef(args)
     end
 end
-
--- local game_splash_screenRef = Game.splash_screen
--- function Game:splash_screen()
--- -- initiate stake swap (i need stakes to exist to do it)
--- 	if isAPProfileLoaded() then init_AP_stakes() end
--- 	return game_splash_screenRef(self)
--- end
 
 -- handle stakes (stuff that can be easily handled by patches)
 -- white highlight on stake selection
@@ -2200,7 +2231,41 @@ function check_for_unlock(args)
                     if args.type == 'ante_up' and args.ante >= G.AP.slot_data.ante_win_goal then
                         sendGoalReached()
                     end
+		    -- (completionist++ edition) deck wins on at least # stake
+		elseif G.AP.goal == 3 then
+		   local deck_stickers = 0
 
+		   for _, d in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
+		      for k, v in pairs(d.wins) do
+		        if G.P_CENTER_POOLS.Stake[k].stake_level >= G.AP.slot_data.required_stake and v > 0 then
+		            deck_stickers = deck_stickers + 1
+		            break 
+		        end
+		      end
+		   end
+		
+		   if deck_stickers >= tonumber(G.AP.slot_data.decks_win_goal) then 
+		     sendGoalReached() 
+		   end
+
+		   G.PROFILES[G.AP.profile_Id].ap_progress = deck_stickers
+		   -- (completionist+++ edition) win with # of jokers on at least # stake
+		elseif G.AP.goal == 4 then
+		  local joker_stickers = 0
+
+		  for _, v in pairs(G.P_CENTERS) do
+		      if v.set == 'Joker' then
+		        if get_joker_win_sticker(v, true) >= G.AP.slot_data.required_stake then 
+		            joker_stickers = joker_stickers + 1
+		        end
+		      end
+		  end
+		
+		  if joker_stickers >= tonumber(G.AP.slot_data.jokers_unlock_goal) then
+		      sendGoalReached() 
+		  end
+		  
+		  G.PROFILES[G.AP.profile_Id].ap_progress = joker_stickers
                 end
             end
         else
