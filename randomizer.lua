@@ -1532,7 +1532,7 @@ end
 -- stakes button
 local GUIDEFrun_infoRef = G.UIDEF.run_info
 function G.UIDEF.run_info()
-    local _run_info = GUIDEFrun_infoRef()
+    local _run_info = nil
 
     if isAPProfileLoaded() then
         local _stake_slot = G.GAME.stake
@@ -1540,24 +1540,86 @@ function G.UIDEF.run_info()
         _run_info = GUIDEFrun_infoRef()
         G.GAME.stake = _stake_slot
     end
-
+	
+	if _run_info == nil then 
+		_run_info = GUIDEFrun_infoRef()
+	end
+	
     return _run_info
 end
 
 -- "also applies" in stakes menu
 local GUIDEFcurrent_stakeRef = G.UIDEF.current_stake
 function G.UIDEF.current_stake()
-    local _current_stake = GUIDEFcurrent_stakeRef()
-
-    if isAPProfileLoaded() then
-        local _stake_slot = G.GAME.stake
-        G.GAME.stake = G.P_CENTER_POOLS.Stake[_stake_slot].stake_level
-        _current_stake = GUIDEFcurrent_stakeRef()
-        G.GAME.stake = _stake_slot
-    end
-
-    return _current_stake
+	local _current_stake = GUIDEFcurrent_stakeRef()
+	
+	if isAPProfileLoaded() then
+		if G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level < 3 then
+			_current_stake.nodes[2] = nil
+		else
+			other_col = nil
+			
+			local stake_desc_rows = {{n=G.UIT.R, config={align = "cm", padding = 0.05}, 
+			nodes={{n=G.UIT.T, config={text = localize('k_also_applied'), scale = 0.4, colour = G.C.WHITE}}}}}
+			
+			local _applied_stakes = {}
+			for i = G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level-1, 1, -1 do
+				for k, v in pairs(G.P_CENTER_POOLS.Stake) do
+					if v.stake_level == i then
+						_applied_stakes[i] = k
+						break
+					end
+				end
+			end
+			
+			
+			for i = #_applied_stakes, 2, -1 do
+				local _stake_desc = {}
+				local _stake_center = G.P_CENTER_POOLS.Stake[_applied_stakes[i]]
+				
+				localize { type = 'descriptions', key = _stake_center.key, set = _stake_center.set, nodes = _stake_desc }
+				local _full_desc = {}
+				for k, v in ipairs(_stake_desc) do
+					_full_desc[#_full_desc + 1] = {n = G.UIT.R, config = {align = "cm"}, nodes = v}
+				end
+				_full_desc[#_full_desc] = nil -- remove to show "also applies previous stakes"
+				stake_desc_rows[#stake_desc_rows + 1] = {n = G.UIT.R, config = {align = "cm" }, nodes = {
+					{n = G.UIT.C, config = {align = 'cm'}, nodes = { 
+						{n = G.UIT.C, config = {align = "cm", colour = get_stake_col(_applied_stakes[i]), r = 0.1, minh = 0.35, minw = 0.35, emboss = 0.05 }, nodes = {}},
+						{n = G.UIT.B, config = {w = 0.1, h = 0.1}}}},
+					{n = G.UIT.C, config = {align = "cm", padding = 0.03, colour = G.C.WHITE, r = 0.1, minh = 0.7, minw = 4.8 }, nodes =
+						_full_desc},}}
+			end
+			
+			other_col = {n=G.UIT.R, config={align = "cm", padding = 0.05, r = 0.1, colour = G.C.L_BLACK}, nodes=stake_desc_rows}
+			_current_stake.nodes[2] = other_col
+		end
+	end
+	
+	return _current_stake
 end
+
+-- setup stake before run
+local SMODSsetup_stakeRef = SMODS.setup_stake
+function SMODS.setup_stake(i)
+	if isAPProfileLoaded() then
+		
+		if G.P_CENTER_POOLS['Stake'][i].modifiers then
+            G.P_CENTER_POOLS['Stake'][i].modifiers()
+        end
+        if G.P_CENTER_POOLS['Stake'][i].applied_stakes then
+            for k, v in pairs(G.P_CENTER_POOLS['Stake']) do
+				if v.original_key == G.P_CENTER_POOLS['Stake'][i].applied_stakes[1] then
+					SMODS.setup_stake(k)
+					break
+				end
+            end
+        end
+	else
+		SMODSsetup_stakeRef(i)
+	end
+end
+
 
 -- handle shop cards
 
