@@ -1603,18 +1603,17 @@ end
 local SMODSsetup_stakeRef = SMODS.setup_stake
 function SMODS.setup_stake(i)
 	if isAPProfileLoaded() then
-		
 		if G.P_CENTER_POOLS['Stake'][i].modifiers then
-            G.P_CENTER_POOLS['Stake'][i].modifiers()
-        end
-        if G.P_CENTER_POOLS['Stake'][i].applied_stakes then
-            for k, v in pairs(G.P_CENTER_POOLS['Stake']) do
+			G.P_CENTER_POOLS['Stake'][i].modifiers()
+		end
+		if G.P_CENTER_POOLS['Stake'][i].applied_stakes then
+			for k, v in pairs(G.P_CENTER_POOLS['Stake']) do
 				if v.original_key == G.P_CENTER_POOLS['Stake'][i].applied_stakes[1] then
 					SMODS.setup_stake(k)
 					break
 				end
-            end
-        end
+			end
+		end
 	else
 		SMODSsetup_stakeRef(i)
 	end
@@ -2224,7 +2223,8 @@ local create_UIBox_notify_alertRef = create_UIBox_notify_alert
 function create_UIBox_notify_alert(_achievement, _type)
     if isAPProfileLoaded() and
         (_type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral" or
-            (_type == "Joker" and G.P_CENTERS[_achievement].soul_pos)) or _type == "Stake" or _type == "BackStake" then
+            (_type == "Joker" and G.P_CENTERS[_achievement].soul_pos)) or _type == "Stake" or _type == "BackStake" or
+		_type == "Trap" then
 
         local _c, _atlas = G.P_CENTERS[_achievement],
             _type == "Tarot" and G.ASSET_ATLAS["Tarot"] or _type == "Planet" and G.ASSET_ATLAS["Tarot"] or _type ==
@@ -2278,6 +2278,42 @@ function create_UIBox_notify_alert(_achievement, _type)
                 end
             end
         end
+
+	if _type == "Trap" then
+		_c = {}
+		if tableContains({"t_eternal", "t_perishable", "t_rental"}, _achievement) then
+			_atlas = G.ASSET_ATLAS["Joker"]
+			_trap_soul = {
+				t_eternal = {x = 0, y = 0},
+				t_perishable = {x = 0, y = 2},
+				t_rental = {x = 1, y = 2}
+			}
+			
+			_c.soul_pos = _trap_soul[_achievement]
+		else
+			_atlas =  G.ASSET_ATLAS["Voucher"]
+		end
+		
+		local _trap_name = { --TODO: localization files
+			t_eternal = "A random Joker is Eternal!",
+			t_perishable = "A random Joker is Perishable!",
+			t_rental = "A random Joker is Rental!",
+			t_hand = "-1 hand this round.",
+			t_discard = "-1 discard this round.",
+			t_money = "Lose all money."
+			}
+		
+		local _trap_pos = {
+			t_eternal = {x = 0, y = 0},
+			t_perishable = {x = 0, y = 0},
+			t_rental = {x = 0, y = 0},
+			t_hand = {x = 5, y = 0},
+			t_discard = {x = 6, y = 0},
+			t_money = {x = 3, y = 1}
+		}
+		_c.name = _trap_name[_achievement]
+		_c.pos = _trap_pos[_achievement]
+	end
 
         if not _c then
             if _type == "location" then
@@ -2337,6 +2373,22 @@ function create_UIBox_notify_alert(_achievement, _type)
             _soul_t_s.VT = t_s.VT
         end
 
+	--negative shader for traps
+	if _type == 'Trap' then
+		t_s.draw = function(_sprite)
+			_sprite.ARGS.send_to_shader = _sprite.ARGS.send_to_shader or {}
+			_sprite.ARGS.send_to_shader[1] = math.min(_sprite.VT.r*3, 1) + G.TIMERS.REAL/(28) + (_sprite.juice and _sprite.juice.r*20 or 0)
+			_sprite.ARGS.send_to_shader[2] = G.TIMERS.REAL
+			
+			Sprite.draw_shader(_sprite, 'negative', nil, _sprite.ARGS.send_to_shader)
+			Sprite.draw_shader(_sprite, 'negative_shine', nil, _sprite.ARGS.send_to_shader)
+			
+			if _sprite.children.floating_sprite then
+				Sprite.draw_shader(_sprite.children.floating_sprite, 'dissolve')
+			end
+		end
+	end
+		
         local subtext = "Location cleared"
         local name = "Archipelago"
 
@@ -2353,7 +2405,7 @@ function create_UIBox_notify_alert(_achievement, _type)
             else
                 subtext = _type
             end
-            name = "Unlocked"
+            name = _type == "Trap" and "A Trap!" or "Unlocked"
         end
 
         return {
@@ -2425,7 +2477,7 @@ function create_UIBox_notify_alert(_achievement, _type)
                                 n = G.UIT.T,
                                 config = {
                                     text = subtext,
-                                    scale = 0.7,
+                                    scale = _type == "Trap" and 0.4 or 0.7,
                                     colour = G.C.FILTER,
                                     shadow = true
                                 }
