@@ -342,17 +342,6 @@ function APConnect()
         G.AP.slot_data = slot_data
         G.AP.goal = slot_data.goal
 
-        -- -- print("missing locations: " .. table.concat(G.APClient.missing_locations, ", "))
-        -- -- print("checked locations: " .. table.concat(G.APClient.checked_locations, ", "))
-        -- G.APClient:Say("Hello World!")
-        -- G.APClient:Bounce({
-        --     name = "test"
-        -- }, {"Balatro"})
-        -- local extra = {
-        --     nonce = 123
-        -- } -- optional extra data will be in the server reply
-        -- G.APClient:Get({"counter"}, extra)
-        -- G.APClient:Set("counter", 0, true, {{"add", 1}}, extra)
         G.APClient:Set("empty_array", nil, true, {{"replace", AP.EMPTY_ARRAY}})
 
         local tags = {"Lua-APClientPP"}
@@ -361,7 +350,6 @@ function APConnect()
         end
 
         G.APClient:ConnectUpdate(nil, tags)
-        -- G.APClient:LocationChecks({64000, 64001, 64002})
         print("Players:")
         local players = G.APClient:get_players()
         for _, player in ipairs(players) do
