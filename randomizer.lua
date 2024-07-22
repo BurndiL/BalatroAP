@@ -2422,8 +2422,8 @@ function create_UIBox_notify_alert(_achievement, _type)
 
         -- second layer for the soul, the hologramm and the legendaries
         if (_c and _c.soul_pos) or _achievement == 'c_soul' then
-            local _soul_atlas = _achievement == 'c_soul' and G.ASSET_ATLAS["centers"] or _type == 'BackStake' and
-                                    G.ASSET_ATLAS["stickers"] or G.ASSET_ATLAS["Joker"]
+            local _soul_atlas = _achievement == 'c_soul' and G.ASSET_ATLAS["centers"] or _type == 'Joker' and
+                                    G.ASSET_ATLAS["Joker"] or G.ASSET_ATLAS["stickers"]
             local _soul_pos = _achievement == 'c_soul' and {
                 x = 0,
                 y = 1
