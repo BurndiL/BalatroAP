@@ -1337,6 +1337,7 @@ function G.UIDEF.stake_option(_type)
             G.viewed_stake_act[1] = 1
             G.viewed_stake_act[2] = G.viewed_stake_act[2]
         else
+	    G.viewed_stake_act[2] = G.viewed_stake_act[2] or 1
             for i = 1, #stake_options, 1 do
                 if stake_options[i] <= G.viewed_stake_act[2] then
                     G.viewed_stake_act[1] = i
