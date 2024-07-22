@@ -526,7 +526,7 @@ function Game:draw()
                         love.graphics.print("Goal: Beat Ante " .. G.AP.slot_data.ante_win_goal, 10, 60)
 
 			-- beat # decks on at least # stake
-		    elseif G.AP.goal == 3
+		    elseif G.AP.goal == 3 then
 			local _line = "Goal: Beat " .. G.AP.slot_data.decks_win_goal .. " Decks on at least "
 
 			if G.AP.StakesInit then
@@ -535,10 +535,10 @@ function Game:draw()
 				_line = _line .. "Stake " .. tostring(G.AP.slot_data.required_stake)
 			end
 			
-			_line = _line .. "difficulty. You already beat " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Decks.
+			_line = _line .. "difficulty. You already beat " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Decks."
 			love.graphics.print(_line, 10, 60)
 			-- win with # jokers on at least # stake
-		    elseif G.AP.goal == 4
+		    elseif G.AP.goal == 4 then
 			local _line = "Goal: Win with " .. G.AP.slot_data.jokers_unlock_goal .. " Jokers on at least "
 
 			if G.AP.StakesInit then
@@ -547,7 +547,7 @@ function Game:draw()
 				_line = _line .. "Stake " .. tostring(G.AP.slot_data.required_stake)
 			end
 			
-			_line = _line .. "difficulty. You have already won with " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Jokers.
+			_line = _line .. "difficulty. You have already won with " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Jokers."
 			love.graphics.print(_line, 10, 60)
                     end
                 end
