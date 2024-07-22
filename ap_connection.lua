@@ -791,27 +791,33 @@ function APConnect()
                     if (item_id == 330) then
                         -- Lose All Money
                         ease_dollars(-G.GAME.dollars, true)
+                        notify_alert("t_money", "Trap")
 
                     elseif (item_id == 331) then
                         -- Lose 1 Discard
                         ease_discard(-1)
+                        notify_alert("t_discard", "Trap")
                     elseif item_id == 332 then
                         -- Lose 1 Hand
                         ease_hands_played(-1)
+                        notify_alert("t_hand", "Trap")
                     elseif item_id == 333 then
                         -- make joker perishable
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_perishable(true)
+                            notify_alert("t_perishable", "Trap")
                         end
                     elseif item_id == 334 then
                         -- make joker eternal
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_eternal(true)
+                            notify_alert("t_eternal", "Trap")
                         end
                     elseif item_id == 335 then
                         -- make joker rental
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_rental(true)
+                            notify_alert("t_rental", "Trap")
                         end
                     end
 
