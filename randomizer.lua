@@ -2565,7 +2565,11 @@ function sendLocationCleared(id)
 
         if (tableContains(G.APClient.missing_locations, id)) then
             G.FUNCS.resolve_location_id_to_name(id)
-            notify_alert(id, "location")
+	
+	    -- dont send out a location alert if sending item to yourself
+	    if G.AP.location_id_to_item_name[id].player_name ~= G.AP.APSlot then
+                notify_alert(id, "location")
+	    end
         end
         G.APClient:LocationChecks({id})
     end
