@@ -529,8 +529,13 @@ function Game:draw()
                     elseif G.AP.goal == 3 then
                         local _line = "Goal: Beat " .. G.AP.slot_data.decks_win_goal .. " Decks on at least "
 
-                        if G.AP.StakesInit and G.P_CENTER_POOLS.Stake[tonumber(G.AP.slot_data.required_stake)] then
-                            _line = _line .. G.P_CENTER_POOLS.Stake[tonumber(G.AP.slot_data.required_stake)].name
+                        if G.AP.StakesInit then
+                            for i = 1, 8, 1 do
+                                if G.P_CENTER_POOLS.Stake[i].stake_level == tonumber(G.AP.slot_data.required_stake) then
+                                    _line = _line .. G.P_CENTER_POOLS.Stake[i].name
+                                    break
+                                end
+                            end
                         else
                             _line = _line .. "Stake " .. tostring(G.AP.slot_data.required_stake)
                         end
@@ -542,8 +547,13 @@ function Game:draw()
                     elseif G.AP.goal == 4 then
                         local _line = "Goal: Win with " .. G.AP.slot_data.jokers_unlock_goal .. " Jokers on at least "
 
-                        if G.AP.StakesInit and G.P_CENTER_POOLS.Stake[tonumber(G.AP.slot_data.required_stake)] then
-                            _line = _line .. G.P_CENTER_POOLS.Stake[tonumber(G.AP.slot_data.required_stake)].name
+                        if G.AP.StakesInit then
+                            for i = 1, 8, 1 do
+                                if G.P_CENTER_POOLS.Stake[i].stake_level == tonumber(G.AP.slot_data.required_stake) then
+                                    _line = _line .. G.P_CENTER_POOLS.Stake[i].name
+                                    break
+                                end
+                            end
                         else
                             _line = _line .. "Stake " .. tostring(G.AP.slot_data.required_stake)
                         end
@@ -627,7 +637,11 @@ G.FUNCS.AP_unlock_item = function(item)
     end
 
     G.FILE_HANDLER.force = true
-    notify_alert(item.key, item.set)
+
+    --prevent dublicate notification on stake_unlock_mode 3
+    if not (item.set == 'Back' and tonumber(G.AP.slot_data.stake_unlock_mode) == 3) then
+        notify_alert(item.key, item.set)
+    end
 end
 
 G.FUNCS.AP_unlock_stake = function(stake_name)
@@ -648,7 +662,13 @@ G.FUNCS.AP_unlock_stake_per_deck = function(stake_key, deck_key)
         if stake_key == nil then
             sendDebugMessage("stake_key is nil, this is bad!")
         end
-        if (v.key == stake_key) then
+
+        if G.PROFILES[G.AP.profile_Id].deck_usage[deck_key] == nil then
+            sendDebugMessage("deck_usage is nil, this is bad!")
+        end
+        
+        -- check for existence of the deck_usage to avoid crashes when the key is blank
+        if (v.key == stake_key) and G.PROFILES[G.AP.profile_Id].deck_usage[deck_key] then
 
             G.PROFILES[G.AP.profile_Id].deck_usage[deck_key].stake_unlocks[k] = true
 
@@ -1238,16 +1258,7 @@ function G.UIDEF.deck_stake_column(_deck_key)
         local deck_usage = G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key]
         local stake_col = {}
         local valid_option = nil
-        local num_stakes = 0
-
-        for i = #G.AP.slot_data.included_stakes, 1, -1 do
-            if check_stake_unlock(i, _deck_key) == true then
-                num_stakes = #G.AP.slot_data.included_stakes
-                break
-            end
-        end
-
-        -- num_stakes = #G.AP.slot_data.included_stakes
+        local num_stakes = #G.AP.slot_data.included_stakes
 
         for i = num_stakes, 1, -1 do
             valid_option = false
@@ -1342,11 +1353,18 @@ function G.UIDEF.stake_option(_type)
             G.viewed_stake_act[2] = G.viewed_stake_act[2]
         else
             G.viewed_stake_act[2] = G.viewed_stake_act[2] or 1
+            local _failsafe = true
             for i = 1, #stake_options, 1 do
                 if stake_options[i] <= G.viewed_stake_act[2] then
                     G.viewed_stake_act[1] = i
+                    _failsafe = false
                 end
             end
+
+            if _failsafe == true and tableContains(stake_options, G.viewed_stake_act[2]) == false then
+                G.viewed_stake_act[1] = 1
+            end
+            
             G.viewed_stake = stake_options[G.viewed_stake_act[1]]
             G.viewed_stake_act[2] = stake_options[G.viewed_stake_act[1]]
         end
