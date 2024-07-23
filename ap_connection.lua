@@ -311,6 +311,7 @@ function APConnect()
     G.AP.BonusQueue = {}
     G.AP.PackQueue = {}
     G.AP.ConsumableQueue = {}
+    G.AP.StakeQueue = {}
 
     function on_socket_connected()
         print("Socket connected")
@@ -341,17 +342,6 @@ function APConnect()
         G.AP.slot_data = slot_data
         G.AP.goal = slot_data.goal
 
-        -- -- print("missing locations: " .. table.concat(G.APClient.missing_locations, ", "))
-        -- -- print("checked locations: " .. table.concat(G.APClient.checked_locations, ", "))
-        -- G.APClient:Say("Hello World!")
-        -- G.APClient:Bounce({
-        --     name = "test"
-        -- }, {"Balatro"})
-        -- local extra = {
-        --     nonce = 123
-        -- } -- optional extra data will be in the server reply
-        -- G.APClient:Get({"counter"}, extra)
-        -- G.APClient:Set("counter", 0, true, {{"add", 1}}, extra)
         G.APClient:Set("empty_array", nil, true, {{"replace", AP.EMPTY_ARRAY}})
 
         local tags = {"Lua-APClientPP"}
@@ -360,7 +350,6 @@ function APConnect()
         end
 
         G.APClient:ConnectUpdate(nil, tags)
-        -- G.APClient:LocationChecks({64000, 64001, 64002})
         print("Players:")
         local players = G.APClient:get_players()
         for _, player in ipairs(players) do
@@ -790,27 +779,33 @@ function APConnect()
                     if (item_id == 330) then
                         -- Lose All Money
                         ease_dollars(-G.GAME.dollars, true)
+                        notify_alert("t_money", "Trap")
 
                     elseif (item_id == 331) then
                         -- Lose 1 Discard
                         ease_discard(-1)
+                        notify_alert("t_discard", "Trap")
                     elseif item_id == 332 then
                         -- Lose 1 Hand
                         ease_hands_played(-1)
+                        notify_alert("t_hand", "Trap")
                     elseif item_id == 333 then
                         -- make joker perishable
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_perishable(true)
+                            notify_alert("t_perishable", "Trap")
                         end
                     elseif item_id == 334 then
                         -- make joker eternal
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_eternal(true)
+                            notify_alert("t_eternal", "Trap")
                         end
                     elseif item_id == 335 then
                         -- make joker rental
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_rental(true)
+                            notify_alert("t_rental", "Trap")
                         end
                     end
 
@@ -870,7 +865,172 @@ function APConnect()
                         end
                         on_items_received(items_to_unlock)
                     end
+                elseif item_id >= 390 and item_id <= 397 then
+                    if item_id == 390 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('White Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'White Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 391 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Red Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Red Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 392 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Green Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Green Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 393 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Black Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Black Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 394 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Blue Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Blue Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 395 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Purple Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Purple Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 396 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Orange Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Orange Stake'
+                            end
+
+                        end
+                    end
+                    if item_id == 397 then
+                        if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
+                            G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
+                            if (G.AP.StakesInit) then
+                                G.FUNCS.AP_unlock_stake('Gold Stake')
+                            else
+                                G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Gold Stake'
+                            end
+
+                        end
+                    end
+
+                elseif item_id >= 400 then
+                    local deck_name = ""
+                    local stake_name = ""
+                    if item_id <= 407 then
+                        deck_name = "b_red"
+                        on_items_received({{index = "reddeck", item = 1 + G.AP.id_offset}})
+                    elseif item_id <= 415 then
+                        deck_name = "b_blue"
+                        on_items_received({{index = "bluedeck", item = 2+ G.AP.id_offset}})
+                    elseif item_id <= 423 then
+                        deck_name = "b_yellow"
+                        on_items_received({{index = "yellowdeck", item = 3+ G.AP.id_offset}})
+                    elseif item_id <= 431 then
+                        deck_name = "b_green"
+                        on_items_received({{index = "greendeck", item = 4+ G.AP.id_offset}})
+                    elseif item_id <= 439 then
+                        deck_name = "b_black"
+                        on_items_received({{index = "blackdeck", item = 5+ G.AP.id_offset}})
+                    elseif item_id <= 447 then
+                        deck_name = "b_magic"
+                        on_items_received({{index = "magicdeck", item = 6+ G.AP.id_offset}})
+                    elseif item_id <= 455 then
+                        deck_name = "b_nebula"
+                        on_items_received({{index = "nebuladeck", item = 7+ G.AP.id_offset}})
+                    elseif item_id <= 463 then
+                        deck_name = "b_ghost"
+                        on_items_received({{index = "ghostdeck", item = 8+ G.AP.id_offset}})
+                    elseif item_id <= 471 then
+                        deck_name = "b_abandoned"
+                        on_items_received({{index = "abandoneddeck", item = 9+ G.AP.id_offset}})
+                    elseif item_id <= 479 then
+                        deck_name = "b_checkered"
+                        on_items_received({{index = "checkdeck", item = 10+ G.AP.id_offset}})
+                    elseif item_id <= 487 then
+                        deck_name = "b_zodiac"
+                        on_items_received({{index = "zodiacdeck", item = 11+ G.AP.id_offset}})
+                    elseif item_id <= 495 then
+                        deck_name = "b_painted"
+                        on_items_received({{index = "painteddeck", item = 12+ G.AP.id_offset}})
+                    elseif item_id <= 503 then
+                        deck_name = "b_anaglyph"
+                        on_items_received({{index = "anaglyphdeck", item = 13+ G.AP.id_offset}})
+                    elseif item_id <= 511 then
+                        deck_name = "b_plasma"
+                        on_items_received({{index = "plasmadeck", item = 14+ G.AP.id_offset}})
+                    elseif item_id <= 519 then
+                        deck_name = "b_erratic"
+                        on_items_received({{index = "erraticdeck", item = 15+ G.AP.id_offset}})
+                    end
+
+
+                    if item_id % 8 == 0 then
+                        stake_name = "stake_white"
+                    elseif (item_id - 1) % 8 == 0 then
+                        stake_name = "stake_red"
+                    elseif (item_id - 2) % 8 == 0 then
+                        stake_name = "stake_green"
+                    elseif (item_id - 3) % 8 == 0 then
+                        stake_name = "stake_black"
+                    elseif (item_id - 4) % 8 == 0 then
+                        stake_name = "stake_blue"
+                    elseif (item_id - 5) % 8 == 0 then
+                        stake_name = "stake_purple"
+                    elseif (item_id - 6) % 8 == 0 then
+                        stake_name = "stake_orange"
+                    elseif (item_id - 7) % 8 == 0 then
+                        stake_name = "stake_gold"
+                    end
+
+                    if (G.AP.StakesInit) then 
+                        G.FUNCS.AP_unlock_stake_per_deck(stake_name, deck_name)
+                    else
+                        G.AP.StakeQueue[#G.AP.StakeQueue + 1] = {stake = stake_name, deck = deck_name}
+                    end
                 end
+
             end
         end
 
@@ -882,20 +1042,23 @@ function APConnect()
     function on_location_info(items)
         for _, item in ipairs(items) do
             if not G.AP.location_id_to_item_name[item.location] then
-                
+
                 local player = item.player
 
                 if not player_to_alias[player] then
                     player_to_alias[player] = G.APClient:get_player_alias(item.player)
                 end
-                
+
                 if not player_to_game[player] then
                     player_to_game[player] = G.APClient:get_player_game(item.player)
                 end
-                
+
                 local player_alias = player_to_alias[player]
                 local game = player_to_game[player]
-                G.AP.location_id_to_item_name[item.location] = {item_name = G.APClient:get_item_name(item.item, game), player_name = player_alias} 
+                G.AP.location_id_to_item_name[item.location] = {
+                    item_name = G.APClient:get_item_name(item.item, game),
+                    player_name = player_alias
+                }
 
             end
         end
@@ -903,7 +1066,7 @@ function APConnect()
     end
 
     function on_location_checked(locations)
-        --print("Locations checked:" .. table.concat(locations, ", "))
+        -- print("Locations checked:" .. table.concat(locations, ", "))
     end
 
     function on_data_package_changed(data_package)
