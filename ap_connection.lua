@@ -997,10 +997,10 @@ function APConnect()
                     elseif item_id <= 503 then
                         deck_name = "b_anaglyph"
                         on_items_received({{index = "anaglyphdeck", item = 13+ G.AP.id_offset}})
-                    elseif item_id <= 411 then
+                    elseif item_id <= 511 then
                         deck_name = "b_plasma"
                         on_items_received({{index = "plasmadeck", item = 14+ G.AP.id_offset}})
-                    elseif item_id <= 419 then
+                    elseif item_id <= 519 then
                         deck_name = "b_erratic"
                         on_items_received({{index = "erraticdeck", item = 15+ G.AP.id_offset}})
                     end

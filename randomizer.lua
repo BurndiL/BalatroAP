@@ -759,7 +759,7 @@ function Game:init_item_prototypes()
                     end
                 end
                 -- for backs (decks)
-            elseif string.find(k, '^b_') then
+            elseif string.find(k, '^b_') and k ~= 'b_challenge' then
                 v.unlocked = false
                 v.unlock_condition = nil
                 if G.PROFILES[G.AP.profile_Id]["backs"][v.name] ~= nil then
