@@ -2076,20 +2076,22 @@ end
 local select_blindRef = G.FUNCS.select_blind
 
 G.FUNCS.select_blind = function(e)
-    -- scout upcoming locations semi regularly
-    get_shop_location()
-    local deck_name = G.GAME.selected_back.name
-
-    if (G.GAME.round_resets.ante >= 1 and G.GAME.round_resets.ante <= 8) then
-        for k, v in pairs(deck_list) do
-            if deck_name == v then
-                G.APClient:LocationScouts({G.AP.id_offset + (64 * k) + (G.GAME.round_resets.ante - 1) * 8 +
-                    (G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level - 1)})
-                break -- break the loop once the correct deck is found
+    if isAPProfileLoaded() == true then
+        -- scout upcoming locations semi regularly
+        get_shop_location()
+        local deck_name = G.GAME.selected_back.name
+    
+        if (G.GAME.round_resets.ante >= 1 and G.GAME.round_resets.ante <= 8) then
+            for k, v in pairs(deck_list) do
+                if deck_name == v then
+                    G.APClient:LocationScouts({G.AP.id_offset + (64 * k) + (G.GAME.round_resets.ante - 1) * 8 +
+                        (G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level - 1)})
+                    break -- break the loop once the correct deck is found
+                end
             end
         end
     end
-
+    
     return select_blindRef(e)
 end
 
