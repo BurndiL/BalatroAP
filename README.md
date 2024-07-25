@@ -15,6 +15,8 @@ There are a few more options, just check out the yaml that is bundled with the n
 
 # Requirements
 
+Here's a [video tutorial](https://youtu.be/XnEvgEOswpk) I made sometime if any step of the installation is unclear.
+
 Needs [Steamodded (Alpha)](https://github.com/Steamopollys/Steamodded?tab=readme-ov-file#how-to-install-the-alpha) which is the 1.0 version there. **MAKE SURE TO DOWNLOAD THE ALPHA**. You will have to install [Lovely](https://github.com/ethangreen-dev/lovely-injector/releases/) as described in the Steamodded installation guide and then install the Steamodded Alpha itself. 
 
 After installing those, you will also have to download `lua51.7z` from [lua apclient](https://github.com/black-sliver/lua-apclientpp/releases). 
