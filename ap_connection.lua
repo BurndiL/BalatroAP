@@ -342,7 +342,7 @@ function APConnect()
         G.AP.slot_data = slot_data
         G.AP.goal = slot_data.goal
 
-        G.APClient:Set("empty_array", nil, true, {{"replace", AP.EMPTY_ARRAY}})
+        -- G.APClient:Set("empty_array", nil, true, {{"replace", AP.EMPTY_ARRAY}})
 
         local tags = {"Lua-APClientPP"}
         if (G.AP.slot_data.deathlink) then
@@ -350,12 +350,23 @@ function APConnect()
         end
 
         G.APClient:ConnectUpdate(nil, tags)
-        print("Players:")
-        local players = G.APClient:get_players()
-        for _, player in ipairs(players) do
-            print("  " .. tostring(player.slot) .. ": " .. player.name .. " playing " ..
-                      G.APClient:get_player_game(player.slot))
+        -- print("Players:")
+        -- local players = G.APClient:get_players()
+        -- for _, player in ipairs(players) do
+        --     print("  " .. tostring(player.slot) .. ": " .. player.name .. " playing " ..
+        --               G.APClient:get_player_game(player.slot))
+        -- end
+            
+        local seed = G.APClient:get_seed()
+        if not G.PROFILES[G.AP.profile_Id]['ap_seed'] then
+            G.PROFILES[G.AP.profile_Id]['ap_seed'] = seed
+        else
+            if G.PROFILES[G.AP.profile_Id]['ap_seed'] ~= seed then
+                sendDebugMessage("Client and Server have different seeds")
+                G.FUNCS.APDisconnect()
+            end
         end
+
 
         -- set profile name to slot name 
         G.PROFILES[G.AP.profile_Id]['name'] = G.AP['APSlot']
@@ -400,22 +411,33 @@ function APConnect()
                             item = item.nextVoucher
                         end
 
-                        if item.set == "Joker" then
+                        if (not G.AP.slot_data.remove_jokers and item.set == "Joker") or
+                            (not G.AP.slot_data.remove_consumables and
+                                (item.set == "Tarot" or item.set == "Planet" or item.set == "Spectral")) then
+
                             item.ap_unlocked = true
+
                             if G.jokers and G.jokers.cards then
                                 for k, v in pairs(G.jokers.cards) do
                                     if v and type(v) == 'table' and v.config.center.name == item.name then
                                         v:set_debuff(false)
-                                        v:juice_up()
                                     end
                                 end
                             end
+
+                            if G.consumeables and G.consumeables.cards then
+                                for k, v in pairs(G.consumeables.cards) do
+                                    if v and type(v) == 'table' and v.config.center.name == item.name then
+                                        v:set_debuff(false)
+                                    end
+                                end
+                            end
+
                             if G.STATES then
                                 if G.STATE == G.STATES.SHOP and G.shop_jokers and G.shop_jokers.cards then
                                     for k, v in pairs(G.shop_jokers.cards) do
                                         if v and type(v) == 'table' and v.config.center.name == item.name then
                                             v:set_debuff(false)
-                                            v:juice_up()
                                         end
                                     end
                                 end
@@ -423,12 +445,10 @@ function APConnect()
                                     for k, v in pairs(G.pack_cards.cards) do
                                         if v and type(v) == 'table' and v.config.center.name == item.name then
                                             v:set_debuff(false)
-                                            v:juice_up()
                                         end
                                     end
                                 end
                             end
-
                         end
 
                         item.unlocked = true
@@ -960,51 +980,95 @@ function APConnect()
                     local stake_name = ""
                     if item_id <= 407 then
                         deck_name = "b_red"
-                        on_items_received({{index = "reddeck", item = 1 + G.AP.id_offset}})
+                        on_items_received({{
+                            index = "reddeck",
+                            item = 1 + G.AP.id_offset
+                        }})
                     elseif item_id <= 415 then
                         deck_name = "b_blue"
-                        on_items_received({{index = "bluedeck", item = 2+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "bluedeck",
+                            item = 2 + G.AP.id_offset
+                        }})
                     elseif item_id <= 423 then
                         deck_name = "b_yellow"
-                        on_items_received({{index = "yellowdeck", item = 3+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "yellowdeck",
+                            item = 3 + G.AP.id_offset
+                        }})
                     elseif item_id <= 431 then
                         deck_name = "b_green"
-                        on_items_received({{index = "greendeck", item = 4+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "greendeck",
+                            item = 4 + G.AP.id_offset
+                        }})
                     elseif item_id <= 439 then
                         deck_name = "b_black"
-                        on_items_received({{index = "blackdeck", item = 5+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "blackdeck",
+                            item = 5 + G.AP.id_offset
+                        }})
                     elseif item_id <= 447 then
                         deck_name = "b_magic"
-                        on_items_received({{index = "magicdeck", item = 6+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "magicdeck",
+                            item = 6 + G.AP.id_offset
+                        }})
                     elseif item_id <= 455 then
                         deck_name = "b_nebula"
-                        on_items_received({{index = "nebuladeck", item = 7+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "nebuladeck",
+                            item = 7 + G.AP.id_offset
+                        }})
                     elseif item_id <= 463 then
                         deck_name = "b_ghost"
-                        on_items_received({{index = "ghostdeck", item = 8+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "ghostdeck",
+                            item = 8 + G.AP.id_offset
+                        }})
                     elseif item_id <= 471 then
                         deck_name = "b_abandoned"
-                        on_items_received({{index = "abandoneddeck", item = 9+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "abandoneddeck",
+                            item = 9 + G.AP.id_offset
+                        }})
                     elseif item_id <= 479 then
                         deck_name = "b_checkered"
-                        on_items_received({{index = "checkdeck", item = 10+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "checkdeck",
+                            item = 10 + G.AP.id_offset
+                        }})
                     elseif item_id <= 487 then
                         deck_name = "b_zodiac"
-                        on_items_received({{index = "zodiacdeck", item = 11+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "zodiacdeck",
+                            item = 11 + G.AP.id_offset
+                        }})
                     elseif item_id <= 495 then
                         deck_name = "b_painted"
-                        on_items_received({{index = "painteddeck", item = 12+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "painteddeck",
+                            item = 12 + G.AP.id_offset
+                        }})
                     elseif item_id <= 503 then
                         deck_name = "b_anaglyph"
-                        on_items_received({{index = "anaglyphdeck", item = 13+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "anaglyphdeck",
+                            item = 13 + G.AP.id_offset
+                        }})
                     elseif item_id <= 511 then
                         deck_name = "b_plasma"
-                        on_items_received({{index = "plasmadeck", item = 14+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "plasmadeck",
+                            item = 14 + G.AP.id_offset
+                        }})
                     elseif item_id <= 519 then
                         deck_name = "b_erratic"
-                        on_items_received({{index = "erraticdeck", item = 15+ G.AP.id_offset}})
+                        on_items_received({{
+                            index = "erraticdeck",
+                            item = 15 + G.AP.id_offset
+                        }})
                     end
-
 
                     if item_id % 8 == 0 then
                         stake_name = "stake_white"
@@ -1024,10 +1088,13 @@ function APConnect()
                         stake_name = "stake_gold"
                     end
 
-                    if (G.AP.StakesInit) then 
+                    if (G.AP.StakesInit) then
                         G.FUNCS.AP_unlock_stake_per_deck(stake_name, deck_name)
                     else
-                        G.AP.StakeQueue[#G.AP.StakeQueue + 1] = {stake = stake_name, deck = deck_name}
+                        G.AP.StakeQueue[#G.AP.StakeQueue + 1] = {
+                            stake = stake_name,
+                            deck = deck_name
+                        }
                     end
                 end
 

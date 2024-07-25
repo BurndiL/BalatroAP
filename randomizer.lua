@@ -638,7 +638,7 @@ G.FUNCS.AP_unlock_item = function(item)
 
     G.FILE_HANDLER.force = true
 
-    --prevent dublicate notification on stake_unlock_mode 3
+    -- prevent dublicate notification on stake_unlock_mode 3
     if not (item.set == 'Back' and tonumber(G.AP.slot_data.stake_unlock_mode) == 3) then
         notify_alert(item.key, item.set)
     end
@@ -666,7 +666,7 @@ G.FUNCS.AP_unlock_stake_per_deck = function(stake_key, deck_key)
         if G.PROFILES[G.AP.profile_Id].deck_usage[deck_key] == nil then
             sendDebugMessage("deck_usage is nil, this is bad!")
         end
-        
+
         -- check for existence of the deck_usage to avoid crashes when the key is blank
         if (v.key == stake_key) and G.PROFILES[G.AP.profile_Id].deck_usage[deck_key] then
 
@@ -686,6 +686,10 @@ function Game:init_item_prototypes()
     local game_init_item_prototypes = game_init_item_prototypesRef(self)
 
     if isAPProfileLoaded() then
+        if tableContains(G.AP.slot_data.included_decks, 'b_red') then
+            standard_deck = 'b_red'
+        end
+
         -- Locked text (this system might have to be largely overhauled, can't be bothered tho 😀)
         G.localization.descriptions["Booster"] = {}
         -- G.localization.descriptions["Tarot"] = {}
@@ -744,15 +748,27 @@ function Game:init_item_prototypes()
         for k, v in pairs(self.P_CENTERS) do
             -- for jokers
             if string.find(k, '^j_') then
-                v.unlocked = true
-                v.discovered = true
-                v.hidden = false
-                v.ap_unlocked = false
+
+                if G.AP.slot_data.remove_jokers then
+                    v.unlocked = false
+                    v.discovered = false
+                    v.hidden = true
+                else
+                    v.unlocked = true
+                    v.discovered = true
+                    v.hidden = false
+                    v.ap_unlocked = false
+                end
+
                 if G.PROFILES[G.AP.profile_Id]["jokers"][v.name] ~= nil then
-                    -- v.unlocked = true
-                    -- v.discovered = true
-                    -- v.hidden = false
-                    v.ap_unlocked = true
+
+                    if G.AP.slot_data.remove_jokers then
+                        v.unlocked = true
+                        v.discovered = true
+                        v.hidden = false
+                    else
+                        v.ap_unlocked = true
+                    end
 
                     if (G.AP.JokerQueue[v] == true) then
                         G.FUNCS.AP_unlock_item(v)
@@ -835,12 +851,23 @@ function Game:init_item_prototypes()
                 -- for consumables
 
             elseif string.find(k, '^c_') and not string.find(k, '^c_base') then
-                v.unlocked = false
+
+                if G.AP.slot_data.remove_consumables then
+                    v.unlocked = false
+                else
+                    v.unlocked = true
+                    v.ap_unlocked = false
+                end
 
                 if G.PROFILES[G.AP.profile_Id]["consumables"][v.name] ~= nil then
-                    v.unlocked = true
-                    v.discovered = true
-                    v.hidden = false
+                    if G.AP.slot_data.remove_consumables then
+                        v.unlocked = true
+                        v.discovered = true
+                        v.hidden = false
+                    else
+                        v.ap_unlocked = true
+                    end
+
                     if (G.AP.ConsumableQueue[v] == true) then
                         G.FUNCS.AP_unlock_item(v)
                     end
@@ -1364,7 +1391,7 @@ function G.UIDEF.stake_option(_type)
             if _failsafe == true and tableContains(stake_options, G.viewed_stake_act[2]) == false then
                 G.viewed_stake_act[1] = 1
             end
-            
+
             G.viewed_stake = stake_options[G.viewed_stake_act[1]]
             G.viewed_stake_act[2] = stake_options[G.viewed_stake_act[1]]
         end
@@ -1781,7 +1808,8 @@ local create_cardRef = create_card
 
 function create_card(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
     -- to properly generate only unlocked jokers in buffoon packs
-    if isAPProfileLoaded() and G.STATE == G.STATES.BUFFOON_PACK and _type == 'Joker' and (G.P_CENTERS) then
+    if isAPProfileLoaded() and not G.AP.slot_data.remove_jokers and G.STATE == G.STATES.BUFFOON_PACK and _type ==
+        'Joker' and (G.P_CENTERS) then
         for k, v in pairs(G.P_CENTERS) do
             if string.find(tostring(k), '^j_') then
                 v.foo = v.unlocked
@@ -1790,10 +1818,23 @@ function create_card(_type, area, legendary, _rarity, skip_materialize, soulable
         end
     end
 
+    -- if isAPProfileLoaded() and not G.AP.slot_data.remove_consumables and
+    --     (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and
+    --     (_type == 'Tarot' or _type == 'Spectral' or _type == 'Planet') and (G.P_CENTERS) then
+    --     for k, v in pairs(G.P_CENTERS) do
+    --         if string.find(tostring(k), '^c_') then
+    --             v.foo = v.unlocked
+    --             v.unlocked = v.ap_unlocked
+    --             sendDebugMessage("v.unlocked is: " .. tostring(v.unlocked) .. " for " .. tostring(k))
+    --         end
+    --     end
+    -- end
+
     local create_card = create_cardRef(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key,
         key_append)
 
-    if isAPProfileLoaded() and G.STATE == G.STATES.BUFFOON_PACK and _type == 'Joker' and (G.P_CENTERS) then
+    if isAPProfileLoaded() and not G.AP.slot_data.remove_jokers and G.STATE == G.STATES.BUFFOON_PACK and _type ==
+        'Joker' and (G.P_CENTERS) then
         for k, v in pairs(G.P_CENTERS) do
             if string.find(tostring(k), '^j_') then
                 v.unlocked = v.foo
@@ -1801,6 +1842,17 @@ function create_card(_type, area, legendary, _rarity, skip_materialize, soulable
             end
         end
     end
+
+    -- if isAPProfileLoaded() and not G.AP.slot_data.remove_consumables and
+    --     (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and
+    --     (_type == 'Tarot' or _type == 'Spectral' or _type == 'Planet') and (G.P_CENTERS) then
+    --     for k, v in pairs(G.P_CENTERS) do
+    --         if string.find(tostring(k), '^c_') then
+    --             v.unlocked = v.foo
+    --             v.foo = nil
+    --         end
+    --     end
+    -- end
 
     return create_card
 end
@@ -1820,13 +1872,11 @@ function CardArea:emplace(card, location, stay_flipped)
         card:start_dissolve({G.C.RED}, true, 0)
     end
 
-    if self.cards and ((isAPProfileLoaded() and card.config.center.unlocked == false and
-        (G.STATE == G.STATES.SHOP or G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE ==
-            G.STATES.PLANET_PACK or G.STATE == G.STATES.BUFFOON_PACK or self == G.shop_jokers or self == G.jokers or
+    if isAPProfileLoaded() and self.cards and ((card.config.center.unlocked == false and
+        (G.STATE == G.STATES.SHOP or self == G.shop_jokers or self == G.jokers or
             self == G.consumeables or self == G.pack_cards)) or
-
-        (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and ap_items_in_shop > 1 and G.STATE ==
-            G.STATES.SHOP) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
+        (card.config.center_key == 'v_rand_ap_item' and ap_items_in_shop > 1 and G.STATE == G.STATES.SHOP) or
+        (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_strength" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_incantation" and card.config.center.unlocked == true)) then
@@ -1846,25 +1896,20 @@ function CardArea:emplace(card, location, stay_flipped)
 
                 for k, v in pairs(self.cards) do
                     if v.config.center.key == "j_joker" then
-                        if v.config.center.ap_unlocked then
-                            if not found_self then
-                                found_self = true
-                            else
-                                self:remove_card(card, false)
-                                card:start_dissolve({G.C.RED}, true, 0)
-
-                                return cardAreaemplace
-                            end
-
+                        if not found_self and v.config.center.ap_unlocked then
+                            found_self = true
                         else
                             self:remove_card(card, false)
                             card:start_dissolve({G.C.RED}, true, 0)
 
                             return cardAreaemplace
                         end
+
                     end
                 end
-
+                if isAPProfileLoaded() and card.config.center.ap_unlocked == false then
+                    card:set_debuff(true)
+                end
                 return cardAreaemplace
             end
 
@@ -1885,7 +1930,9 @@ function CardArea:emplace(card, location, stay_flipped)
                         end
                     end
                 end
-
+                if isAPProfileLoaded() and card.config.center.ap_unlocked == false then
+                    card:set_debuff(true)
+                end
                 return cardAreaemplace
             end
 
@@ -1906,7 +1953,9 @@ function CardArea:emplace(card, location, stay_flipped)
                         end
                     end
                 end
-
+                if isAPProfileLoaded() and card.config.center.ap_unlocked == false then
+                    card:set_debuff(true)
+                end
                 return cardAreaemplace
             end
 
@@ -1927,7 +1976,9 @@ function CardArea:emplace(card, location, stay_flipped)
                         end
                     end
                 end
-
+                if isAPProfileLoaded() and card.config.center.ap_unlocked == false then
+                    card:set_debuff(true)
+                end
                 return cardAreaemplace
             end
 
@@ -1941,7 +1992,7 @@ function CardArea:emplace(card, location, stay_flipped)
         end
 
     end
-    if isAPProfileLoaded() and card.config.center.unlocked == true and card.config.center.ap_unlocked == false then
+    if isAPProfileLoaded() and card.config.center.ap_unlocked == false then
         card:set_debuff(true)
     end
 
@@ -2076,22 +2127,22 @@ end
 local select_blindRef = G.FUNCS.select_blind
 
 G.FUNCS.select_blind = function(e)
-    if isAPProfileLoaded() == true then
+    if isAPProfileLoaded() then
         -- scout upcoming locations semi regularly
         get_shop_location()
         local deck_name = G.GAME.selected_back.name
-    
+        
         if (G.GAME.round_resets.ante >= 1 and G.GAME.round_resets.ante <= 8) then
             for k, v in pairs(deck_list) do
                 if deck_name == v then
                     G.APClient:LocationScouts({G.AP.id_offset + (64 * k) + (G.GAME.round_resets.ante - 1) * 8 +
-                        (G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level - 1)})
+                    (G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level - 1)})
                     break -- break the loop once the correct deck is found
                 end
             end
         end
     end
-    
+
     return select_blindRef(e)
 end
 
@@ -2263,7 +2314,9 @@ function get_unlocked_jokers()
     local count = 0
     if (G.P_CENTERS) then
         for k, v in pairs(G.P_CENTERS) do
-            if string.find(tostring(k), '^j_') and v.ap_unlocked == true then
+            if string.find(tostring(k), '^j_') and
+                (not G.AP.slot_data.remove_jokers and v.ap_unlocked == true or G.AP.slot_data.remove_jokers and
+                    v.unlocked == true) then
                 count = count + 1
             end
         end
