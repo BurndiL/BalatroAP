@@ -358,10 +358,18 @@ function APConnect()
         -- end
             
         local seed = G.APClient:get_seed()
-        if not G.PROFILES[G.AP.profile_Id]['ap_seed'] then
+        local clientSeed = nil
+        local info = get_compressed(G.AP.profile_Id..'/profile.jkr')
+        if info then
+            local unpacked = STR_UNPACK(info)
+            clientSeed = unpacked['ap_seed']
+        end
+
+
+        if not clientSeed then
             G.PROFILES[G.AP.profile_Id]['ap_seed'] = seed
         else
-            if G.PROFILES[G.AP.profile_Id]['ap_seed'] ~= seed then
+            if clientSeed ~= seed then
                 sendDebugMessage("Client and Server have different seeds")
                 G.FUNCS.APDisconnect()
             end
