@@ -2432,17 +2432,14 @@ end
 
 local create_UIBox_notify_alertRef = create_UIBox_notify_alert
 function create_UIBox_notify_alert(_achievement, _type)
-    if isAPProfileLoaded() and
-        (_type == "location" or _type == "Booster" or _type == "Tarot" or _type == "Planet" or _type == "Spectral" or
-            (_type == "Joker" and G.P_CENTERS[_achievement].soul_pos)) or _type == "Stake" or _type == "BackStake" or
-        _type == "Trap" then
+    if isAPProfileLoaded() then
 
         local _c, _atlas = G.P_CENTERS[_achievement],
-            _type == "Tarot" and G.ASSET_ATLAS["Tarot"] or _type == "Planet" and G.ASSET_ATLAS["Tarot"] or _type ==
-                "Spectral" and G.ASSET_ATLAS["Tarot"] or _type == "Booster" and G.ASSET_ATLAS["Booster"] or _type ==
-                "location" and G.ASSET_ATLAS["rand_ap_logo"] or _type == 'Stake' and G.ASSET_ATLAS["chips"] or _type ==
-                'BackStake' and G.ASSET_ATLAS["centers"] or _type == 'Joker' and G.ASSET_ATLAS["Joker"] or
-                G.ASSET_ATLAS["icons"]
+            _type == 'Stake' and G.ASSET_ATLAS["chips"] or
+			tableContains({"Joker","Voucher","Booster"}, _type) and G.ASSET_ATLAS[_type] or
+			tableContains({"Tarot","Planet","Spectral"},_type) and G.ASSET_ATLAS["Tarot"] or
+			tableContains({"Back","BackStake"}, _type) and G.ASSET_ATLAS["centers"] or
+            _type == "location" and G.ASSET_ATLAS["rand_ap_logo"] or G.ASSET_ATLAS["icons"]
 
         -- stake-specific _c
         if _type == 'Stake' then
@@ -2553,6 +2550,55 @@ function create_UIBox_notify_alert(_achievement, _type)
             _c.pos = _trap_pos[_achievement]
         end
 
+        if _type == 'Bonus' then
+			_c = {
+				pos = {
+					x = 0,
+					y = 0
+				}
+			}
+			
+			_atlas = tableContains({"fill_buffoon","fill_tag_charm","fill_tag_meteor",
+			"fill_tag_ethereal"}, _achievement) and G.ASSET_ATLAS["Booster"] or G.ASSET_ATLAS["Joker"]
+			
+			local _bonus_pos = {
+				fill_buffoon = {x = 3, y = 8},
+				fill_tag_charm = {x = 1 + math.random(2), y = 2},
+				fill_tag_meteor = {x = 1 + math.random(2), y = 3},
+				fill_tag_ethereal = {x = 3, y = 4}
+			}
+			
+			local _bonus_name = { --TODO: more localization files
+				-- OP items
+				op_discard = "+1 discard every round.",
+				op_money = "Start with extra $1.",
+				op_hand = "+1 hand every round.",
+				op_hand_size = "+1 hand size.",
+				op_interest = "Raise the interest cap by $5.",
+				op_joker_slot = "+ 1 Joker slot.",
+				op_consum_slot = "+ 1 consumable slot.",
+				
+				-- Filler items
+				fill_money = "Receive up to $8.",
+				fill_buffoon = "Receive a Mega Buffoon Pack.",
+				fill_tag_charm = "Receive a Mega Arcana Pack.",
+				fill_tag_meteor = "Receive a Mega Celestial Pack.",
+				fill_tag_ethereal = "Receive a Mega Spectral Pack.",
+				fill_juggle = "Receive a Juggle Tag.",
+				fill_d_six = "Receive a D6 Tag.",
+				fill_uncommon = "Receive an Uncommon Tag.",
+				fill_rare = "Receive a Rare Tag.",
+				fill_negative = "Receive a Negative Tag.",
+				fill_foil = "Receive a Foil Tag.",
+				fill_holo = "Receive a Holographic Tag.",
+				fill_poly = "Receive a Polychrome Tag.",
+				fill_double = "Receive a Double Tag."
+			}
+			
+			_c.pos = _bonus_pos[_achievement] and _bonus_pos[_achievement] or _c.pos
+			_c.name = _bonus_name[_achievement]
+		end
+        
         if not _c then
             if _type == "location" then
                 _c = {
@@ -2613,6 +2659,10 @@ function create_UIBox_notify_alert(_achievement, _type)
 
         -- negative shader for traps
         if _type == 'Trap' then
+            if tableContains({"t_eternal", "t_rental", "t_perishable"}, _achievement) then
+				UIDEF_alert_extra_ui(t_s, false, _achievement)
+			end
+            
             t_s.draw = function(_sprite)
                 _sprite.ARGS.send_to_shader = _sprite.ARGS.send_to_shader or {}
                 _sprite.ARGS.send_to_shader[1] = math.min(_sprite.VT.r * 3, 1) + G.TIMERS.REAL / (28) +
@@ -2625,9 +2675,57 @@ function create_UIBox_notify_alert(_achievement, _type)
                 if _sprite.children.floating_sprite then
                     Sprite.draw_shader(_sprite.children.floating_sprite, 'dissolve')
                 end
+
+                if _sprite.children.badge then
+					UIBox.draw(_sprite.children.badge)
+				end
             end
         end
 
+        if _type == 'Bonus' then
+			t_s._type = _achievement == "fill_negative" and 4 or
+			_achievement == "fill_poly" and 3 or
+			_achievement == "fill_holo" and 2 or
+			_achievement == "fill_foil" and 1 or 0
+			
+			if tableContains({"fill_holo", "fill_poly", "fill_foil", 
+			  "fill_negative", "fill_uncommon", "fill_rare"}, _achievement) then
+				    UIDEF_alert_extra_ui(t_s, true, _achievement)
+			elseif tableContains({"fill_buffoon","fill_tag_charm",
+			  "fill_tag_meteor","fill_tag_ethereal"}, _achievement) then
+				    UIDEF_alert_extra_ui(t_s, true)
+			end
+			
+			t_s.draw = function(_sprite)
+				_sprite.ARGS.send_to_shader = _sprite.ARGS.send_to_shader or {}
+				_sprite.ARGS.send_to_shader[1] = math.min(_sprite.VT.r * 3, 1) + G.TIMERS.REAL / (28) +
+													 (_sprite.juice and _sprite.juice.r * 20 or 0)
+				_sprite.ARGS.send_to_shader[2] = G.TIMERS.REAL
+				
+				if _sprite.children.price then
+					UIBox.draw(_sprite.children.price)
+				end
+				
+				if _sprite._type == 0 then
+					Sprite.draw_shader(_sprite, 'dissolve')
+				elseif _sprite._type == 1 then
+					Sprite.draw_shader(_sprite, 'dissolve')
+					Sprite.draw_shader(_sprite, 'foil', nil, _sprite.ARGS.send_to_shader)
+				elseif _sprite._type == 2 then
+					Sprite.draw_shader(_sprite, 'holo', nil, _sprite.ARGS.send_to_shader)
+				elseif _sprite._type == 3 then
+					Sprite.draw_shader(_sprite, 'polychrome', nil, _sprite.ARGS.send_to_shader)
+				elseif _sprite._type == 4 then
+					Sprite.draw_shader(_sprite, 'negative', nil, _sprite.ARGS.send_to_shader)
+					Sprite.draw_shader(_sprite, 'negative_shine', nil, _sprite.ARGS.send_to_shader)
+				end
+				
+				if _sprite.children.badge then
+					UIBox.draw(_sprite.children.badge)
+				end
+            end
+		end
+        
         local subtext = "Location cleared"
         local name = "Archipelago"
 
@@ -2644,7 +2742,7 @@ function create_UIBox_notify_alert(_achievement, _type)
             else
                 subtext = _type
             end
-            name = _type == "Trap" and "A Trap!" or "Unlocked"
+            name = _type == "Trap" and "A Trap!" or _type == "Bonus" and "Bonus!" or "Unlocked"
         end
 
         return {
@@ -2716,7 +2814,7 @@ function create_UIBox_notify_alert(_achievement, _type)
                                 n = G.UIT.T,
                                 config = {
                                     text = subtext,
-                                    scale = _type == "Trap" and 0.4 or 0.7,
+                                    scale = _type == "Trap" and 0.6 or 0.7,
                                     colour = G.C.FILTER,
                                     shadow = true
                                 }
@@ -2731,6 +2829,73 @@ function create_UIBox_notify_alert(_achievement, _type)
 
     return create_UIBox_notify_alertRef(_achievement, _type)
 end
+
+-- fake version of random UI for bonus and trap pop ups
+function UIDEF_alert_extra_ui(card, price, badge)
+	
+	price = price or false
+
+	-- price tag
+	if price == true then 
+		local _price = {
+			n=G.UIT.ROOT, 
+			config = {
+				minw = 0.6, 
+				align = 'tm', 
+				colour = darken(G.C.BLACK, 0.2), 
+				shadow = false, 
+				r = 0.05, 
+				padding = 0.05, 
+				minh = 1
+			},
+			nodes={{
+				n=G.UIT.R,
+				config={
+					align = "cm",
+					colour = lighten(G.C.BLACK, 0.1), 
+					r = 0.1,
+					minw = 1,
+					minh = 0.55,
+					emboss = 0.05,
+					padding = 0.03
+				}, 
+				nodes={{
+					n=G.UIT.T, 
+					config= {
+						text = "$0",
+						scale = 0.4,
+						colour = G.C.MONEY,
+						shadow = true }},}}}}
+
+		card.children.price = UIBox{
+			definition = _price,
+			config = {align="tm", offset = {x=0,y=0.3}, major = card, bond = 'Strong', parent = card}
+		}
+	end
+	
+	if badge then
+		local _badge_table = {
+			fill_poly = {localize("polychrome", "labels"), get_badge_colour("polychrome")},
+			fill_holo = {localize("holographic", "labels"), get_badge_colour("holographic")},
+			fill_foil = {localize("foil", "labels"), get_badge_colour("foil")},
+			fill_negative = {localize("negative", "labels"), get_badge_colour("negative")},
+			fill_uncommon = {localize('k_uncommon'), G.C.GREEN},
+			fill_rare = {localize('k_rare'), G.C.RED},
+			t_eternal = {localize("eternal", "labels"), get_badge_colour("eternal")},
+			t_perishable = {localize("perishable", "labels"), get_badge_colour("perishable")},
+			t_rental = {localize("rental", "labels"), get_badge_colour("rental")}
+		}
+		
+		local _badge_def = create_badge(_badge_table[badge][1] or "ERROR", _badge_table[badge][2] or G.C.RED, G.C.WHITE, 0.9)
+		_badge_def.nodes[1].config.minw = 1.6
+		
+		card.children.badge = UIBox{
+			definition = _badge_def,
+			config = {align="bm", offset = {x=0,y=-0.3}, major = card, bond = 'Strong', parent = card}
+        }
+	end
+end
+
 
 function sendLocationCleared(id)
     sendDebugMessage("sending location cleared")
