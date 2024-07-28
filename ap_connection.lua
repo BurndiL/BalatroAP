@@ -546,6 +546,8 @@ function APConnect()
                             if G.STAGE == G.STAGES.RUN then
                                 ease_discard(1)
                             end
+                            
+                            notify_alert('op_discard', "Bonus")
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusdiscards",
@@ -561,6 +563,8 @@ function APConnect()
                             if G.STAGE == G.STAGES.RUN then
                                 ease_dollars(1, true)
                             end
+                            
+                            notify_alert('op_money', "Bonus")
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusstartingmoney",
@@ -575,6 +579,8 @@ function APConnect()
                             if G.STAGE == G.STAGES.RUN then
                                 ease_hands_played(1)
                             end
+
+                            notify_alert('op_hand', "Bonus")
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonushands",
@@ -589,6 +595,8 @@ function APConnect()
                             if G.STAGE == G.STAGES.RUN then
                                 G.hand:change_size(1)
                             end
+
+                            notify_alert('op_hand_size', "Bonus")
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonushandsize",
@@ -608,6 +616,8 @@ function APConnect()
                                     end
                                 }))
                             end
+
+                            notify_alert('op_interest', "Bonus")
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "maxinterest",
@@ -629,6 +639,8 @@ function APConnect()
                                     end
                                 }))
                             end
+
+                            notify_alert('op_joker_slot', "Bonus")
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusjoker",
@@ -648,6 +660,8 @@ function APConnect()
                                     end
                                 }))
                             end
+
+                            notify_alert('op_consum_slot', "Bonus")
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusconsumable",
@@ -661,6 +675,8 @@ function APConnect()
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             local amount = math.random(3, 8)
                             ease_dollars(amount)
+
+                            notify_alert('fill_money', "Bonus")
                         end
                     elseif item_id == 311 then
                         -- receive random Joker (must be during a game)
@@ -673,6 +689,8 @@ function APConnect()
                                     return true
                                 end)
                             }))
+
+                            notify_alert('fill_buffoon', "Bonus")
                         end
                     elseif item_id == 312 then
                         -- receive random consumable (must be during a game)
@@ -690,7 +708,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-
+                            notify_alert('fill_'..choice, "Bonus")
                         end
                     elseif item_id == 313 then
                         -- plus 3 hand size next round (must be during a game)
@@ -703,6 +721,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
+                            notify_alert('fill_juggle', "Bonus")
                         end
                     elseif item_id == 314 then
                         -- rerolls start at $0 next shop (must be during a game)
@@ -715,6 +734,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
+                            notify_alert('fill_d_six', "Bonus")
                         end
                     elseif item_id == 315 then
                         -- Free uncommon joker next shop (must be during a game)
@@ -727,6 +747,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
+                            notify_alert('fill_uncommon', "Bonus")
                         end
                     elseif item_id == 316 then
                         -- Free rare joker next shop (must be during a game)
@@ -739,6 +760,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
+                            notify_alert('fill_rare', "Bonus")
                         end
                     elseif item_id == 317 then
                         -- Free negative joker next shop (must be during a game)
@@ -751,6 +773,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
+                            notify_alert('fill_negative', "Bonus")
                         end
                     elseif item_id == 318 then
                         -- Free foil joker next shop (must be during a game)
@@ -763,6 +786,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
+                            notify_alert('fill_foil', "Bonus")
                         end
                     elseif item_id == 319 then
                         -- Free holographic joker next shop (must be during a game)
@@ -775,6 +799,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
+                            notify_alert('fill_holo', "Bonus")
                         end
                     elseif item_id == 320 then
                         -- Free polychrome joker next shop (must be during a game)
@@ -787,6 +812,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
+                            notify_alert('fill_poly', "Bonus")
                         end
                     elseif item_id == 321 then
                         -- Receive double tag (must be during a game)
@@ -799,6 +825,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
+                            notify_alert('fill_double', "Bonus")
                         end
                     end
 
