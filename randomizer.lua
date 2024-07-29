@@ -500,20 +500,8 @@ function Game:draw()
                 if G.AP.goal and G.AP.GameObjectInit then
                     -- beat # of decks
                     if G.AP.goal == 0 then
-                        -- calculating this every frame is stupid
-                        local deck_wins = 0
-                        for k, v in pairs(G.P_CENTERS) do
-                            if string.find(tostring(k), '^b_') then
-                                if G.PROFILES[G.SETTINGS.profile] and G.PROFILES[G.SETTINGS.profile].deck_usage and
-                                    G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
-                                    G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
-                                    #G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
-                                    deck_wins = deck_wins + 1
-                                end
-                            end
-                        end
                         love.graphics.print("Goal: Beat " .. G.AP.slot_data.decks_win_goal ..
-                                                " Decks. You already beat " .. tostring(deck_wins) .. " Decks.", 10, 60)
+                                                " Decks. You already beat " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Decks.", 10, 60)
                         -- unlock # of jokers
                     elseif G.AP.goal == 1 then
                         local unlocked_jokers = get_unlocked_jokers()
@@ -561,6 +549,12 @@ function Game:draw()
                         _line = _line .. " difficulty. You have already won with " ..
                                     tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Jokers."
                         love.graphics.print(_line, 10, 60)
+			-- win with # of unique combinations of deck and stake
+		    --elseif G.AP_goal == 5 then
+							--          VVVV   REPLACE ME !!!  VVV
+			--love.graphics.print("Goal: Win with " .. G.AP.slot_data.decks_win_goal ..
+                        	--" unique combinations of Decks and Stakes. " .. 
+					--"You have " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " unique wins.", 10, 60)
                     end
                 end
             else
@@ -2179,6 +2173,13 @@ function Game:update_shop(dt)
             -- give new random cost each time 
             G.P_CENTERS['v_rand_ap_item'].cost = math.random(min_cost, max_cost)
 
+	    -- randomly change the sprite (chance is higher on later stakes and antes)
+	    if math.random(1000) > (999 - ((G.GAME.round_resets.ante^1.9) * G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level)) then
+		G.P_CENTERS['v_rand_ap_item'].pos.x = 1
+	    else
+		G.P_CENTERS['v_rand_ap_item'].pos.x = 0
+	    end
+	
             G.E_MANAGER:add_event(Event({
 
                 trigger = 'after',
@@ -2365,6 +2366,8 @@ function check_for_unlock(args)
                     if deck_wins >= G.AP.slot_data.decks_win_goal then
                         sendGoalReached()
                     end
+					
+		    G.PROFILES[G.AP.profile_Id].ap_progress = deck_wins
 
                     -- unlock # of jokers (must be in run to avoid cringe bugs when loading in)
                 elseif G.AP.goal == 1 then
@@ -2377,7 +2380,7 @@ function check_for_unlock(args)
                     if args.type == 'ante_up' and args.ante >= G.AP.slot_data.ante_win_goal then
                         sendGoalReached()
                     end
-                    -- (completionist++ edition) deck wins on at least # stake
+                    -- (completionist+ edition) deck wins on at least # stake
                 elseif G.AP.goal == 3 then
                     local deck_stickers = 0
 
@@ -2395,7 +2398,7 @@ function check_for_unlock(args)
                     end
 
                     G.PROFILES[G.AP.profile_Id].ap_progress = deck_stickers
-                    -- (completionist+++ edition) win with # of jokers on at least # stake
+                    -- (completionist++ edition) win with # of jokers on at least # stake
                 elseif G.AP.goal == 4 then
                     local joker_stickers = 0
 
@@ -2412,6 +2415,26 @@ function check_for_unlock(args)
                     end
 
                     G.PROFILES[G.AP.profile_Id].ap_progress = joker_stickers
+		    -- # of unique wins
+		--elseif G.AP.goal == 5 then
+		    --local unique_wins = 0
+		    --for k, v in pairs(G.P_CENTERS) do
+                        --if string.find(tostring(k), '^b_') then
+                            --if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
+                             --G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins then
+                                   --for _stake, _win in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins) do
+					--if _win > 0 then unique_wins = unique_wins + 1 end
+				   --end
+                            --end
+                        --end
+                    --end
+				    --VVV  REPLACE ME !!!  VVV
+                    --if unique_wins >= G.AP.slot_data.decks_win_goal then
+                        --sendGoalReached()
+                    --end
+					
+		    --G.PROFILES[G.AP.profile_Id].ap_progress = unique_wins
+		
                 end
             end
         else
@@ -2508,7 +2531,7 @@ function create_UIBox_notify_alert(_achievement, _type)
 
                 _c.soul_pos = _trap_soul[_achievement]
             else
-                _atlas = G.ASSET_ATLAS["Voucher"]
+                _atlas = G.ASSET_ATLAS["rand_ap_logo"]
             end
 
             local _trap_name = { -- TODO: localization files
@@ -2534,15 +2557,15 @@ function create_UIBox_notify_alert(_achievement, _type)
                     y = 0
                 },
                 t_hand = {
-                    x = 5,
-                    y = 0
+                    x = 2,
+                    y = 1
                 },
                 t_discard = {
-                    x = 6,
-                    y = 0
+                    x = 1,
+                    y = 1
                 },
                 t_money = {
-                    x = 3,
+                    x = 0,
                     y = 1
                 }
             }
@@ -2559,13 +2582,28 @@ function create_UIBox_notify_alert(_achievement, _type)
 			}
 			
 			_atlas = tableContains({"fill_buffoon","fill_tag_charm","fill_tag_meteor",
-			"fill_tag_ethereal"}, _achievement) and G.ASSET_ATLAS["Booster"] or G.ASSET_ATLAS["Joker"]
+			  "fill_tag_ethereal"}, _achievement) and G.ASSET_ATLAS["Booster"] or 
+			    tableContains({"fill_rare", "fill_uncommon", "fill_foil", "fill_holo", 
+			     "fill_poly", "fill_negative", "fill_juggle", "fill_d_six"},_achievement) and G.ASSET_ATLAS["Joker"] 
+				or _achievement == "fill_double" and G.ASSET_ATLAS["centers"] or G.ASSET_ATLAS["rand_ap_logo"]
 			
 			local _bonus_pos = {
 				fill_buffoon = {x = 3, y = 8},
 				fill_tag_charm = {x = 1 + math.random(2), y = 2},
 				fill_tag_meteor = {x = 1 + math.random(2), y = 3},
 				fill_tag_ethereal = {x = 3, y = 4}
+				op_money = {x = 0, y = 1},
+				op_interest = {x = 0, y = 1},
+				fill_money = {x = 0, y = 1},
+				op_discard = {x = 1, y = 1},
+				op_hand = {x = 2, y = 1},
+				op_hand_size = {x = 2, y = 1},
+				op_joker_slot = {x = 2, y = 0},
+				op_consum_slot = {x = 0, y = 2},
+				-- PLACEHOLDERS
+				fill_juggle = {x = 0, y = 1},
+				fill_double = {x = 2, y = 4},
+				fill_d_six = {x = 1, y = 0}
 			}
 			
 			local _bonus_name = { --TODO: more localization files
@@ -2660,8 +2698,8 @@ function create_UIBox_notify_alert(_achievement, _type)
         -- negative shader for traps
         if _type == 'Trap' then
             if tableContains({"t_eternal", "t_rental", "t_perishable"}, _achievement) then
-				UIDEF_alert_extra_ui(t_s, false, _achievement)
-			end
+		UIDEF_alert_extra_ui(t_s, false, _achievement)
+	    end
             
             t_s.draw = function(_sprite)
                 _sprite.ARGS.send_to_shader = _sprite.ARGS.send_to_shader or {}
@@ -2683,46 +2721,50 @@ function create_UIBox_notify_alert(_achievement, _type)
         end
 
         if _type == 'Bonus' then
-			t_s._type = _achievement == "fill_negative" and 4 or
-			_achievement == "fill_poly" and 3 or
-			_achievement == "fill_holo" and 2 or
-			_achievement == "fill_foil" and 1 or 0
+		t_s._type = _achievement ==  and 4 or
+		tableContains({ "fill_poly", "fill_juggle", 
+		"fill_d_six", "fill_double"}, _achievement) and 3 or
+		_achievement == "fill_holo" and 2 or
+		_achievement == "fill_foil" and 1 or 0
+		
+		if tableContains({"fill_holo", "fill_poly", "fill_foil", 
+		  "fill_negative", "fill_uncommon", "fill_rare"}, _achievement) then
+			UIDEF_alert_extra_ui(t_s, true, _achievement)
+		elseif tableContains({"fill_buffoon","fill_tag_charm",
+		  "fill_tag_meteor","fill_tag_ethereal"}, _achievement) then
+			UIDEF_alert_extra_ui(t_s, true)
+		elseif tableContains({"op_discard", "op_money", "op_hand",
+		  "op_hand_size", "op_interest", "op_joker_slot", "op_consum_slot"}, _achievement) then
+			UIDEF_alert_extra_ui(t_s, false, "op_item")
+		end
+		
+		t_s.draw = function(_sprite)
+			_sprite.ARGS.send_to_shader = _sprite.ARGS.send_to_shader or {}
+			_sprite.ARGS.send_to_shader[1] = math.min(_sprite.VT.r * 3, 1) + G.TIMERS.REAL / (28) +
+												 (_sprite.juice and _sprite.juice.r * 20 or 0)
+			_sprite.ARGS.send_to_shader[2] = G.TIMERS.REAL
 			
-			if tableContains({"fill_holo", "fill_poly", "fill_foil", 
-			  "fill_negative", "fill_uncommon", "fill_rare"}, _achievement) then
-				    UIDEF_alert_extra_ui(t_s, true, _achievement)
-			elseif tableContains({"fill_buffoon","fill_tag_charm",
-			  "fill_tag_meteor","fill_tag_ethereal"}, _achievement) then
-				    UIDEF_alert_extra_ui(t_s, true)
+			if _sprite.children.price then
+				UIBox.draw(_sprite.children.price)
 			end
 			
-			t_s.draw = function(_sprite)
-				_sprite.ARGS.send_to_shader = _sprite.ARGS.send_to_shader or {}
-				_sprite.ARGS.send_to_shader[1] = math.min(_sprite.VT.r * 3, 1) + G.TIMERS.REAL / (28) +
-													 (_sprite.juice and _sprite.juice.r * 20 or 0)
-				_sprite.ARGS.send_to_shader[2] = G.TIMERS.REAL
-				
-				if _sprite.children.price then
-					UIBox.draw(_sprite.children.price)
-				end
-				
-				if _sprite._type == 0 then
-					Sprite.draw_shader(_sprite, 'dissolve')
-				elseif _sprite._type == 1 then
-					Sprite.draw_shader(_sprite, 'dissolve')
-					Sprite.draw_shader(_sprite, 'foil', nil, _sprite.ARGS.send_to_shader)
-				elseif _sprite._type == 2 then
-					Sprite.draw_shader(_sprite, 'holo', nil, _sprite.ARGS.send_to_shader)
-				elseif _sprite._type == 3 then
-					Sprite.draw_shader(_sprite, 'polychrome', nil, _sprite.ARGS.send_to_shader)
-				elseif _sprite._type == 4 then
-					Sprite.draw_shader(_sprite, 'negative', nil, _sprite.ARGS.send_to_shader)
-					Sprite.draw_shader(_sprite, 'negative_shine', nil, _sprite.ARGS.send_to_shader)
-				end
-				
-				if _sprite.children.badge then
-					UIBox.draw(_sprite.children.badge)
-				end
+			if _sprite._type == 0 then
+				Sprite.draw_shader(_sprite, 'dissolve')
+			elseif _sprite._type == 1 then
+				Sprite.draw_shader(_sprite, 'dissolve')
+				Sprite.draw_shader(_sprite, 'foil', nil, _sprite.ARGS.send_to_shader)
+			elseif _sprite._type == 2 then
+				Sprite.draw_shader(_sprite, 'holo', nil, _sprite.ARGS.send_to_shader)
+			elseif _sprite._type == 3 then
+				Sprite.draw_shader(_sprite, 'polychrome', nil, _sprite.ARGS.send_to_shader)
+			elseif _sprite._type == 4 then
+				Sprite.draw_shader(_sprite, 'negative', nil, _sprite.ARGS.send_to_shader)
+				Sprite.draw_shader(_sprite, 'negative_shine', nil, _sprite.ARGS.send_to_shader)
+			end
+			
+			if _sprite.children.badge then
+				UIBox.draw(_sprite.children.badge)
+			end
             end
 		end
         
@@ -2883,15 +2925,25 @@ function UIDEF_alert_extra_ui(card, price, badge)
 			fill_rare = {localize('k_rare'), G.C.RED},
 			t_eternal = {localize("eternal", "labels"), get_badge_colour("eternal")},
 			t_perishable = {localize("perishable", "labels"), get_badge_colour("perishable")},
-			t_rental = {localize("rental", "labels"), get_badge_colour("rental")}
+			t_rental = {localize("rental", "labels"), get_badge_colour("rental")},
+			op_item = {"Permanent", get_badge_colour("eternal")} --localization todo
 		}
+		--beware, a lot of ugly patches to make sure the permanent badge doesn't cover the cool art
+		local _badge_def = create_badge(_badge_table[badge][1] or "ERROR", 
+			_badge_table[badge][2] or G.C.RED, G.C.WHITE, badge == "op_item" and 0.6 or 0.9)
 		
-		local _badge_def = create_badge(_badge_table[badge][1] or "ERROR", _badge_table[badge][2] or G.C.RED, G.C.WHITE, 0.9)
-		_badge_def.nodes[1].config.minw = 1.6
+		_badge_def.nodes[1].config.minw = badge == "op_item" and 1.3 or 1.65
+		_badge_def.nodes[1].config.minh = badge == "op_item" and (_badge_def.nodes[1].config.minh*0.8) or _badge_def.nodes[1].config.minh
 		
 		card.children.badge = UIBox{
 			definition = _badge_def,
-			config = {align="bm", offset = {x=0,y=-0.3}, major = card, bond = 'Strong', parent = card}
+			config = {
+				align="bm", 
+				offset = {x = 0, y = badge == "op_item" and -0.1 or -0.3}, 
+				major = card, 
+				bond = 'Strong', 
+				parent = card
+			}
         }
 	end
 end
