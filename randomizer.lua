@@ -2613,8 +2613,8 @@ function create_UIBox_notify_alert(_achievement, _type)
 				op_hand = "+1 hand every round.",
 				op_hand_size = "+1 hand size.",
 				op_interest = "Raise the interest cap by $5.",
-				op_joker_slot = "+ 1 Joker slot.",
-				op_consum_slot = "+ 1 consumable slot.",
+				op_joker_slot = "+1 Joker slot.",
+				op_consum_slot = "+1 consumable slot.",
 				
 				-- Filler items
 				fill_money = "Receive up to $8.",
