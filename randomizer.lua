@@ -2591,7 +2591,7 @@ function create_UIBox_notify_alert(_achievement, _type)
 				fill_buffoon = {x = 3, y = 8},
 				fill_tag_charm = {x = 1 + math.random(2), y = 2},
 				fill_tag_meteor = {x = 1 + math.random(2), y = 3},
-				fill_tag_ethereal = {x = 3, y = 4}
+				fill_tag_ethereal = {x = 3, y = 4},
 				op_money = {x = 0, y = 1},
 				op_interest = {x = 0, y = 1},
 				fill_money = {x = 0, y = 1},
@@ -2721,9 +2721,9 @@ function create_UIBox_notify_alert(_achievement, _type)
         end
 
         if _type == 'Bonus' then
-		t_s._type = _achievement ==  and 4 or
+		t_s._type = _achievement == "fill_negative" and 4 or
 		tableContains({ "fill_poly", "fill_juggle", 
-		"fill_d_six", "fill_double"}, _achievement) and 3 or
+		"fill_d_six", "fill_double"}, _achievement) == true and 3 or
 		_achievement == "fill_holo" and 2 or
 		_achievement == "fill_foil" and 1 or 0
 		
