@@ -2688,7 +2688,38 @@ function create_UIBox_notify_alert(_achievement, _type)
             _soul_t_s.states.drag.can = false
             _soul_t_s.states.hover.can = false
             _soul_t_s.states.collide.can = false
-
+			
+	    --animation
+	    if _achievement == 'j_hologram' then -- hologram (needs special treatment bcos custom shader)
+		_soul_t_s.draw = function(_sprite)
+			local scale_mod = 0.07 + 0.02*math.sin(1.8*G.TIMERS.REAL) + 0.00*math.sin((G.TIMERS.REAL - math.floor(G.TIMERS.REAL))*math.pi*14)*(1 - (G.TIMERS.REAL - math.floor(G.TIMERS.REAL)))^3
+			local rotate_mod = 0.05*math.sin(1.219*G.TIMERS.REAL) + 0.00*math.sin((G.TIMERS.REAL)*math.pi*5)*(1 - (G.TIMERS.REAL - math.floor(G.TIMERS.REAL)))^2
+				
+			Sprite.draw_shader(_sprite, 'hologram', nil, _sprite.ARGS.send_to_shader, nil, _sprite, 2*scale_mod, 2*rotate_mod)
+		end
+	    elseif _type == 'Joker' then -- legendary jokers
+		_soul_t_s.draw = function(_sprite)
+			local scale_mod = 0.07 + 0.02*math.sin(1.8*G.TIMERS.REAL) + 0.00*math.sin((G.TIMERS.REAL - math.floor(G.TIMERS.REAL))*math.pi*14)*(1 - (G.TIMERS.REAL - math.floor(G.TIMERS.REAL)))^3
+                	local rotate_mod = 0.05*math.sin(1.219*G.TIMERS.REAL) + 0.00*math.sin((G.TIMERS.REAL)*math.pi*5)*(1 - (G.TIMERS.REAL - math.floor(G.TIMERS.REAL)))^2
+			
+			Sprite.draw_shader(_sprite, 'dissolve',0, nil, nil, _sprite,scale_mod, rotate_mod,nil, 0.1 + 0.03*math.sin(1.8*G.TIMERS.REAL),nil, 0.6)
+			Sprite.draw_shader(_sprite, 'dissolve', nil, nil, nil, _sprite, scale_mod, rotate_mod)
+		end
+	    elseif _achievement == 'c_soul' then -- soul
+		_soul_t_s.draw = function(_sprite)
+			local scale_mod = 0.05 + 0.05*math.sin(1.8*G.TIMERS.REAL) + 0.07*math.sin((G.TIMERS.REAL - math.floor(G.TIMERS.REAL))*math.pi*14)*(1 - (G.TIMERS.REAL - math.floor(G.TIMERS.REAL)))^3
+                	local rotate_mod = 0.1*math.sin(1.219*G.TIMERS.REAL) + 0.07*math.sin((G.TIMERS.REAL)*math.pi*5)*(1 - (G.TIMERS.REAL - math.floor(G.TIMERS.REAL)))^2
+			
+			Sprite.draw_shader(_sprite, 'dissolve',0, nil, nil, _sprite,scale_mod, rotate_mod,nil, 0.1 + 0.03*math.sin(1.8*G.TIMERS.REAL),nil, 0.6)
+                	Sprite.draw_shader(_sprite, 'dissolve', nil, nil, nil, _sprite, scale_mod, rotate_mod)
+		end
+	    else --stickers dont animate but use the shiny shader
+		_soul_t_s.draw = function(_sprite)
+			Sprite.draw_shader(_sprite, 'dissolve')
+                    	Sprite.draw_shader(_sprite, 'voucher')
+		end
+	    end
+	
             t_s.children.floating_sprite = _soul_t_s
             t_s.children.floating_sprite.role.draw_major = t_s
             _soul_t_s.T = t_s.T
@@ -2711,12 +2742,12 @@ function create_UIBox_notify_alert(_achievement, _type)
                 Sprite.draw_shader(_sprite, 'negative_shine', nil, _sprite.ARGS.send_to_shader)
 
                 if _sprite.children.floating_sprite then
-                    Sprite.draw_shader(_sprite.children.floating_sprite, 'dissolve')
+                    _sprite.children.floating_sprite.draw(_sprite.children.floating_sprite)
                 end
 
                 if _sprite.children.badge then
-					UIBox.draw(_sprite.children.badge)
-				end
+		   UIBox.draw(_sprite.children.badge)
+		end
             end
         end
 
