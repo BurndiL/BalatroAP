@@ -1,8 +1,11 @@
 --- STEAMODDED HEADER
---- MOD_NAME: Randomizer
+--- MOD_NAME: Archipelago Randomizer
 --- MOD_ID: Rando
 --- MOD_AUTHOR: [Burndi, SpaD_Overolls, Myst, Silvris]
---- MOD_DESCRIPTION: Archipelago
+--- MOD_DESCRIPTION: Archipelago Client for Balatro
+--- PREFIX: rand
+--- BADGE_COLOR: 4E8BE6
+--- DISPLAY_NAME: Archipelago
 ----------------------------------------------
 ------------MOD CODE -------------------------
 G.AP = {
@@ -50,11 +53,20 @@ deck_list[14] = 'Erratic Deck'
 G.AP.profile_Id = -1
 G.AP.GameObjectInit = false
 G.AP.StakesInit = false
+G.AP.UnlockConsCache = {}
 
 -- stake cursor used for AP logic
 G.viewed_stake_act = {}
 G.viewed_stake_act[1] = 1
 G.viewed_stake_act[2] = 1
+
+--mod icon
+SMODS.Atlas({
+    key = "modicon",
+    path = "modicon.png",
+    px = 32,
+    py = 32
+})
 
 -- true if the profile was selected and loaded
 function isAPProfileLoaded()
@@ -151,11 +163,12 @@ G.FUNCS.die = function()
     end
 end
 
-function split_text_to_lines(text)
+function split_text_to_lines(text, max_word)
     local lines = {}
     local count = 0
+    max_word = max_word or 4
     for word in text:gmatch("%S+") do
-        if count % 4 == 0 then
+        if count % max_word == 0 then
             lines[#lines + 1] = ""
         end
         count = count + 1
@@ -343,7 +356,7 @@ function G.UIDEF.profile_option(_profile)
                     nodes = {create_text_input({
                         w = 4,
                         max_length = 35,
-                        prompt_text = 'Server Address',
+                        prompt_text = localize('k_ap_IP'),
                         ref_table = G.AP,
                         ref_value = 'APAddress',
                         extended_corpus = true,
@@ -354,7 +367,7 @@ function G.UIDEF.profile_option(_profile)
                     }), create_text_input({
                         w = 4,
                         max_length = 35,
-                        prompt_text = 'PORT',
+                        prompt_text = localize('k_ap_port'),
                         ref_table = G.AP,
                         ref_value = 'APPort',
                         extended_corpus = false,
@@ -379,7 +392,7 @@ function G.UIDEF.profile_option(_profile)
                     nodes = {create_text_input({
                         w = 4,
                         max_length = 35,
-                        prompt_text = 'Slot name',
+                        prompt_text = localize('k_ap_slot'),
                         ref_table = G.AP,
                         ref_value = 'APSlot',
                         extended_corpus = true,
@@ -390,7 +403,7 @@ function G.UIDEF.profile_option(_profile)
                     }), create_text_input({
                         w = 4,
                         max_length = 35,
-                        prompt_text = 'Password',
+                        prompt_text = localize('k_ap_pass'),
                         ref_table = G.AP,
                         ref_value = 'APPassword',
                         extended_corpus = true,
@@ -402,7 +415,7 @@ function G.UIDEF.profile_option(_profile)
                 }}
             }, UIBox_button({
                 button = "APConnect",
-                label = {"Connect"},
+                label = {localize("b_ap_connect")},
                 minw = 3,
                 func = "can_APConnect"
             }), {
@@ -494,75 +507,81 @@ function Game:draw()
     if G and G.STAGES and G.STAGE == G.STAGES.MAIN_MENU then
         if G.APClient ~= nil then
             if G.APClient:get_state() == AP.State.SLOT_CONNECTED then
-                love.graphics.print("Connected to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort .. " as " ..
-                                        G.AP.APSlot, 10, 30)
+                local _status = string.gsub(localize("k_ap_connected"),"#1#", tostring(G.AP.APAddress))
+		_status = string.gsub(_status, '#2#', tostring(G.AP.APPort))
+                love.graphics.print(string.gsub(_status, '#3#', tostring(G.AP.APSlot)), 10, 30)
 
                 if G.AP.goal and G.AP.GameObjectInit then
+		    local _goal = ""
+					
                     -- beat # of decks
                     if G.AP.goal == 0 then
-                        love.graphics.print("Goal: Beat " .. G.AP.slot_data.decks_win_goal ..
-                                                " Decks. You already beat " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Decks.", 10, 60)
+			_goal = G.localization.descriptions.Other.ap_goal_decks.text[1]
+			_goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.decks_win_goal))
+                        _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
+						
                         -- unlock # of jokers
                     elseif G.AP.goal == 1 then
                         local unlocked_jokers = get_unlocked_jokers()
-                        love.graphics.print("Goal: Unlock " .. G.AP.slot_data.jokers_unlock_goal ..
-                                                " Jokers. You already unlocked " .. tostring(unlocked_jokers) ..
-                                                " Jokers.", 10, 60)
+			_goal = G.localization.descriptions.Other.ap_goal_jokers.text[1]
+			_goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.jokers_unlock_goal))
+                        _goal = string.gsub(_goal, "#2#", tostring(unlocked_jokers))
 
                         -- beat specific ante
                     elseif G.AP.goal == 2 then
-                        love.graphics.print("Goal: Beat Ante " .. G.AP.slot_data.ante_win_goal, 10, 60)
+			_goal = G.localization.descriptions.Other.ap_goal_ante.text[1]
+			_goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.ante_win_goal))
 
                         -- beat # decks on at least # stake
                     elseif G.AP.goal == 3 then
-                        local _line = "Goal: Beat " .. G.AP.slot_data.decks_win_goal .. " Decks on at least "
+			_goal = G.localization.descriptions.Other.ap_goal_deck_stickers.text[1]
+			_goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.decks_win_goal))
+			_goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
 
                         if G.AP.StakesInit then
                             for i = 1, 8, 1 do
                                 if G.P_CENTER_POOLS.Stake[i].stake_level == tonumber(G.AP.slot_data.required_stake) then
-                                    _line = _line .. G.P_CENTER_POOLS.Stake[i].name
+                                    _goal = string.gsub(_goal, "#3#",localize({type = "name_text" , key = G.P_CENTER_POOLS.Stake[i].key, set = "Stake"}))
                                     break
                                 end
                             end
                         else
-                            _line = _line .. "Stake " .. tostring(G.AP.slot_data.required_stake)
+			    _goal = string.gsub(_goal, "#3#", localize("b_stake").." "..tostring(G.AP.slot_data.required_stake))
                         end
-
-                        _line = _line .. " difficulty. You already beat " ..
-                                    tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Decks."
-                        love.graphics.print(_line, 10, 60)
+						
                         -- win with # jokers on at least # stake
                     elseif G.AP.goal == 4 then
-                        local _line = "Goal: Win with " .. G.AP.slot_data.jokers_unlock_goal .. " Jokers on at least "
-
+                        _goal = G.localization.descriptions.Other.ap_goal_joker_stickers.text[1]
+			_goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.jokers_unlock_goal))
+			_goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
+						
                         if G.AP.StakesInit then
                             for i = 1, 8, 1 do
                                 if G.P_CENTER_POOLS.Stake[i].stake_level == tonumber(G.AP.slot_data.required_stake) then
-                                    _line = _line .. G.P_CENTER_POOLS.Stake[i].name
+                                    _goal = string.gsub(_goal, "#3#",localize({type = "name_text" , key = G.P_CENTER_POOLS.Stake[i].key, set = "Stake"}))
                                     break
                                 end
                             end
                         else
-                            _line = _line .. "Stake " .. tostring(G.AP.slot_data.required_stake)
+			    _goal = string.gsub(_goal, "#3#", localize("b_stake").." "..tostring(G.AP.slot_data.required_stake))
                         end
-
-                        _line = _line .. " difficulty. You have already won with " ..
-                                    tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " Jokers."
-                        love.graphics.print(_line, 10, 60)
+						
 			-- win with # of unique combinations of deck and stake
-		    --elseif G.AP_goal == 5 then
-							--          VVVV   REPLACE ME !!!  VVV
-			--love.graphics.print("Goal: Win with " .. G.AP.slot_data.decks_win_goal ..
-                        	--" unique combinations of Decks and Stakes. " .. 
-					--"You have " .. tostring(G.PROFILES[G.AP.profile_Id].ap_progress) .. " unique wins.", 10, 60)
+		    elseif G.AP_goal == 5 then
+			_goal = G.localization.descriptions.Other.ap_goal_unique_wins.text[1]
+			--this needs ap slot data
+			--__goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.unique_wins_goal))
+			_goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
                     end
+		    love.graphics.print(_goal, 10, 60)
                 end
             else
-                love.graphics.print("Connecting to Archipelago at " .. G.AP.APAddress .. ":" .. G.AP.APPort, 10, 30)
+		local _string = string.gsub(localize("k_ap_connecting"),"#1#", tostring(G.AP.APAddress))
+                love.graphics.print(string.gsub(_string ,"#2#", tostring(G.AP.APPort)), 10, 30)
             end
 
         else
-            love.graphics.print("Not connected to Archipelago.", 10, 30)
+            love.graphics.print(localize("k_ap_not_connected"), 10, 30)
         end
     end
 
@@ -684,39 +703,27 @@ function Game:init_item_prototypes()
             standard_deck = 'b_red'
         end
 
-        -- Locked text (this system might have to be largely overhauled, can't be bothered tho 😀)
-        G.localization.descriptions["Booster"] = {}
-        -- G.localization.descriptions["Tarot"] = {}
-        -- G.localization.descriptions["Planet"] = {}
-        -- G.localization.descriptions["Spectral"] = {}
-        for g_k, group in pairs(G.localization) do
-            if g_k == 'descriptions' then
-                for grpkey, set in pairs(group) do
-                    for x, center in pairs(set) do
-
-                        if string.find(tostring(x), '^b_') or string.find(tostring(x), '^j_') or
-                            string.find(tostring(x), '^v_') or
-                            (string.find(tostring(x), '^c_') and not string.find(tostring(x), '^c_base')) or
-                            string.find(tostring(x), '^p_') then
-
-                            center.demo_locked = {}
-                            center.demo_locked[1] = loc_parse_string("AP Item")
-
-                            center.deck_locked_win = {}
-                            center.deck_locked_win[1] = loc_parse_string("AP Item")
-
-                            center.unlock_parsed = {}
-                            center.unlock_parsed[1] = loc_parse_string("AP Item")
-
-                            if string.find(tostring(x), '^p_') then
-                                G.localization.descriptions["Booster"][x] = center
-                            end
-                        end
-
-                    end
-                end
-            end
-        end
+        -- Locked text | Decks require description setup similar to the old system here
+	-- everything else uses "Other.demo_locked" and overwrites it with their text (not here)
+        for k, v in pairs(G.localization.descriptions.Back) do
+		v.demo_locked = {}
+		v.deck_locked_win = {}
+		v.unlock_parsed = {}
+		
+		for _line, _string in pairs(G.localization.descriptions.Other.ap_locked_Back.text_parsed) do
+			v.demo_locked[_line] = _string
+			v.deck_locked_win[_line] = _string
+			v.unlock_parsed[_line] = _string
+		end
+			
+		local _name = loc_parse_string("{C:inactive,s:0.8}("..v.name..")")
+			
+		v.demo_locked[#v.demo_locked+1] = _name
+		v.deck_locked_win[#v.deck_locked_win+1] = _name
+		v.unlock_parsed[#v.unlock_parsed+1] = _name
+			
+		G.localization.descriptions.Back[k] = v
+	end
 
         for k, v in pairs(G.AP.JokerQueue) do
             G.PROFILES[G.AP.profile_Id]["jokers"][k] = true
@@ -744,6 +751,7 @@ function Game:init_item_prototypes()
             if string.find(k, '^j_') then
 
                 if G.AP.slot_data.remove_jokers then
+		    v.demo = true
                     v.unlocked = false
                     v.discovered = false
                     v.hidden = true
@@ -757,6 +765,7 @@ function Game:init_item_prototypes()
                 if G.PROFILES[G.AP.profile_Id]["jokers"][v.name] ~= nil then
 
                     if G.AP.slot_data.remove_jokers then
+			v.demo = nil
                         v.unlocked = true
                         v.discovered = true
                         v.hidden = false
@@ -771,6 +780,7 @@ function Game:init_item_prototypes()
                 -- for backs (decks)
             elseif string.find(k, '^b_') and k ~= 'b_challenge' then
                 v.unlocked = false
+		G.AP.UnlockConsCache[k] = v.unlock_condition
                 v.unlock_condition = nil
                 if G.PROFILES[G.AP.profile_Id]["backs"][v.name] ~= nil then
                     v.unlocked = true
@@ -812,6 +822,7 @@ function Game:init_item_prototypes()
 
                 -- for vouchers
             elseif string.find(k, '^v_') and not string.find(k, '^v_rand_ap_item') then
+		v.demo = true
                 v.unlocked = false
                 if G.PROFILES[G.AP.profile_Id]["vouchers"][v.name] ~= nil then
                     -- progressive vouchers
@@ -823,7 +834,7 @@ function Game:init_item_prototypes()
                     elseif v.nextVoucher then
                         v = v.nextVoucher
                     end
-
+		    v.demo = nil
                     v.unlocked = true
                     v.discovered = true
                     v.hidden = false
@@ -834,7 +845,9 @@ function Game:init_item_prototypes()
                 -- for packs
             elseif string.find(k, '^p_') then
                 v.unlocked = false
+		v.demo = true
                 if G.PROFILES[G.AP.profile_Id]["packs"][v.name] ~= nil then
+		    v.demo = nil
                     v.unlocked = true
                     v.discovered = true
                     v.hidden = false
@@ -847,6 +860,7 @@ function Game:init_item_prototypes()
             elseif string.find(k, '^c_') and not string.find(k, '^c_base') then
 
                 if G.AP.slot_data.remove_consumables then
+		    v.demo = true
                     v.unlocked = false
                 else
                     v.unlocked = true
@@ -855,6 +869,7 @@ function Game:init_item_prototypes()
 
                 if G.PROFILES[G.AP.profile_Id]["consumables"][v.name] ~= nil then
                     if G.AP.slot_data.remove_consumables then
+			v.demo = nil
                         v.unlocked = true
                         v.discovered = true
                         v.hidden = false
@@ -867,7 +882,11 @@ function Game:init_item_prototypes()
                     end
                 end
             end
-
+	    --back up unlock_condition
+	    if v.unlock_condition and not G.AP.UnlockConsCache[k] then 
+			G.AP.UnlockConsCache[k] = v.unlock_condition
+	    end
+		
             v.unlock_condition = v.unlock_condition or {}
 
             if (v.unlocked ~= nil and v.unlocked == false) or v.ap_unlocked == false then
@@ -949,8 +968,72 @@ function Game:init_item_prototypes()
 
         init_AP_stakes()
         G:save_progress()
+    else 
+	--restore unlock conditions
+	for k, v in pairs(G.AP.UnlockConsCache) do
+		self.P_CENTERS[k].unlock_condition = v
+	end
+		
+	G.AP.UnlockConsCache = {}
+
+	--remove demo tag
+	for k, v in pairs(self.P_CENTERS) do
+		if v.demo then
+			self.P_CENTERS[k].demo = nil
+		end
+	end
     end
     return game_init_item_prototypes
+end
+
+-- AP debuff and locked messages
+local Cardgenerate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
+function Card:generate_UIBox_ability_table()
+	if isAPProfileLoaded() then
+		if self.debuff then --debuff
+			if self.config.center.ap_unlocked == false then
+				G.localization.descriptions.Other.debuffed_default.text_parsed = G.localization.descriptions.Other.ap_debuffed.text_parsed
+			else 
+				if G.localization.descriptions.Other.debuffed_default.text_parsed == G.localization.descriptions.Other.ap_debuffed.text_parsed then
+					G.localization.descriptions.Other.debuffed_default.text_parsed = {}
+					for k,v in pairs(G.localization.descriptions.Other.debuffed_default.text) do
+						G.localization.descriptions.Other.debuffed_default.text_parsed[k] = loc_parse_string(v)
+					end
+				end
+			end
+		end
+		
+		if self.config.center.unlocked == false then -- locked message
+			if G.localization.descriptions.Other["ap_locked_"..self.config.center.set] then
+				G.localization.descriptions.Other.demo_locked.text_parsed = {}
+				for k, v in pairs(G.localization.descriptions.Other["ap_locked_"..self.config.center.set].text_parsed) do
+					G.localization.descriptions.Other.demo_locked.text_parsed[k] = v 
+				end
+				
+				if self.config.center.set ~= "Booster" then
+					G.localization.descriptions.Other.demo_locked.text_parsed
+						[#G.localization.descriptions.Other.demo_locked.text_parsed+1] = 
+								loc_parse_string("{C:inactive,s:0.8}("..
+									G.localization.descriptions[self.config.center.set][self.config.center.key].name..")")
+				else
+					local _loc_target = nil
+					for k, v in pairs(G.localization.descriptions.Other) do
+						if string.find(self.config.center.key, k) then
+							_loc_target = v
+							break
+						end
+					end
+					
+					if _loc_target then
+						G.localization.descriptions.Other.demo_locked.text_parsed
+							[#G.localization.descriptions.Other.demo_locked.text_parsed+1] = 
+								loc_parse_string("{C:inactive,s:0.8}(".._loc_target.name..")")
+					end
+				end
+			end
+		end
+	end
+	return Cardgenerate_UIBox_ability_tableRef(self)
 end
 
 -- handle stakes
@@ -1196,6 +1279,16 @@ function init_AP_stakes()
     G.AP.StakesInit = true
 end
 
+--Reinject Stakes upon disconnect
+local SMODSstake_inject_classRef = SMODS.Stake.inject_class
+SMODS.Stake.inject_class = function(self)
+	if G.AP and G.AP.StakesInit then
+		self.injected = false
+		G.AP.StakesInit = false 
+	end
+	SMODSstake_inject_classRef(self)
+end
+
 function check_stake_unlock(_stake, _deck_key)
     -- [Mode 0] all unlocked mode
     if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(0) then
@@ -1224,7 +1317,7 @@ function check_stake_unlock(_stake, _deck_key)
 
     -- [Mode 2] global unlocks
     -- (stakes are unlocked if their .unlocked exists and is true)
-    -- intended for making stakes into items
+    -- stakes are items
     if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(2) then
         if G.P_CENTER_POOLS.Stake[_stake].unlocked then
             return G.P_CENTER_POOLS.Stake[_stake].unlocked
@@ -1235,10 +1328,7 @@ function check_stake_unlock(_stake, _deck_key)
 
     -- [Mode 3] individual unlocks
     -- (stakes are unlocked if their entry in deck_usage.stake_unlocks exists and is true)
-    -- intended for making each deck's stakes into items
-
-    -- (if used, the decks should be removed from the pool and be unlocked when
-    -- the player receives a stake for that deck)
+    -- stakes are items for each deck; the decks themselves are not items
     if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(3) then
         if G.PROFILES[G.SETTINGS.profile].deck_usage and G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key] and
             G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks then
@@ -2060,8 +2150,6 @@ function tableContains(table, value)
     return false
 end
 
-local voucher_name = 'Archipelago Item'
-local voucher_slug = 'ap_item'
 local min_cost = 1
 local max_cost = 10
 
@@ -2074,7 +2162,7 @@ SMODS.Atlas {
     key = "ap_item_voucher",
     path = "v_ap_item.png",
     px = 71,
-    py = 98
+    py = 95
 }
 
 SMODS.Atlas {
@@ -2085,13 +2173,92 @@ SMODS.Atlas {
 }
 
 SMODS.Voucher {
-    key = voucher_slug,
-    loc_txt = {
-        name = voucher_name,
-        text = {'Unlocks an AP Item ', 'when redeemed'}
-    },
+    key = 'ap_item',
+    loc_txt = {},
     atlas = 'ap_item_voucher',
     cost = 0,
+    config = {
+	extra = {id = 0, sprite = 0, cost = 0}
+    },
+    load = function(self, card, card_table, other_card)
+		
+	--generate dummy data for vouchers w/o it
+	--(turns voucher w/o data into an invalid location)
+	if not card.ability.extra then
+		card.ability.extra = {id = -1, cost = 0, sprite = 0}
+	end
+		
+	--scout its own location when loading
+	if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+		G.FUNCS.resolve_location_id_to_name(card.ability.extra.id)
+	end
+		
+	--change the price 
+	-- (has to be delayed to let the card to init)
+	G.E_MANAGER:add_event(Event({
+		blockable = false,
+		trigger = 'after',
+		delay = 0.01,
+		func = function()
+		if card.ability.id ~= 0 then
+			if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+				card.cost = card.ability.extra.cost --random cost if valid id
+			else
+				card.cost = 0 -- free if the location is invalid
+			end
+		end
+               return true
+            end
+          }))
+    end,
+    set_sprites = function(self, card, front)
+		if card.ability and card.ability.extra.id ~= 0 then
+			if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+				--restore alt sprite on load
+				card.children.center:set_sprite_pos({x = card.ability.extra.sprite, y = 0})
+			else --change to empty voucher if location is invalid
+				card.children.center.atlas = G.ASSET_ATLAS["Voucher"]
+				card.children.center:set_sprite_pos({x = 8, y = 2})
+			end
+		end
+    end,
+    loc_vars = function(self, info_queue, card)
+		if card.ability.extra.id == 0 then
+			return {} --no location = default description
+		elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+			if (G.AP.location_id_to_item_name[card.ability.extra.id] and --construct entry if names are available
+				G.AP.location_id_to_item_name[card.ability.extra.id].item_name) then
+				
+				local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
+				local _desc = {}
+				
+				if #_item_name <= 24 then --use short names as the voucher name
+					G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = {loc_parse_string(_item_name)}
+				else --otherwise put it into description
+					G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = G.localization.descriptions.Voucher.v_rand_ap_item.name_parsed
+					_desc = split_text_to_lines(_item_name)
+					for k, v in pairs(_desc) do
+						_desc[k] = "{C:attention}"..v
+					end
+				end
+					
+					for k,v in pairs(G.localization.descriptions.Voucher.v_rand_ap_item_location.text) do
+						_desc[#_desc+1] = v
+					end
+					
+					G.localization.descriptions.Voucher.v_rand_ap_item_location.text_parsed = {}
+					for k,v in pairs(_desc) do
+						G.localization.descriptions.Voucher.v_rand_ap_item_location.text_parsed[k] = loc_parse_string(v)
+					end
+				
+				return {vars = {tostring(G.AP.location_id_to_item_name[card.ability.extra.id].player_name)}, key = 'v_rand_ap_item_location'}
+			else
+				return {} -- default description if item name is unavailable
+			end
+		else	--use a special message if the location is invalid
+			return {key = 'v_rand_ap_item_invalid'}
+		end
+    end,
     unlocked = true,
     discovered = true,
     requires = {'fuck!! shit!!!! (put here anything so it doesnt spawn naturally)'}
@@ -2151,10 +2318,9 @@ function Card:redeem()
     redeemref(self)
     if self.config.center_key == 'v_rand_ap_item' then
 
-        local location = get_shop_location()
-        if location then
-            sendLocationCleared(location)
-        end
+        if G.APClient ~= nil and tableContains(G.APClient.missing_locations, self.ability.extra.id) then
+		sendLocationCleared(self.ability.extra.id)
+	end
 
         G.GAME.current_round.voucher = current_round_voucher
     end
@@ -2170,36 +2336,12 @@ function Game:update_shop(dt)
         -- first check if there are still shop locations to get
         local current_ap_shopitem = get_shop_location()
         if (current_ap_shopitem ~= nil) then
-            -- give new random cost each time 
-            G.P_CENTERS['v_rand_ap_item'].cost = math.random(min_cost, max_cost)
-
-	    -- randomly change the sprite (chance is higher on later stakes and antes)
-	    if math.random(1000) > (999 - ((G.GAME.round_resets.ante^1.9) * G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level)) then
-		G.P_CENTERS['v_rand_ap_item'].pos.x = 1
-	    else
-		G.P_CENTERS['v_rand_ap_item'].pos.x = 0
-	    end
-	
             G.E_MANAGER:add_event(Event({
 
                 trigger = 'after',
                 delay = 0.3,
                 blockable = false,
                 func = function()
-                    local text = 'AP Item'
-
-                    if G.AP.location_id_to_item_name[current_ap_shopitem] and
-                        G.AP.location_id_to_item_name[current_ap_shopitem].item_name then
-                        text = G.AP.location_id_to_item_name[current_ap_shopitem].player_name .. '\'s ' ..
-                                   G.AP.location_id_to_item_name[current_ap_shopitem].item_name
-                    end
-
-                    local lines = split_text_to_lines(text)
-                    G.localization.descriptions.Voucher['v_rand_ap_item'].text_parsed = {}
-                    for k, v in ipairs(lines) do
-                        G.localization.descriptions.Voucher['v_rand_ap_item'].text_parsed[k] = loc_parse_string(v)
-                    end
-
                     local voucher_key = 'v_rand_ap_item'
                     G.shop_vouchers.config.card_limit = G.shop_vouchers.config.card_limit + 1
                     local card = Card(G.shop_vouchers.T.x + G.shop_vouchers.T.w / 2, G.shop_vouchers.T.y, G.CARD_W,
@@ -2207,6 +2349,27 @@ function Game:update_shop(dt)
                             bypass_discovery_center = true,
                             bypass_discovery_ui = true
                         })
+					--define the voucher
+					card.ability.extra = {
+						id = current_ap_shopitem, --location id
+						sprite = 0, --for easter egg
+						cost = math.random(min_cost, max_cost), --randomize cost
+					}
+					
+					--the easter egg secondary sprite
+					if math.random(1000) > (999 - ((G.GAME.round_resets.ante^1.9) * G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level)) then
+						card.ability.extra.sprite = 1
+					end
+					
+					if tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+						card.cost = card.ability.extra.cost
+						card.children.center:set_sprite_pos({x = card.ability.extra.sprite, y = 0})
+					else --use undiscovered sprite + set cost to 0 if location is invalid
+						card.cost = 0
+						card.children.center.atlas = G.ASSET_ATLAS["Voucher"]
+						card.children.center:set_sprite_pos({x = 8, y = 2})
+					end
+		
                     create_shop_card_ui(card, 'Voucher', G.shop_vouchers)
                     card:start_materialize()
                     G.shop_vouchers:emplace(card)
@@ -2271,7 +2434,6 @@ G.FUNCS.load_profile = function(delete_prof_data)
     if isAPProfileLoaded() and not isAPProfileSelected() and G.APClient ~= nil then
         G.FUNCS.APDisconnect()
         G.AP.GameObjectInit = false
-        G.AP.StakesInit = false
     end
     ap_profile_delete = false
     return load_profile_funcRef(delete_prof_data)
@@ -2475,7 +2637,6 @@ function create_UIBox_notify_alert(_achievement, _type)
             for i = 1, 8, 1 do
                 if G.P_CENTER_POOLS.Stake[i].key == _achievement then
                     _c.pos = G.P_CENTER_POOLS.Stake[i].pos
-                    _c.name = G.P_CENTER_POOLS.Stake[i].name
                     break
                 end
             end
@@ -2492,11 +2653,12 @@ function create_UIBox_notify_alert(_achievement, _type)
                     y = 0
                 },
                 name = ""
+				name_2 = ""
             }
             for i = 1, 8, 1 do
                 if string.find(_achievement, G.P_CENTER_POOLS.Stake[i].key) then
                     _c.soul_pos = G.P_CENTER_POOLS.Stake[i].sticker_pos
-                    _c.name = G.P_CENTER_POOLS.Stake[i].name .. " ("
+                    _c.name = localize{type = "name_text", key = G.P_CENTER_POOLS.Stake[i].key, set = "Stake"}
                     break
                 end
             end
@@ -2504,7 +2666,7 @@ function create_UIBox_notify_alert(_achievement, _type)
             for k, v in pairs(G.P_CENTER_POOLS.Back) do
                 if string.find(_achievement, G.P_CENTER_POOLS.Back[k].key) then
                     _c.pos = G.P_CENTER_POOLS.Back[k].pos
-                    _c.name = _c.name .. G.P_CENTER_POOLS.Back[k].name .. ")"
+                    _c.name_2 = "("..localize{type = "name_text", key = G.P_CENTER_POOLS.Back[k].key, set = "Back"} .. ")"
                     break
                 end
             end
@@ -2534,15 +2696,6 @@ function create_UIBox_notify_alert(_achievement, _type)
                 _atlas = G.ASSET_ATLAS["rand_ap_logo"]
             end
 
-            local _trap_name = { -- TODO: localization files
-                t_eternal = "A random Joker is Eternal!",
-                t_perishable = "A random Joker is Perishable!",
-                t_rental = "A random Joker is Rental!",
-                t_hand = "-1 hand this round.",
-                t_discard = "-1 discard this round.",
-                t_money = "Lose all money."
-            }
-
             local _trap_pos = {
                 t_eternal = {
                     x = 0,
@@ -2569,7 +2722,6 @@ function create_UIBox_notify_alert(_achievement, _type)
                     y = 1
                 }
             }
-            _c.name = _trap_name[_achievement]
             _c.pos = _trap_pos[_achievement]
         end
 
@@ -2606,35 +2758,7 @@ function create_UIBox_notify_alert(_achievement, _type)
 				fill_d_six = {x = 1, y = 0}
 			}
 			
-			local _bonus_name = { --TODO: more localization files
-				-- OP items
-				op_discard = "+1 discard every round.",
-				op_money = "Start with extra $1.",
-				op_hand = "+1 hand every round.",
-				op_hand_size = "+1 hand size.",
-				op_interest = "Raise the interest cap by $5.",
-				op_joker_slot = "+1 Joker slot.",
-				op_consum_slot = "+1 consumable slot.",
-				
-				-- Filler items
-				fill_money = "Receive up to $8.",
-				fill_buffoon = "Receive a Mega Buffoon Pack.",
-				fill_tag_charm = "Receive a Mega Arcana Pack.",
-				fill_tag_meteor = "Receive a Mega Celestial Pack.",
-				fill_tag_ethereal = "Receive a Mega Spectral Pack.",
-				fill_juggle = "Receive a Juggle Tag.",
-				fill_d_six = "Receive a D6 Tag.",
-				fill_uncommon = "Receive an Uncommon Tag.",
-				fill_rare = "Receive a Rare Tag.",
-				fill_negative = "Receive a Negative Tag.",
-				fill_foil = "Receive a Foil Tag.",
-				fill_holo = "Receive a Holographic Tag.",
-				fill_poly = "Receive a Polychrome Tag.",
-				fill_double = "Receive a Double Tag."
-			}
-			
 			_c.pos = _bonus_pos[_achievement] and _bonus_pos[_achievement] or _c.pos
-			_c.name = _bonus_name[_achievement]
 		end
         
         if not _c then
@@ -2799,25 +2923,144 @@ function create_UIBox_notify_alert(_achievement, _type)
             end
 		end
         
-        local subtext = "Location cleared"
-        local name = "Archipelago"
-
-        -- this might be nil if server communication is too slow -> will default to "location cleared"
-        if _type == "location" and G.AP.location_id_to_item_name[_achievement] then
-            subtext = G.AP.location_id_to_item_name[_achievement].player_name .. '\'s ' ..
-                          G.AP.location_id_to_item_name[_achievement].item_name
-
-        end
-
-        if _type ~= "location" then
-            if _achievement and _c then
-                subtext = _c.name
-            else
-                subtext = _type
-            end
-            name = _type == "Trap" and "A Trap!" or _type == "Bonus" and "Bonus!" or "Unlocked"
-        end
-
+        -- TEXT
+        local subtext = _type == 'location' and localize("k_ap_location") or --bottom text
+			_type == 'BackStake' and _c.name or localize{type = "name_text", key = _achievement, set = _type}
+        local name = _type == 'location' and "Archipelago" or localize("k_ap_unlocked") --top text
+		
+		--booster localization
+		if _type == "Booster" then
+			local _loc_target = nil
+				for k, v in pairs(G.localization.descriptions.Other) do
+					if string.find(self.config.center.key, k) then
+						_loc_target = v
+						break
+					end
+				end
+			
+			if _loc_target then
+				subtext = v.name
+			else 
+				subtext = localize("k_booster")
+			end
+		end
+		
+		local _text_nodes = {{ --prepare the default ui
+			n = G.UIT.R,
+			config = {
+				align = "cm",
+				maxw = 3.4,
+				padding = 0.1
+			},
+			nodes = {{
+				n = G.UIT.T,
+				config = {
+					text = name,
+					scale = 0.4,
+					colour = G.C.UI.TEXT_LIGHT,
+					shadow = true
+				}
+			}}
+		}, {
+			n = G.UIT.R,
+			config = {
+				align = "cm",
+				maxw = 3.4
+			},
+			nodes = {{
+				n = G.UIT.T,
+				config = {
+					text = subtext,
+					scale = 0.7,
+					colour = G.C.FILTER,
+					shadow = true
+				}
+			}}
+		}}
+		
+		--back stake third line
+		if _type == 'BackStake' then
+			_text_nodes[3] = {
+				n = G.UIT.R,
+				config = {
+					align = "cm",
+					maxw = 3.4
+				},
+				nodes = {{
+					n = G.UIT.T,
+					config = {
+						text = _c.name_2,
+						scale = 0.35,
+						colour = G.C.FILTER,
+						shadow = true
+					}
+				}}
+			}
+		end
+		
+		--generate special text UI for traps, bonuses and locations with data
+		--if AP doesn't receive the data about the location,
+		--it'll use the default ui to say "Archipelago | Location reached" instead
+		if _type == 'Trap' or _type == 'Bonus' or (_type == "location" and G.AP.location_id_to_item_name[_achievement]) then
+			local ret_nodes = {}
+			_text_nodes = {}
+			
+			--retrieve proper localization
+			localize{type = 'descriptions', key = _type == 'location' and 'location' or _achievement, 
+				set = _type, nodes = ret_nodes, vars = _type == 'location' and {G.AP.location_id_to_item_name[_achievement].player_name} or nil}
+			
+			--generate multi-line for location item name so the long names look right
+			if _type == 'location' then
+				local _item_name = split_text_to_lines(G.AP.location_id_to_item_name[_achievement].item_name)
+				for i = 1, #_item_name, 1 do
+					_text_nodes[#_text_nodes+1] = {
+						n = G.UIT.R,
+						config = {
+							align = "cm",
+							maxw = 3.5,
+							padding = 0.1
+						},
+						nodes = {{
+							n = G.UIT.T,
+							config = {
+								text = _item_name[i],
+								scale = 0.6,
+								colour = G.C.FILTER,
+								shadow = true
+						   }
+						}}
+					}
+				end
+			end
+			
+			-- change the ui generated by the localize function to fit better
+			for  i = 1, #ret_nodes, 1  do
+				for k,v in pairs(ret_nodes[i]) do
+					
+					local _found = false 
+					for cn, cv in pairs(G.C) do
+						if cv == v.config.colour then _found = true end
+					end
+					
+					for cn, cv in pairs(G.C.SECONDARY_SET) do
+						if cv == v.config.colour then _found = true end
+					end
+					
+					if _found == false then
+						ret_nodes[i][k].config.colour = G.C.UI.TEXT_LIGHT
+					end
+					
+					ret_nodes[i][k].config.scale = 0.6*(ret_nodes[i][k].config.scale/0.32)
+				end
+			end
+			
+			--generate the UI
+			for k, v in ipairs(ret_nodes) do
+				_text_nodes[#_text_nodes+1] = {n=G.UIT.R, config={align = "cm", maxw = 3.2}, nodes=v}
+			end
+		end
+		
+		
         return {
             n = G.UIT.ROOT,
             config = {
@@ -2847,13 +3090,13 @@ function create_UIBox_notify_alert(_achievement, _type)
                         n = G.UIT.R,
                         config = {
                             align = "cm",
-                            r = 0.1
+                            r = 0.1,
                         },
                         nodes = {{
                             n = G.UIT.O,
                             config = {
-                                object = t_s
-                            }
+								object = t_s
+							}
                         }}
                     }, {
                         n = G.UIT.R,
@@ -2861,38 +3104,7 @@ function create_UIBox_notify_alert(_achievement, _type)
                             align = "cm",
                             padding = 0.04
                         },
-                        nodes = {{
-                            n = G.UIT.R,
-                            config = {
-                                align = "cm",
-                                maxw = 3.4,
-                                padding = 0.1
-                            },
-                            nodes = {{
-                                n = G.UIT.T,
-                                config = {
-                                    text = name,
-                                    scale = 0.4,
-                                    colour = G.C.UI.TEXT_LIGHT,
-                                    shadow = true
-                                }
-                            }}
-                        }, {
-                            n = G.UIT.R,
-                            config = {
-                                align = "cm",
-                                maxw = 3.4
-                            },
-                            nodes = {{
-                                n = G.UIT.T,
-                                config = {
-                                    text = subtext,
-                                    scale = _type == "Trap" and 0.6 or 0.7,
-                                    colour = G.C.FILTER,
-                                    shadow = true
-                                }
-                            }}
-                        }}
+                        nodes = _text_nodes
                     }}
                 }}
             }}
@@ -2957,7 +3169,7 @@ function UIDEF_alert_extra_ui(card, price, badge)
 			t_eternal = {localize("eternal", "labels"), get_badge_colour("eternal")},
 			t_perishable = {localize("perishable", "labels"), get_badge_colour("perishable")},
 			t_rental = {localize("rental", "labels"), get_badge_colour("rental")},
-			op_item = {"Permanent", get_badge_colour("eternal")} --localization todo
+			op_item = {localize("k_ap_permanent"), get_badge_colour("eternal")}
 		}
 		--beware, a lot of ugly patches to make sure the permanent badge doesn't cover the cool art
 		local _badge_def = create_badge(_badge_table[badge][1] or "ERROR", 
@@ -3024,6 +3236,18 @@ function unlock_achievement(achievement_name)
         return
     end
     return unlock_achievementRef(achievement_name)
+end
+
+--prevent some debuffed jokers from working
+local Card_add_to_deckRef = Card.add_to_deck
+function Card:add_to_deck(from_debuff)
+    if self.debuff and not from_debuff and isAPProfileLoaded() then
+        if G.jokers then
+            self.ability.joker_added_to_deck_but_debuffed = true
+        end
+    else
+        Card_add_to_deckRef(self, from_debuff)
+    end
 end
 
 -- debug
