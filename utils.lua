@@ -16,9 +16,23 @@ function load_file(_file)
     end
 end
 
-function tbl_contains(list, value)
-    for _, v in pairs(list) do
-        if v == value then
+-- debug
+
+function copy_uncompressed(_file)
+    local file_data = NFS.getInfo(_file)
+    if file_data ~= nil then
+        local file_string = NFS.read(_file)
+        if file_string ~= '' then
+            local success = nil
+            success, file_string = pcall(love.data.decompress, 'string', 'deflate', file_string)
+            NFS.write(_file .. ".txt", file_string)
+        end
+    end
+end
+
+function tableContains(table, value)
+    for i = 1, #table do
+        if (table[i] == value) then
             return true
         end
     end
