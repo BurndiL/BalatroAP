@@ -463,6 +463,7 @@ function APConnect()
                         item.discovered = true
                         item.hidden = false
                         wasLocked = true
+                        item.demo = nil
 
                         G.FUNCS.AP_unlock_item(item)
                     end
