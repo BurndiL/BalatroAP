@@ -777,3 +777,76 @@ function SMODS.setup_stake(i)
         SMODSsetup_stakeRef(i)
     end
 end
+
+-- deck win stickers (check stake level instead of slot)
+local get_deck_win_stickerRef = get_deck_win_sticker
+function get_deck_win_sticker(_center)
+    if isAPProfileLoaded() then
+        if G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key] and
+            G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key].wins then
+            local _w = -1
+            for k, v in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key].wins) do
+                if v > 0 then
+                    _w = math.max(G.P_CENTER_POOLS.Stake[k].stake_level, _w)
+                end
+            end
+            if _w > 0 then
+                return G.sticker_map[_w]
+            end
+        end
+    else
+        return get_deck_win_stickerRef(_center)
+    end
+end
+
+-- joker win stickers (check stake level instead of slot)
+local get_joker_win_stickerRef = get_joker_win_sticker
+function get_joker_win_sticker(_center, index)
+    if isAPProfileLoaded() then
+        if G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key] and
+            G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins then
+            local _w = 0
+            for k, v in pairs(G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins) do
+                _w = math.max(G.P_CENTER_POOLS.Stake[k].stake_level, _w)
+            end
+            if index then
+                return _w
+            end
+            if _w > 0 then
+                return G.sticker_map[_w]
+            end
+        end
+        if index then
+            return 0
+        end
+    else
+        return get_joker_win_stickerRef(_center, index)
+    end
+end
+
+-- set deck win (prevent higher stake wins from counting as a win for previous stakes)
+local set_deck_winRef = set_deck_win
+function set_deck_win()
+    if isAPProfileLoaded() then
+        if G.GAME.selected_back and G.GAME.selected_back.effect and G.GAME.selected_back.effect.center and
+            G.GAME.selected_back.effect.center.key then
+            local deck_key = G.GAME.selected_back.effect.center.key
+            if not G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] then
+                G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] = {
+                    count = 1,
+                    order = G.GAME.selected_back.effect.center.order,
+                    wins = {},
+                    losses = {}
+                }
+            end
+            if G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] then
+                G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[G.GAME.stake] =
+                    (G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[G.GAME.stake] or 0) + 1
+            end
+            set_challenge_unlock()
+            G:save_settings()
+        end
+    else
+        return set_deck_winRef()
+    end
+end
