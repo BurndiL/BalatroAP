@@ -27,7 +27,6 @@ NFS.load(G.AP.this_mod.path .. "stake.lua")()
 NFS.load(G.AP.this_mod.path .. "UIdefinitions.lua")()
 NFS.load(G.AP.this_mod.path .. "atlas.lua")()
 
-
 json = NFS.load(G.AP.this_mod.path .. "json.lua")()
 AP = require('lua-apclientpp')
 
@@ -288,30 +287,30 @@ function Game:draw()
                 love.graphics.print(string.gsub(_status, '#3#', tostring(G.AP.APSlot)), 10, 30)
 
                 if G.AP.goal and G.AP.GameObjectInit then
-                    local _goal = localize("k_ap_goal")..": "
+                    local _goal = localize("k_ap_goal") .. ": "
 
                     -- beat # of decks
-                    if G.AP.goal == 0  and G.localization.descriptions.Other.ap_goal_decks then
-                        _goal = _goal..G.localization.descriptions.Other.ap_goal_decks.text[1]
+                    if G.AP.goal == 0 and G.localization.descriptions.Other.ap_goal_decks then
+                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_decks.text[1]
                         _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.decks_win_goal))
                         _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
 
                         -- unlock # of jokers
                     elseif G.AP.goal == 1 and G.localization.descriptions.Other.ap_goal_jokers then
                         local unlocked_jokers = get_unlocked_jokers()
-                        _goal = _goal..G.localization.descriptions.Other.ap_goal_jokers.text[1]
+                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_jokers.text[1]
                         _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.jokers_unlock_goal))
                         _goal = string.gsub(_goal, "#2#", tostring(unlocked_jokers))
 
                         -- beat specific ante
                     elseif G.AP.goal == 2 and G.localization.descriptions.Other.ap_goal_ante then
-                        _goal = _goal..G.localization.descriptions.Other.ap_goal_ante.text[1]
+                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_ante.text[1]
                         _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.ante_win_goal))
 
                         -- beat # decks on at least # stake
-			-- TODO: add exception for languages that use a different font
+                        -- TODO: add exception for languages that use a different font
                     elseif G.AP.goal == 3 and G.localization.descriptions.Other.ap_goal_deck_stickers then
-                        _goal = _goal..G.localization.descriptions.Other.ap_goal_deck_stickers.text[1]
+                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_deck_stickers.text[1]
                         _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.decks_win_goal))
                         _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
 
@@ -332,9 +331,9 @@ function Game:draw()
                         end
 
                         -- win with # jokers on at least # stake
-			-- TODO: add exception for languages that use a different font
+                        -- TODO: add exception for languages that use a different font
                     elseif G.AP.goal == 4 and G.localization.descriptions.Other.ap_goal_joker_stickers then
-                        _goal = _goal..G.localization.descriptions.Other.ap_goal_joker_stickers.text[1]
+                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_joker_stickers.text[1]
                         _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.jokers_unlock_goal))
                         _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
 
@@ -356,7 +355,7 @@ function Game:draw()
 
                         -- win with # of unique combinations of deck and stake
                     elseif G.AP_goal == 5 and G.localization.descriptions.Other.ap_goal_unique_wins then
-                        _goal = _goal..G.localization.descriptions.Other.ap_goal_unique_wins.text[1]
+                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_unique_wins.text[1]
                         -- this needs ap slot data
                         -- __goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.unique_wins_goal))
                         _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
@@ -743,24 +742,28 @@ end
 
 local card_apply_to_runRef = Card.apply_to_run
 function Card:apply_to_run(center)
+
+    local card_apply_to_run = card_apply_to_runRef(self, center)
+
+    local temp_interest_cap = G.GAME.interest_cap
+    local center_table = {
+        name = center and center.name or self and self.ability.name,
+        extra = center and center.config.extra or self and self.ability.extra
+    }
+
     if isAPProfileLoaded() then
-
-        local center_table = {
-            name = center and center.name or self and self.ability.name,
-            extra = center and center.config.extra or self and self.ability.extra
-        }
-
-        -- properly handle seed money and money tree vouchers when bonus interest_cap was received already
-        if center_table.name == 'Seed Money' then
-            center_table.extra = center_table.extra + (G.GAME.interest_cap - 25)
+        if center_table.name == 'Seed Money' or center_table.name == 'Money Tree' then
+            G.E_MANAGER:add_event(Event({
+                func = function()
+                    G.GAME.interest_cap = temp_interest_cap + 25
+                    return true
+                end
+            }))
         end
 
-        if center_table.name == 'Money Tree' then
-            center_table.extra = center_table.extra + (G.GAME.interest_cap - 50)
-        end
     end
 
-    return card_apply_to_runRef(self, center)
+    return card_apply_to_run
 end
 
 local get_next_voucher_keyRef = get_next_voucher_key
@@ -819,8 +822,7 @@ function CardArea:emplace(card, location, stay_flipped)
 
     if isAPProfileLoaded() and self.cards and ((card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or self == G.shop_jokers or self == G.jokers or self == G.consumeables or self ==
-            G.pack_cards)) or
-        (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
+            G.pack_cards)) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_strength" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_incantation" and card.config.center.unlocked == true)) then
@@ -1120,17 +1122,17 @@ SMODS.Voucher {
         end
     end,
     set_card_type_badge = function(self, card, badges)
-		if card.ability and card.ability.sprite == 1 then
-			badges[#badges+1] = create_badge(localize("k_ap_check"), HEX("7749a8"), nil, 1.2)
-		else
-			badges[#badges+1] = create_badge(localize("k_ap_check"), G.C.DARK_EDITION, nil, 1.2)
-		end
-	end,
-	inject = function(self) --prevent injection outside of AP
-		if isAPProfileLoaded() then
-			SMODS.Center.inject(self)
-		end
-	end,
+        if card.ability and card.ability.sprite == 1 then
+            badges[#badges + 1] = create_badge(localize("k_ap_check"), HEX("7749a8"), nil, 1.2)
+        else
+            badges[#badges + 1] = create_badge(localize("k_ap_check"), G.C.DARK_EDITION, nil, 1.2)
+        end
+    end,
+    inject = function(self) -- prevent injection outside of AP
+        if isAPProfileLoaded() then
+            SMODS.Center.inject(self)
+        end
+    end,
     unlocked = true,
     discovered = true,
     requires = {'fuck!! shit!!!! (put here anything so it doesnt spawn naturally)'}
@@ -1143,56 +1145,58 @@ G.FUNCS.resolve_location_id_to_name = function(id)
 end
 
 function get_shop_location(_pool_length)
-	if G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) .. "_shop_locations"] then
-		local valid_locations = {}
-		local all_locations = G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) .. "_shop_locations"]
-		
-		--return existing check if its valid
-		if G.GAME.current_shop_check ~= nil then
-			if tableContains(all_locations, G.GAME.current_shop_check.id) 
-				and tableContains(G.APClient.missing_locations, G.GAME.current_shop_check.id)
-					and G.GAME.current_shop_check.ante == G.GAME.round_resets.ante then
-                        G.FUNCS.resolve_location_id_to_name(G.GAME.current_shop_check.id)
-						return G.GAME.current_shop_check
-				end
-		end
-		--optional argument in case we want to make
-		--the selection of possible locations limited to a smaller pool
-		_pool_length = _pool_length or #all_locations
-		
-		for i, v in ipairs(all_locations) do
-			if (tableContains(G.APClient.missing_locations, v)) then
-				valid_locations[#valid_locations+1] = v
-			end
-			
-			if #valid_locations >= _pool_length then
-				break
-			end
-		end
-		
-		if #valid_locations ~= 0 then
-			local _check_data = {}
-			
-			_check_data.id = valid_locations[math.random(#valid_locations)]
-			G.FUNCS.resolve_location_id_to_name(_check_data.id)
-			
-			_check_data.cost = math.random(min_cost, max_cost)
-			_check_data.sprite = 0
-			_check_data.ante = G.GAME.round_resets.ante
-			
-			--easter egg sprite (becomes more common as the pool of remaining items shrinks)
-			if math.random(#all_locations) >= (#all_locations - (#valid_locations*0.5)) then
-				_check_data.sprite = 1
-			end
-			
-			sendDebugMessage("Returning Shop Location " .. tostring(_check_data.id).." with price of $" .. tostring(_check_data.cost))
-			return _check_data
-		else
-			sendDebugMessage("Out of Shop Locations...")
-			return nil 
-		end
-		
-	end
+    if G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) .. "_shop_locations"] then
+        local valid_locations = {}
+        local all_locations = G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) ..
+                                  "_shop_locations"]
+
+        -- return existing check if its valid
+        if G.GAME.current_shop_check ~= nil then
+            if tableContains(all_locations, G.GAME.current_shop_check.id) and
+                tableContains(G.APClient.missing_locations, G.GAME.current_shop_check.id) and
+                G.GAME.current_shop_check.ante == G.GAME.round_resets.ante then
+                G.FUNCS.resolve_location_id_to_name(G.GAME.current_shop_check.id)
+                return G.GAME.current_shop_check
+            end
+        end
+        -- optional argument in case we want to make
+        -- the selection of possible locations limited to a smaller pool
+        _pool_length = _pool_length or #all_locations
+
+        for i, v in ipairs(all_locations) do
+            if (tableContains(G.APClient.missing_locations, v)) then
+                valid_locations[#valid_locations + 1] = v
+            end
+
+            if #valid_locations >= _pool_length then
+                break
+            end
+        end
+
+        if #valid_locations ~= 0 then
+            local _check_data = {}
+
+            _check_data.id = valid_locations[math.random(#valid_locations)]
+            G.FUNCS.resolve_location_id_to_name(_check_data.id)
+
+            _check_data.cost = math.random(min_cost, max_cost)
+            _check_data.sprite = 0
+            _check_data.ante = G.GAME.round_resets.ante
+
+            -- easter egg sprite (becomes more common as the pool of remaining items shrinks)
+            if math.random(#all_locations) >= (#all_locations - (#valid_locations * 0.5)) then
+                _check_data.sprite = 1
+            end
+
+            sendDebugMessage("Returning Shop Location " .. tostring(_check_data.id) .. " with price of $" ..
+                                 tostring(_check_data.cost))
+            return _check_data
+        else
+            sendDebugMessage("Out of Shop Locations...")
+            return nil
+        end
+
+    end
     return nil
 end
 
@@ -1245,7 +1249,7 @@ function Game:update_shop(dt)
         local game_update_shop = game_update_shopRef(self, dt)
         -- first check if there are still shop locations to get
         G.GAME.current_shop_check = get_shop_location()
-		
+
         if (G.GAME.current_shop_check ~= nil) then
             G.E_MANAGER:add_event(Event({
 
@@ -1261,7 +1265,7 @@ function Game:update_shop(dt)
                             bypass_discovery_ui = true
                         })
                     -- define the voucher
-                    card.ability.extra = card.ability.extra = G.GAME.current_shop_check
+                    card.ability.extra = G.GAME.current_shop_check
 
                     if tableContains(G.APClient.missing_locations, card.ability.extra.id) then
                         card.cost = card.ability.extra.cost
@@ -1372,7 +1376,6 @@ function discover_card(card)
     end
     return discover_cardRef(card)
 end
-
 
 function get_unlocked_jokers()
     local count = 0

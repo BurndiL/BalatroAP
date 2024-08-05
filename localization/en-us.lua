@@ -68,7 +68,7 @@ return {
 				name = "Bonus Discard",
 				text = {
 					"{C:red}+1{} discard", 
-					"{s:0.7}every round"
+					"{s:0.7}this round"
 				}
 			},
 			op_money = {
@@ -82,7 +82,7 @@ return {
 				name = "Bonus Hand",
 				text = {
 					"{C:blue}+1{} hand", 
-					"{s:0.7}every round"
+					"{s:0.7}this round"
 					}
 			},
 			op_hand_size = { 
