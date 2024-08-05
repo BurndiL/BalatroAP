@@ -288,29 +288,30 @@ function Game:draw()
                 love.graphics.print(string.gsub(_status, '#3#', tostring(G.AP.APSlot)), 10, 30)
 
                 if G.AP.goal and G.AP.GameObjectInit then
-                    local _goal = ""
+                    local _goal = localize("k_ap_goal")..": "
 
                     -- beat # of decks
                     if G.AP.goal == 0  and G.localization.descriptions.Other.ap_goal_decks then
-                        _goal = G.localization.descriptions.Other.ap_goal_decks.text[1]
+                        _goal = _goal..G.localization.descriptions.Other.ap_goal_decks.text[1]
                         _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.decks_win_goal))
                         _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
 
                         -- unlock # of jokers
-                    elseif G.AP.goal == 1 then
+                    elseif G.AP.goal == 1 and G.localization.descriptions.Other.ap_goal_jokers then
                         local unlocked_jokers = get_unlocked_jokers()
-                        _goal = G.localization.descriptions.Other.ap_goal_jokers.text[1]
+                        _goal = _goal..G.localization.descriptions.Other.ap_goal_jokers.text[1]
                         _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.jokers_unlock_goal))
                         _goal = string.gsub(_goal, "#2#", tostring(unlocked_jokers))
 
                         -- beat specific ante
-                    elseif G.AP.goal == 2 then
-                        _goal = G.localization.descriptions.Other.ap_goal_ante.text[1]
+                    elseif G.AP.goal == 2 and G.localization.descriptions.Other.ap_goal_ante then
+                        _goal = _goal..G.localization.descriptions.Other.ap_goal_ante.text[1]
                         _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.ante_win_goal))
 
                         -- beat # decks on at least # stake
-                    elseif G.AP.goal == 3 then
-                        _goal = G.localization.descriptions.Other.ap_goal_deck_stickers.text[1]
+			-- TODO: add exception for languages that use a different font
+                    elseif G.AP.goal == 3 and G.localization.descriptions.Other.ap_goal_deck_stickers then
+                        _goal = _goal..G.localization.descriptions.Other.ap_goal_deck_stickers.text[1]
                         _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.decks_win_goal))
                         _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
 
@@ -331,8 +332,9 @@ function Game:draw()
                         end
 
                         -- win with # jokers on at least # stake
-                    elseif G.AP.goal == 4 then
-                        _goal = G.localization.descriptions.Other.ap_goal_joker_stickers.text[1]
+			-- TODO: add exception for languages that use a different font
+                    elseif G.AP.goal == 4 and G.localization.descriptions.Other.ap_goal_joker_stickers then
+                        _goal = _goal..G.localization.descriptions.Other.ap_goal_joker_stickers.text[1]
                         _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.jokers_unlock_goal))
                         _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
 
@@ -353,8 +355,8 @@ function Game:draw()
                         end
 
                         -- win with # of unique combinations of deck and stake
-                    elseif G.AP_goal == 5 then
-                        _goal = G.localization.descriptions.Other.ap_goal_unique_wins.text[1]
+                    elseif G.AP_goal == 5 and G.localization.descriptions.Other.ap_goal_unique_wins then
+                        _goal = _goal..G.localization.descriptions.Other.ap_goal_unique_wins.text[1]
                         -- this needs ap slot data
                         -- __goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.unique_wins_goal))
                         _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
