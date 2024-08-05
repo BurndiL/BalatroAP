@@ -36,7 +36,6 @@ local isInProfileOptionCreation = false
 local unloadAPProfile = false
 local foreignDeathlink = false
 local ap_profile_delete = false
-local ap_items_in_shop = 0
 
 local deck_list = {}
 deck_list[0] = 'Red Deck'
@@ -101,7 +100,6 @@ end
 -- gets called when connection wants to be ended (for example when selecting non AP profile)
 G.FUNCS.APDisconnect = function()
     G.APClient = nil
-    G.AP.StakesInit = false
     collectgarbage("collect")
     unloadAPProfile = true
 
@@ -722,7 +720,9 @@ function Game:init_item_prototypes()
     else
         -- restore unlock conditions
         for k, v in pairs(G.AP.UnlockConsCache) do
-            self.P_CENTERS[k].unlock_condition = v
+            if self.P_CENTERS[k] then
+                self.P_CENTERS[k].unlock_condition = v
+            end
         end
 
         G.AP.UnlockConsCache = {}
@@ -833,10 +833,6 @@ end
 
 local cardArea_emplaceRef = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
-    if (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and G.STATE == G.STATES.SHOP) then
-        ap_items_in_shop = ap_items_in_shop + 1
-    end
-
     local cardAreaemplace = nil
 
     if (self.cards) then
@@ -849,7 +845,6 @@ function CardArea:emplace(card, location, stay_flipped)
     if isAPProfileLoaded() and self.cards and ((card.config.center.unlocked == false and
         (G.STATE == G.STATES.SHOP or self == G.shop_jokers or self == G.jokers or self == G.consumeables or self ==
             G.pack_cards)) or
-        (card.config.center_key == 'v_rand_ap_item' and ap_items_in_shop > 1 and G.STATE == G.STATES.SHOP) or
         (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_strength" and card.config.center.unlocked == true) or
@@ -958,9 +953,7 @@ function CardArea:emplace(card, location, stay_flipped)
 
         end
 
-        if card.config.center.unlocked == false or
-            (isAPProfileLoaded() and card.config.center_key == 'v_rand_ap_item' and ap_items_in_shop > 1 and G.STATE ==
-                G.STATES.SHOP) then
+        if card.config.center.unlocked == false then
             self:remove_card(card, false)
             card:start_dissolve({G.C.RED}, true, 0)
         end
@@ -1048,7 +1041,8 @@ SMODS.Voucher {
         extra = {
             id = 0,
             sprite = 0,
-            cost = 0
+            cost = 0,
+            ante = 0
         }
     },
     load = function(self, card, card_table, other_card)
@@ -1059,7 +1053,8 @@ SMODS.Voucher {
             card.ability.extra = {
                 id = -1,
                 cost = 0,
-                sprite = 0
+                sprite = 0,
+                ante = 1
             }
         end
 
@@ -1149,6 +1144,18 @@ SMODS.Voucher {
             }
         end
     end,
+    set_card_type_badge = function(self, card, badges)
+		if card.ability and card.ability.sprite == 1 then
+			badges[#badges+1] = create_badge(localize("k_ap_check"), HEX("7749a8"), nil, 1.2)
+		else
+			badges[#badges+1] = create_badge(localize("k_ap_check"), G.C.DARK_EDITION, nil, 1.2)
+		end
+	end,
+	inject = function(self) --prevent injection outside of AP
+		if isAPProfileLoaded() then
+			SMODS.Center.inject(self)
+		end
+	end,
     unlocked = true,
     discovered = true,
     requires = {'fuck!! shit!!!! (put here anything so it doesnt spawn naturally)'}
@@ -1160,18 +1167,57 @@ G.FUNCS.resolve_location_id_to_name = function(id)
     end
 end
 
-function get_shop_location()
-    if G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) .. "_shop_locations"] then
-        for i, v in ipairs(G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) ..
-                               "_shop_locations"]) do
-            sendDebugMessage(tostring(v))
-            if (tableContains(G.APClient.missing_locations, v)) then
-                G.FUNCS.resolve_location_id_to_name(v)
-                sendDebugMessage("Returning Shop Location" .. tostring(v))
-                return v
-            end
-        end
-    end
+function get_shop_location(_pool_length)
+	if G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) .. "_shop_locations"] then
+		local valid_locations = {}
+		local all_locations = G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) .. "_shop_locations"]
+		
+		--return existing check if its valid
+		if G.GAME.current_shop_check ~= nil then
+			if tableContains(all_locations, G.GAME.current_shop_check.id) 
+				and tableContains(G.APClient.missing_locations, G.GAME.current_shop_check.id)
+					and G.GAME.current_shop_check.ante == G.GAME.round_resets.ante then
+                        G.FUNCS.resolve_location_id_to_name(G.GAME.current_shop_check.id)
+						return G.GAME.current_shop_check
+				end
+		end
+		--optional argument in case we want to make
+		--the selection of possible locations limited to a smaller pool
+		_pool_length = _pool_length or #all_locations
+		
+		for i, v in ipairs(all_locations) do
+			if (tableContains(G.APClient.missing_locations, v)) then
+				valid_locations[#valid_locations+1] = v
+			end
+			
+			if #valid_locations >= _pool_length then
+				break
+			end
+		end
+		
+		if #valid_locations ~= 0 then
+			local _check_data = {}
+			
+			_check_data.id = valid_locations[math.random(#valid_locations)]
+			G.FUNCS.resolve_location_id_to_name(_check_data.id)
+			
+			_check_data.cost = math.random(min_cost, max_cost)
+			_check_data.sprite = 0
+			_check_data.ante = G.GAME.round_resets.ante
+			
+			--easter egg sprite (becomes more common as the pool of remaining items shrinks)
+			if math.random(#all_locations) >= (#all_locations - (#valid_locations*0.5)) then
+				_check_data.sprite = 1
+			end
+			
+			sendDebugMessage("Returning Shop Location " .. tostring(_check_data.id).." with price of $" .. tostring(_check_data.cost))
+			return _check_data
+		else
+			sendDebugMessage("Out of Shop Locations...")
+			return nil 
+		end
+		
+	end
     return nil
 end
 
@@ -1180,7 +1226,7 @@ local select_blindRef = G.FUNCS.select_blind
 G.FUNCS.select_blind = function(e)
     if isAPProfileLoaded() then
         -- scout upcoming locations semi regularly
-        get_shop_location()
+        G.GAME.current_shop_check = get_shop_location()
         local deck_name = G.GAME.selected_back.name
 
         if (G.GAME.round_resets.ante >= 1 and G.GAME.round_resets.ante <= 8) then
@@ -1211,7 +1257,7 @@ function Card:redeem()
         if G.APClient ~= nil and tableContains(G.APClient.missing_locations, self.ability.extra.id) then
             sendLocationCleared(self.ability.extra.id)
         end
-
+        G.GAME.current_shop_check = nil
         G.GAME.current_round.voucher = current_round_voucher
     end
 end
@@ -1221,11 +1267,11 @@ local game_update_shopRef = Game.update_shop
 function Game:update_shop(dt)
 
     if isAPProfileLoaded() and not G.STATE_COMPLETE then
-        ap_items_in_shop = 0
         local game_update_shop = game_update_shopRef(self, dt)
         -- first check if there are still shop locations to get
-        local current_ap_shopitem = get_shop_location()
-        if (current_ap_shopitem ~= nil) then
+        G.GAME.current_shop_check = get_shop_location()
+		
+        if (G.GAME.current_shop_check ~= nil) then
             G.E_MANAGER:add_event(Event({
 
                 trigger = 'after',
@@ -1240,17 +1286,7 @@ function Game:update_shop(dt)
                             bypass_discovery_ui = true
                         })
                     -- define the voucher
-                    card.ability.extra = {
-                        id = current_ap_shopitem, -- location id
-                        sprite = 0, -- for easter egg
-                        cost = math.random(min_cost, max_cost) -- randomize cost
-                    }
-
-                    -- the easter egg secondary sprite
-                    if math.random(1000) >
-                        (999 - ((G.GAME.round_resets.ante ^ 1.9) * G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level)) then
-                        card.ability.extra.sprite = 1
-                    end
+                    card.ability.extra = card.ability.extra = G.GAME.current_shop_check
 
                     if tableContains(G.APClient.missing_locations, card.ability.extra.id) then
                         card.cost = card.ability.extra.cost
