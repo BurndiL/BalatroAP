@@ -270,22 +270,28 @@ return {
 				}
 			},
 			ap_goal_decks = {
-				text = {"Выйграйте с #1# колодами (#2#/#1#)"}
+				--text = {"Выйграйте с #1# колодами (#2#/#1#)"}
+				text = {"Vyigraite s #1# kolodami (#2#/#1#)"}
 			},
 			ap_goal_jokers = {
-				text = {"Разблокируйте #1# Джокеров (#2#/#1#)"}
+				--text = {"Разблокируйте #1# Джокеров (#2#/#1#)"}
+				text = {"Razblokiruyite #1# Dzhokerov (#2#/#1#)"}
 			},
 			ap_goal_ante = {
-				text = {"Победите Босс-блайнд на анте #1#"}
+				--text = {"Победите Босс-блайнд на анте #1#"}
+				text = {"Pobedide Boss-blaind na ante #1#"}
 			},
 			ap_goal_deck_stickers = {
-				text = {"Выйграйте с #1# колодами на сложности #3# и выше (#2#/#1#)"}
+				--text = {"Выйграйте с #1# колодами на сложности #3# и выше (#2#/#1#)"}
+				text = {"Vyigraite s #1# kolodami na slozhnosti #3# i vyshe (#2#/#1#)"}
 			},
 			ap_goal_joker_stickers = {
-				text = {"Выйграйте с #1# Джокерами на сложности #3# и выше (#2#/#1#)"}
+				--text = {"Выйграйте с #1# Джокерами на сложности #3# и выше (#2#/#1#)"}
+				text = {"Vyigtaite s #1# Dzhokerami na slozhnosti #3# i vyshe (#2#/#1#)"}
 			},
 			ap_goal_unique_wins = {
-				text = {"Выйграте на #1# уникальных комбинациях колод и ставок (#2#/#1#)"}
+				--text = {"Выйграте на #1# уникальных комбинациях колод и ставок (#2#/#1#)"}
+				text = {"Vyigraite na #1# unikal'nyh kombinatsiyah kolod i stavok (#2#/#1#)"}
 			}
 		}
 	},
@@ -301,9 +307,12 @@ return {
 			k_ap_slot = "Название слота",
 			k_ap_pass = "Пароль",
 			b_ap_connect = "Подключиться",
-			k_ap_connected = "Подключено к Archipelago по адресу #1#:#2# как #3#",
-			k_ap_connecting = "Подключаем к Archipelago по адресу #1#:#2#...",
-			k_ap_not_connected = "Не подключено к Archipelago."
+			--k_ap_connected = "Подключено к Archipelago по адресу #1#:#2# как #3#",
+			k_ap_connected = "Podklyucheno k Archipelago po adresu #1#:#2# kak #3#",
+			--k_ap_connecting = "Идёт подключение с Archipelago по адресу #1#:#2#...",
+			k_ap_connecting = "Idyot pokdlyuchenie k Archipelago po adresu #1#:#2#...",
+			--k_ap_not_connected = "Не подключено к Archipelago."
+			k_ap_not_connected = "Ne podklyucheno k Archipelago."
 		}
 	}
 }
