@@ -737,33 +737,6 @@ function Game:init_item_prototypes()
     return game_init_item_prototypes
 end
 
--- set deck win (prevent higher stake wins from counting as a win for previous stakes)
-local set_deck_winRef = set_deck_win
-function set_deck_win()
-    if isAPProfileLoaded() then
-        if G.GAME.selected_back and G.GAME.selected_back.effect and G.GAME.selected_back.effect.center and
-            G.GAME.selected_back.effect.center.key then
-            local deck_key = G.GAME.selected_back.effect.center.key
-            if not G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] then
-                G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] = {
-                    count = 1,
-                    order = G.GAME.selected_back.effect.center.order,
-                    wins = {},
-                    losses = {}
-                }
-            end
-            if G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] then
-                G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[G.GAME.stake] =
-                    (G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[G.GAME.stake] or 0) + 1
-            end
-            set_challenge_unlock()
-            G:save_settings()
-        end
-    else
-        return set_deck_winRef()
-    end
-end
-
 -- handle shop cards
 
 local card_apply_to_runRef = Card.apply_to_run
