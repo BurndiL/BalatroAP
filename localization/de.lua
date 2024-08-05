@@ -51,14 +51,14 @@ return {
 				name = "Hand-Falle",
 				text = {
 					"{C:blue}-1{} Hand", 
-					"{s:0.7}für diesen Durchlauf"
+					"{s:0.7}diese Runde"
 				}
 			},
 			t_discard = {
 				name = "Abwurf-Falle",
 				text = {
 					"{C:red}-1{} Abwurf",
-					"{s:0.7}für diesen Durchlauf"
+					"{s:0.7}diese Runde"
 				}
 			}
 		},
