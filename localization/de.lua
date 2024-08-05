@@ -67,7 +67,7 @@ return {
 				name = "Bonus Abwurf",
 				text = {
 					"{C:red}+1{} Abwurf", 
-					"{s:0.7}diese Runde"
+					"{s:0.7}jede Runde"
 				}
 			},
 			op_money = {
@@ -81,7 +81,7 @@ return {
 				name = "Bonus Hand",
 				text = {
 					"{C:blue}+1{} Hand", 
-					"{s:0.7}diese Runde"
+					"{s:0.7}jede Runde"
 					}
 			},
 			op_hand_size = { 
