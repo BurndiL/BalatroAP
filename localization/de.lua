@@ -67,7 +67,7 @@ return {
 				name = "Bonus Abwurf",
 				text = {
 					"{C:red}+1{} Abwurf", 
-					"{s:0.7}jede Runde"
+					"{s:0.7}diese Runde"
 				}
 			},
 			op_money = {
@@ -81,7 +81,7 @@ return {
 				name = "Bonus Hand",
 				text = {
 					"{C:blue}+1{} Hand", 
-					"{s:0.7}jede Runde"
+					"{s:0.7}diese Runde"
 					}
 			},
 			op_hand_size = { 
@@ -269,7 +269,7 @@ return {
 				}
 			},
 			ap_goal_decks = {
-				text = {"Gewinne #1# Decks (#2#/#1#)"}
+				text = {"Gewinne mit #1# Decks (#2#/#1#)"}
 			},
 			ap_goal_jokers = {
 				text = {"Schalte #1# Joker frei (#2#/#1#)"}
@@ -278,7 +278,7 @@ return {
 				text = {"Schlage Ante #1#"}
 			},
 			ap_goal_deck_stickers = {
-				text = {"Gewinne #1# Decks auf zumindest #3# Schwierigkeit (#2#/#1#)"}
+				text = {"Gewinne mit #1# Decks auf zumindest #3# Schwierigkeit (#2#/#1#)"}
 			},
 			ap_goal_joker_stickers = {
 				text = {"Gewinne mit #1# Joker auf zumindest #3# Schwierigkeit (#2#/#1#)"}
