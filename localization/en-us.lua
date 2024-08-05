@@ -52,14 +52,14 @@ return {
 				name = "Hand Trap",
 				text = {
 					"{C:blue}-1{} hand", 
-					"{s:0.7}this run"
+					"{s:0.7}this round"
 				}
 			},
 			t_discard = {
 				name = "Discard Trap",
 				text = {
 					"{C:red}-1{} discard",
-					"{s:0.7}this run"
+					"{s:0.7}this round"
 				}
 			}
 		},

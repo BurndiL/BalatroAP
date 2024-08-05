@@ -1035,12 +1035,7 @@ SMODS.Voucher {
             }
         end
 
-        -- scout its own location when loading
-        if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
-            G.FUNCS.resolve_location_id_to_name(card.ability.extra.id)
-        end
-
-        -- change the price 
+        -- scout the location and change the price 
         -- (has to be delayed to let the card to init)
         G.E_MANAGER:add_event(Event({
             blockable = false,
@@ -1050,6 +1045,7 @@ SMODS.Voucher {
                 if card.ability.id ~= 0 then
                     if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
                         card.cost = card.ability.extra.cost -- random cost if valid id
+                        G.FUNCS.resolve_location_id_to_name(card.ability.extra.id) -- scout the location
                     else
                         card.cost = 0 -- free if the location is invalid
                     end
