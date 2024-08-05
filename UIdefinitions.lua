@@ -1,49 +1,3 @@
--- deck win stickers (check stake level instead of slot)
-local get_deck_win_stickerRef = get_deck_win_sticker
-function get_deck_win_sticker(_center)
-    if isAPProfileLoaded() then
-        if G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key] and
-            G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key].wins then
-            local _w = -1
-            for k, v in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key].wins) do
-                if v > 0 then
-                    _w = math.max(G.P_CENTER_POOLS.Stake[k].stake_level, _w)
-                end
-            end
-            if _w > 0 then
-                return G.sticker_map[_w]
-            end
-        end
-    else
-        return get_deck_win_stickerRef(_center)
-    end
-end
-
--- joker win stickers (check stake level instead of slot)
-local get_joker_win_stickerRef = get_joker_win_sticker
-function get_joker_win_sticker(_center, index)
-    if isAPProfileLoaded() then
-        if G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key] and
-            G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins then
-            local _w = 0
-            for k, v in pairs(G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins) do
-                _w = math.max(G.P_CENTER_POOLS.Stake[k].stake_level, _w)
-            end
-            if index then
-                return _w
-            end
-            if _w > 0 then
-                return G.sticker_map[_w]
-            end
-        end
-        if index then
-            return 0
-        end
-    else
-        return get_joker_win_stickerRef(_center, index)
-    end
-end
-
 -- Profile interface
 
 local create_tabsRef = create_tabs
@@ -439,9 +393,8 @@ function create_UIBox_notify_alert(_achievement, _type)
             _atlas = tableContains({"fill_buffoon", "fill_tag_charm", "fill_tag_meteor", "fill_tag_ethereal"},
                 _achievement) and G.ASSET_ATLAS["Booster"] or
                          tableContains(
-                    {"fill_rare", "fill_uncommon", "fill_foil", "fill_holo", "fill_poly", "fill_negative",
-                     "fill_juggle", "fill_d_six"}, _achievement) and G.ASSET_ATLAS["Joker"] or _achievement ==
-                         "fill_double" and G.ASSET_ATLAS["centers"] or G.ASSET_ATLAS["rand_ap_logo"]
+                    {"fill_rare", "fill_uncommon", "fill_foil", "fill_holo", "fill_poly", "fill_negative"}, _achievement) 
+                        and G.ASSET_ATLAS["Joker"] or G.ASSET_ATLAS["rand_ap_logo"]
 
             local _bonus_pos = {
                 fill_buffoon = {
@@ -482,7 +435,7 @@ function create_UIBox_notify_alert(_achievement, _type)
                 },
                 op_hand_size = {
                     x = 2,
-                    y = 1
+                    y = 2
                 },
                 op_joker_slot = {
                     x = 2,
@@ -492,18 +445,17 @@ function create_UIBox_notify_alert(_achievement, _type)
                     x = 0,
                     y = 2
                 },
-                -- PLACEHOLDERS
                 fill_juggle = {
-                    x = 0,
-                    y = 1
+                    x = 2,
+                    y = 2
                 },
                 fill_double = {
-                    x = 2,
-                    y = 4
+                    x = 0,
+                    y = 3
                 },
                 fill_d_six = {
                     x = 1,
-                    y = 0
+                    y = 2
                 }
             }
 
@@ -641,8 +593,9 @@ function create_UIBox_notify_alert(_achievement, _type)
 
         if _type == 'Bonus' then
             t_s._type = _achievement == "fill_negative" and 4 or
-                            tableContains({"fill_poly", "fill_juggle", "fill_d_six", "fill_double"}, _achievement) ==
-                            true and 3 or _achievement == "fill_holo" and 2 or _achievement == "fill_foil" and 1 or 0
+            _achievement == "fill_poly" and 3 or 
+            _achievement == "fill_holo" and 2 or 
+            _achievement == "fill_foil" and 1 or 0
 
             if tableContains({"fill_holo", "fill_poly", "fill_foil", "fill_negative", "fill_uncommon", "fill_rare"},
                 _achievement) then
@@ -698,14 +651,14 @@ function create_UIBox_notify_alert(_achievement, _type)
         if _type == "Booster" then
             local _loc_target = nil
             for k, v in pairs(G.localization.descriptions.Other) do
-                if string.find(self.config.center.key, k) then
+                if string.find(_achievement, k) then
                     _loc_target = v
                     break
                 end
             end
 
             if _loc_target then
-                subtext = v.name
+                subtext = _loc_target.name
             else
                 subtext = localize("k_booster")
             end
