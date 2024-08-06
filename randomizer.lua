@@ -870,7 +870,7 @@ function CardArea:emplace(card, location, stay_flipped)
         (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_strength" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_incantation" and card.config.center.unlocked == true)) 
-        and tableContains(G.your_collection, self) == false then
+        and (G.your_collection ~= nil and tableContains(G.your_collection, self) == false) then
 
         -- following blocks handle standard cards appearing in packs/shop
         if not next(find_joker("Showman")) and card.config.center.unlocked == true then
@@ -1273,7 +1273,8 @@ function Card:redeem()
     end
     redeemref(self)
     if self.config.center_key == 'v_rand_ap_item' then
-
+	G.GAME.used_vouchers[self.config.center_key] = false
+	
         if G.APClient ~= nil and tableContains(G.APClient.missing_locations, self.ability.extra.id) then
             sendLocationCleared(self.ability.extra.id)
         end
@@ -1622,12 +1623,36 @@ end
 local SMODScenter_injectRef = SMODS.Center.inject 
 function SMODS.Center.inject(self)
 	if isAPProfileLoaded() then
+		--this is needed to prevent a crash when a vanilla object is taken over
+		if self.old_center == nil then 
+			self.old_center = self.config.center
+		end
 		if self.mod == nil or self.key == 'v_rand_ap_item' then
 			SMODScenter_injectRef(self)
 		end
 	else 
 		SMODScenter_injectRef(self)
 	end
+end
+
+--challenge stuff
+local Gamestart_runRef = Game.start_run
+function Game:start_run(args)
+	local _new_args = args
+	
+	--ensure its always white stake
+	if isAPProfileLoaded() then
+		if args.challenge then
+			for k, v in ipairs(G.P_CENTER_POOLS.Stake) do
+				if v.stake_level == 1 then
+					_new_args.stake = k
+					break
+				end
+			end
+		end
+	end
+	
+	return Gamestart_runRef(self,_new_args)
 end
 
 ----------------------------------------------
