@@ -306,7 +306,7 @@ return {
                 text = {
                    --"{C:inactive,s:2}Herausforderungen sind deaktiviert"
 				   "Nicht verfügbar",
-                    "in diese Version",
+                    "in dieser Version",
 				   "{C:attention,s:2}Kommt bald!"
                 }
             },
