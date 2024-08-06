@@ -825,7 +825,8 @@ function CardArea:emplace(card, location, stay_flipped)
             G.pack_cards)) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_strength" and card.config.center.unlocked == true) or
-        (card.config.center_key == "c_incantation" and card.config.center.unlocked == true)) then
+        (card.config.center_key == "c_incantation" and card.config.center.unlocked == true)) 
+        and tableContains(G.your_collection, self) == false then
 
         -- following blocks handle standard cards appearing in packs/shop
         if not next(find_joker("Showman")) and card.config.center.unlocked == true then
