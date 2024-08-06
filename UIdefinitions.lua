@@ -1002,3 +1002,90 @@ function G.UIDEF.run_setup_option(type)
 	end
 	return GUIDEFrun_setup_option(type)
 end
+
+--challenge ui
+local GUIDEFchallengesRef = G.UIDEF.challenges
+function G.UIDEF.challenges(from_game_over)
+	if isAPProfileLoaded() then
+		G.PROFILES[G.SETTINGS.profile].challenges_unlocked = #G.CHALLENGES
+		local loc_nodes = {}
+		local _locked = true
+
+		--change this to enable challenges
+		local challenge_mode = 1000000
+		
+		-- vanilla requirement (beat # of decks)
+		if challenge_mode == 1 then
+			local _deck_wins = 0
+			local _deck_win_requirement = 10
+			
+			for k, v in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
+				if v.wins and #v.wins > 0 then
+					_deck_wins = _deck_wins + 1
+					if _deck_wins >= _deck_win_requirement then
+						_locked = false
+						break
+					end
+				end
+			end
+			localize{type = 'descriptions', key = 'ap_challenge_locked_vanilla', set = 'Other', nodes = loc_nodes, vars = {_deck_win_requirement, _deck_wins}, default_col = G.C.WHITE}
+		
+		-- find the challenge deck as an AP item
+		elseif challenge_mode == 2 then
+			localize{type = 'descriptions', key = 'ap_challenge_locked_deck', set = 'Other', nodes = loc_nodes, default_col = G.C.WHITE}
+			_locked = not G.P_CENTERS['b_challenge'].unlocked
+		
+		-- find any challenge as an AP item
+		elseif challenge_mode == 3 then
+			localize{type = 'descriptions', key = 'ap_challenge_locked_item', set = 'Other', nodes = loc_nodes, default_col = G.C.WHITE}
+			for k, v in pairs(G.CHALLENGES) do
+				if v.unlocked == true then
+					_locked = false
+					break
+				end
+			end
+			
+		-- unlocked from the start (doesnt unlock the challenges themselves LOL)
+		elseif challenge_mode == 4 then
+			_locked = false
+			
+		-- default to disabling challenges
+		else
+			localize{type = 'descriptions', key = 'ap_challenge_locked_none', set = 'Other', nodes = loc_nodes, default_col = G.C.WHITE}
+			
+		end
+		
+		local _result = {
+			n = G.UIT.ROOT, 
+			config = {
+				align = "cm",
+				padding = 0.1,
+				colour = G.C.CLEAR,
+				minh = 8.02,
+				minw = 7
+			},
+			nodes = {
+				transparent_multiline_text(loc_nodes)
+				}
+		}
+		
+		--lock the player out if they fail to meet the requirement
+		if _locked then
+			return _result
+		else -- count the amount of unlocked challenges
+			G.PROFILES[G.SETTINGS.profile].challenges_unlocked = 0
+			for k, v in pairs(G.CHALLENGES) do
+				if v.unlocked == true then
+					G.PROFILES[G.SETTINGS.profile].challenges_unlocked = G.PROFILES[G.SETTINGS.profile].challenges_unlocked + 1
+				end
+			end
+		end
+	end
+	local challenges_ui = GUIDEFchallengesRef(from_game_over)
+	
+	if isAPProfileLoaded() then
+		G.PROFILES[G.SETTINGS.profile].challenges_unlocked = #G.CHALLENGES
+	end
+	
+	return challenges_ui
+end
