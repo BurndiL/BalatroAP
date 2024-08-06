@@ -22,6 +22,14 @@ return {
 				}
 			}
 		},
+		Back = {
+			b_challenge = {
+				text = {
+					"Applies {C:attention}Custom Rules{}",
+					"and restrictions"
+				}
+			}
+		},
 		Trap = { -- Trap names are NOT used
 			t_eternal = {
 				name = "Eternal Trap",
@@ -267,6 +275,47 @@ return {
 				text = {
 					"Find this Booster Pack",
 					"as an {C:dark_edition}AP item"
+				}
+			},
+			ap_challenge_locked_vanilla = {
+                name = "Locked",
+                text = {
+                    "Win a run with at least",
+                    "#1# different decks to unlock",
+                    "Challenge mode",
+                    "{C:attention,s:2}#2#/#1#"
+                }
+            },
+			ap_challenge_locked_deck = {
+                name = "Locked",
+                text = {
+                    "Find the Challenge Deck",
+                    "as an {C:dark_edition}AP Item{} to unlock",
+                    "Challenge mode"
+                }
+            },
+			ap_challenge_locked_item = {
+                name = "Locked",
+                text = {
+                    "Find any Challenge",
+                    "as an {C:dark_edition}AP Item{} to unlock",
+                    "Challenge mode"
+                }
+            },
+			ap_challenge_locked_none = {
+                name = "Locked",
+                text = {
+                   --"{C:inactive,s:2}Challenges are disabled"
+				   "Not available",
+                   "in this version",
+				   "{C:attention,s:2}Coming Soon!"
+                }
+            },
+			ap_locked_Deck_c = { --temporary
+				name = "Locked",
+				text = {
+					"Not available",
+                    "in this version"
 				}
 			},
 			ap_goal_decks = {
