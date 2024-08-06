@@ -528,7 +528,7 @@ function Game:init_item_prototypes()
                     end
                 end
                 -- for backs (decks)
-            elseif string.find(k, '^b_') and k ~= 'b_challenge' then
+            elseif string.find(k, '^b_') then
                 v.unlocked = false
                 G.AP.UnlockConsCache[k] = v.unlock_condition
                 v.unlock_condition = nil
@@ -541,7 +541,7 @@ function Game:init_item_prototypes()
                     end
                 end
 
-                if not tableContains(G.AP.slot_data.included_decks, k) then
+                if not tableContains(G.AP.slot_data.included_decks, k) and k ~= 'b_challenge' then
                     SMODS.Back:take_ownership(k, {}):delete()
                 elseif not standard_deck then
                     standard_deck = k
@@ -734,6 +734,17 @@ function Game:init_item_prototypes()
                 self.P_CENTERS[k].demo = nil
             end
         end
+        
+        --fix some custom implementation of the Challenge Deck
+        G.P_CENTERS['b_challenge'].name = "Challenge Deck"
+        G.P_CENTERS['b_challenge'].unlocked = true
+        --remove it from the pool if its there somehow
+        for k, v in ipairs(G.P_CENTER_POOLS.Back) do
+    		if v == G.P_CENTERS['b_challenge'] then
+    			table.remove(G.P_CENTER_POOLS.Back, k)
+    			break
+    		end
+    	end
     end
     return game_init_item_prototypes
 end
@@ -1572,6 +1583,18 @@ function check_and_set_high_score(score, amt)
         G.GAME.round_scores[score].amt = 0
     end
     return check_and_set_high_scoreRef(score, amt)
+end
+
+--prevent modded centers from being injected for AP
+local SMODScenter_injectRef = SMODS.Center.inject 
+function SMODS.Center.inject(self)
+	if isAPProfileLoaded() then
+		if self.mod == nil or self.key == 'v_rand_ap_item' then
+			SMODScenter_injectRef(self)
+		end
+	else 
+		SMODScenter_injectRef(self)
+	end
 end
 
 ----------------------------------------------
