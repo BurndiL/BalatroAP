@@ -24,8 +24,8 @@ return {
 		Back = {
 			b_challenge = {
 				text = {
-					"Angewandt {C:attention}Individuelle Regeln{}",
-					"und Beschränkungen"
+					"Hat {C:attention}individuelle Regeln{}",
+					"und Einschränkungen"
 				}
 			}
 		},
