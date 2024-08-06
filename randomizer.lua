@@ -57,6 +57,7 @@ G.AP.profile_Id = -1
 G.AP.GameObjectInit = false
 G.AP.StakesInit = false
 G.AP.UnlockConsCache = {}
+G.AP.ChallengeCache = {}
 
 -- stake cursor used for AP logic
 G.viewed_stake_act = {}
@@ -456,20 +457,13 @@ function Game:init_item_prototypes()
         -- Locked text | Decks require description setup similar to the old system here
         -- everything else uses "Other.demo_locked" and overwrites it with their text (not here)
         for k, v in pairs(G.localization.descriptions.Back) do
-            v.demo_locked = {}
-            v.deck_locked_win = {}
             v.unlock_parsed = {}
 
             for _line, _string in pairs(G.localization.descriptions.Other.ap_locked_Back.text_parsed) do
-                v.demo_locked[_line] = _string
-                v.deck_locked_win[_line] = _string
                 v.unlock_parsed[_line] = _string
             end
 
             local _name = loc_parse_string("{C:inactive,s:0.8}(" .. v.name .. ")")
-
-            v.demo_locked[#v.demo_locked + 1] = _name
-            v.deck_locked_win[#v.deck_locked_win + 1] = _name
             v.unlock_parsed[#v.unlock_parsed + 1] = _name
 
             G.localization.descriptions.Back[k] = v
@@ -716,6 +710,36 @@ function Game:init_item_prototypes()
 
         self.P_CENTERS['b_red'] = self.P_CENTERS[standard_deck]
 
+	-- handle challenges
+	local ci = 1
+	G.PROFILES[G.SETTINGS.profile].challenge_unlocks = G.PROFILES[G.SETTINGS.profile].challenge_unlocks or {}
+	
+	while ci <= #G.CHALLENGES do
+		--remove modded challenges
+		if G.CHALLENGES[ci].mod ~= nil then
+			G.AP.ChallengeCache[#G.AP.ChallengeCache+1] = G.CHALLENGES[ci]
+			table.remove(G.CHALLENGES, ci)
+		else --prepare vanilla challenges
+			--init save data
+			G.PROFILES[G.SETTINGS.profile].challenge_unlocks[G.CHALLENGES[ci].key] = 
+				G.PROFILES[G.SETTINGS.profile].challenge_unlocks[G.CHALLENGES[ci].key] or false
+
+			--wrape the unlock checking function to check ap values in ap mode
+			if G.CHALLENGES[ci].unlockedRefAP == nil then
+				G.CHALLENGES[ci].unlockedRefAP = G.CHALLENGES[ci].unlocked
+				G.CHALLENGES[ci].unlocked = function(self)
+					if isAPProfileLoaded() then
+						return G.PROFILES[G.SETTINGS.profile].challenge_unlocks[self.key] 
+							and G.PROFILES[G.SETTINGS.profile].challenge_unlocks[self.key]
+					else
+						return self.unlockedRefAP
+					end
+				end
+			end
+			ci = ci + 1
+		end
+	end
+
         init_AP_stakes()
         G:save_progress()
     else
@@ -745,6 +769,15 @@ function Game:init_item_prototypes()
     			break
     		end
     	end
+
+		-- restore challenges removed by ap
+		if #G.AP.ChallengeCache > 0 then
+			for _, v in pairs(G.AP.ChallengeCache) do
+				G.CHALLENGES[#G.CHALLENGES+1] = v
+			end
+			
+			G.AP.ChallengeCache = {}
+		end
     end
     return game_init_item_prototypes
 end
