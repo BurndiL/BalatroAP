@@ -6,6 +6,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
+--- VERSION: 0.1.7
 ----------------------------------------------
 ------------MOD CODE -------------------------
 G.AP = {
@@ -57,6 +58,7 @@ G.AP.profile_Id = -1
 G.AP.GameObjectInit = false
 G.AP.StakesInit = false
 G.AP.UnlockConsCache = {}
+G.AP.ChallengeCache = {}
 
 -- stake cursor used for AP logic
 G.viewed_stake_act = {}
@@ -456,20 +458,15 @@ function Game:init_item_prototypes()
         -- Locked text | Decks require description setup similar to the old system here
         -- everything else uses "Other.demo_locked" and overwrites it with their text (not here)
         for k, v in pairs(G.localization.descriptions.Back) do
-            v.demo_locked = {}
-            v.deck_locked_win = {}
             v.unlock_parsed = {}
-
-            for _line, _string in pairs(G.localization.descriptions.Other.ap_locked_Back.text_parsed) do
-                v.demo_locked[_line] = _string
-                v.deck_locked_win[_line] = _string
+			local loc_target = k == 'b_challenge' and G.localization.descriptions.Other.ap_locked_Back_c.text_parsed 
+				or G.localization.descriptions.Other.ap_locked_Back.text_parsed
+			
+            for _line, _string in pairs(loc_target) do
                 v.unlock_parsed[_line] = _string
             end
 
             local _name = loc_parse_string("{C:inactive,s:0.8}(" .. v.name .. ")")
-
-            v.demo_locked[#v.demo_locked + 1] = _name
-            v.deck_locked_win[#v.deck_locked_win + 1] = _name
             v.unlock_parsed[#v.unlock_parsed + 1] = _name
 
             G.localization.descriptions.Back[k] = v
@@ -528,7 +525,7 @@ function Game:init_item_prototypes()
                     end
                 end
                 -- for backs (decks)
-            elseif string.find(k, '^b_') and k ~= 'b_challenge' then
+            elseif string.find(k, '^b_') then
                 v.unlocked = false
                 G.AP.UnlockConsCache[k] = v.unlock_condition
                 v.unlock_condition = nil
@@ -541,7 +538,7 @@ function Game:init_item_prototypes()
                     end
                 end
 
-                if not tableContains(G.AP.slot_data.included_decks, k) then
+                if not tableContains(G.AP.slot_data.included_decks, k) and k ~= 'b_challenge' then
                     SMODS.Back:take_ownership(k, {}):delete()
                 elseif not standard_deck then
                     standard_deck = k
@@ -716,6 +713,36 @@ function Game:init_item_prototypes()
 
         self.P_CENTERS['b_red'] = self.P_CENTERS[standard_deck]
 
+	-- handle challenges
+	local ci = 1
+	G.PROFILES[G.SETTINGS.profile].challenge_unlocks = G.PROFILES[G.SETTINGS.profile].challenge_unlocks or {}
+	
+	while ci <= #G.CHALLENGES do
+		--remove modded challenges
+		if G.CHALLENGES[ci].mod ~= nil then
+			G.AP.ChallengeCache[#G.AP.ChallengeCache+1] = G.CHALLENGES[ci]
+			table.remove(G.CHALLENGES, ci)
+		else --prepare vanilla challenges
+			--init save data
+			G.PROFILES[G.SETTINGS.profile].challenge_unlocks[G.CHALLENGES[ci].key] = 
+				G.PROFILES[G.SETTINGS.profile].challenge_unlocks[G.CHALLENGES[ci].key] or false
+
+			--wrape the unlock checking function to check ap values in ap mode
+			if G.CHALLENGES[ci].unlockedRefAP == nil then
+				G.CHALLENGES[ci].unlockedRefAP = G.CHALLENGES[ci].unlocked
+				G.CHALLENGES[ci].unlocked = function(self)
+					if isAPProfileLoaded() then
+						return G.PROFILES[G.SETTINGS.profile].challenge_unlocks[self.key] 
+							and G.PROFILES[G.SETTINGS.profile].challenge_unlocks[self.key]
+					else
+						return self.unlockedRefAP
+					end
+				end
+			end
+			ci = ci + 1
+		end
+	end
+
         init_AP_stakes()
         G:save_progress()
     else
@@ -734,6 +761,26 @@ function Game:init_item_prototypes()
                 self.P_CENTERS[k].demo = nil
             end
         end
+        
+        --fix some custom implementation of the Challenge Deck
+        G.P_CENTERS['b_challenge'].name = "Challenge Deck"
+        G.P_CENTERS['b_challenge'].unlocked = true
+        --remove it from the pool if its there somehow
+        for k, v in ipairs(G.P_CENTER_POOLS.Back) do
+    		if v == G.P_CENTERS['b_challenge'] then
+    			table.remove(G.P_CENTER_POOLS.Back, k)
+    			break
+    		end
+    	end
+
+		-- restore challenges removed by ap
+		if #G.AP.ChallengeCache > 0 then
+			for _, v in pairs(G.AP.ChallengeCache) do
+				G.CHALLENGES[#G.CHALLENGES+1] = v
+			end
+			
+			G.AP.ChallengeCache = {}
+		end
     end
     return game_init_item_prototypes
 end
@@ -825,7 +872,8 @@ function CardArea:emplace(card, location, stay_flipped)
             G.pack_cards)) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_strength" and card.config.center.unlocked == true) or
-        (card.config.center_key == "c_incantation" and card.config.center.unlocked == true)) then
+        (card.config.center_key == "c_incantation" and card.config.center.unlocked == true)) 
+        and (G.your_collection ~= nil and tableContains(G.your_collection, self) == false) then
 
         -- following blocks handle standard cards appearing in packs/shop
         if not next(find_joker("Showman")) and card.config.center.unlocked == true then
@@ -1119,7 +1167,7 @@ SMODS.Voucher {
     end,
     set_card_type_badge = function(self, card, badges)
         if card.ability and card.ability.sprite == 1 then
-            badges[#badges + 1] = create_badge(localize("k_ap_check"), HEX("7749a8"), nil, 1.2)
+            badges[#badges + 1] = create_badge(localize("k_ap_check"), {0.4666, 0.286, 0.6588, 1}, nil, 1.2)
         else
             badges[#badges + 1] = create_badge(localize("k_ap_check"), G.C.DARK_EDITION, nil, 1.2)
         end
@@ -1228,7 +1276,8 @@ function Card:redeem()
     end
     redeemref(self)
     if self.config.center_key == 'v_rand_ap_item' then
-
+	G.GAME.used_vouchers[self.config.center_key] = false
+	
         if G.APClient ~= nil and tableContains(G.APClient.missing_locations, self.ability.extra.id) then
             sendLocationCleared(self.ability.extra.id)
         end
@@ -1571,6 +1620,42 @@ function check_and_set_high_score(score, amt)
         G.GAME.round_scores[score].amt = 0
     end
     return check_and_set_high_scoreRef(score, amt)
+end
+
+--prevent modded centers from being injected for AP
+local SMODScenter_injectRef = SMODS.Center.inject 
+function SMODS.Center.inject(self)
+	if isAPProfileLoaded() then
+		--this is needed to prevent a crash when a vanilla object is taken over
+		if self.old_center == nil then 
+			self.old_center = self.config.center
+		end
+		if self.mod == nil or self.key == 'v_rand_ap_item' then
+			SMODScenter_injectRef(self)
+		end
+	else 
+		SMODScenter_injectRef(self)
+	end
+end
+
+--challenge stuff
+local Gamestart_runRef = Game.start_run
+function Game:start_run(args)
+	local _new_args = args
+	
+	--ensure its always white stake
+	if isAPProfileLoaded() then
+		if args.challenge then
+			for k, v in ipairs(G.P_CENTER_POOLS.Stake) do
+				if v.stake_level == 1 then
+					_new_args.stake = k
+					break
+				end
+			end
+		end
+	end
+	
+	return Gamestart_runRef(self,_new_args)
 end
 
 ----------------------------------------------

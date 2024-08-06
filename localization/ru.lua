@@ -22,6 +22,14 @@ return {
 				}
 			}
 		},
+		Back = {
+			b_challenge = {
+				text = {
+					"Применяет {C:attention}Особые правила{}",
+					"и ограничения"
+				}
+			}
+		},
 		Trap = { -- Trap names are NOT used
 			t_eternal = {
 				name = "Вечная Ловушка",
@@ -267,6 +275,47 @@ return {
 				text = {
 					"Найдите этот набор",
 					"в виде {C:dark_edition}Айтема AP"
+				}
+			},
+			ap_challenge_locked_vanilla = {
+                name = "Заблокировано",
+                text = {
+                    "Выиграйте партию с минимум",
+                    "#1# разными колодами, чтобы открыть",
+                    "режим испытания",
+                    "{C:attention,s:2}#2#/#1#"
+                }
+            },
+			ap_challenge_locked_deck = {
+                name = "Заблокировано",
+                text = {
+                    "Найдите Колоду испытаний",
+                    "в виде {C:dark_edition}Айтема AP{}, чтобы открыть",
+                    "режим испытания"
+                }
+            },
+			ap_challenge_locked_item = {
+                name = "Заблокировано",
+                text = {
+                    "Найдите любое Испытание",
+                    "в виде {C:dark_edition}Айтема AP{}, чтобы открыть",
+                    "режим испытания"
+                }
+            },
+			ap_challenge_locked_none = {
+                name = "Заблокировано",
+                text = {
+                   --"{C:inactive,s:2}Испытания отключены."
+				   "Недоступно",
+                   "в этой версии",
+				   "{C:attention,s:2}Скоро!"
+                }
+            },
+			ap_locked_Deck_c = { --temporary
+				name = "Locked",
+				text = {
+					"Недоступно",
+                    "в этой версии"
 				}
 			},
 			ap_goal_decks = {

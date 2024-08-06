@@ -942,3 +942,150 @@ function UIDEF_alert_extra_ui(card, price, badge)
         }
     end
 end
+
+--Add Challenge Deck into the pool when opening the deck collection
+local create_UIBox_your_collection_decksRef = create_UIBox_your_collection_decks
+function create_UIBox_your_collection_decks()
+	local _result = nil
+	if isAPProfileLoaded() and
+        tableContains(G.P_CENTER_POOLS.Back, G.P_CENTERS['b_challenge']) == false then
+		    G.P_CENTER_POOLS.Back[#G.P_CENTER_POOLS.Back+1] = G.P_CENTERS['b_challenge']
+		    G.P_CENTERS['b_challenge'].name = "ChaIIenge Deck" --need this to avoid a crash
+	end
+	_result = create_UIBox_your_collection_decksRef()
+	return _result
+end
+
+--Remove Challenge Deck from the pool when closing the deck collection
+local create_UIBox_your_collectionRef = create_UIBox_your_collection
+function create_UIBox_your_collection()
+	local _result = nil
+    if isAPProfileLoaded() then
+    	for k, v in ipairs(G.P_CENTER_POOLS.Back) do
+    		if v == G.P_CENTERS['b_challenge'] then
+    			G.P_CENTERS['b_challenge'].name = "Challenge Deck"
+    			table.remove(G.P_CENTER_POOLS.Back, k)
+    			break
+    		end
+    	end
+    end
+	_result = create_UIBox_your_collectionRef()
+	return _result
+end
+
+--fix stake cursor and/or challenge deck in the pool
+local GUIDEFrun_setup_option = G.UIDEF.run_setup_option
+function G.UIDEF.run_setup_option(type)
+	if isAPProfileLoaded() then
+		
+		if not G.SAVED_GAME then
+			G.SAVED_GAME = get_compressed(G.SETTINGS.profile..'/'..'save.jkr')
+			if G.SAVED_GAME ~= nil then G.SAVED_GAME = STR_UNPACK(G.SAVED_GAME) end
+		end
+
+		--remove challenge deck from main pool if its there somehow
+		for k, v in ipairs(G.P_CENTER_POOLS.Back) do
+    			if v == G.P_CENTERS['b_challenge'] then
+    				G.P_CENTERS['b_challenge'].name = "Challenge Deck"
+    				table.remove(G.P_CENTER_POOLS.Back, k)
+    				break
+    			end
+    		end
+		
+		-- fix AP stake cursor when viewing the continue screen
+		if G.SAVED_GAME ~= nil then
+			saved_game = G.SAVED_GAME
+			G.viewed_stake = saved_game.GAME.stake or 1
+			G.viewed_stake_act[2] = saved_game.GAME.stake or 1
+			G.viewed_stake_act[1] = 0
+		end
+	end
+	return GUIDEFrun_setup_option(type)
+end
+
+--challenge ui
+local GUIDEFchallengesRef = G.UIDEF.challenges
+function G.UIDEF.challenges(from_game_over)
+	if isAPProfileLoaded() then
+		G.PROFILES[G.SETTINGS.profile].challenges_unlocked = #G.CHALLENGES
+		local loc_nodes = {}
+		local _locked = true
+
+		--change this to enable challenges
+		local challenge_mode = 1000000
+		
+		-- vanilla requirement (beat # of decks)
+		if challenge_mode == 1 then
+			local _deck_wins = 0
+			local _deck_win_requirement = 10
+			
+			for k, v in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
+				if v.wins and #v.wins > 0 then
+					_deck_wins = _deck_wins + 1
+					if _deck_wins >= _deck_win_requirement then
+						_locked = false
+						break
+					end
+				end
+			end
+			localize{type = 'descriptions', key = 'ap_challenge_locked_vanilla', set = 'Other', nodes = loc_nodes, vars = {_deck_win_requirement, _deck_wins}, default_col = G.C.WHITE}
+		
+		-- find the challenge deck as an AP item
+		elseif challenge_mode == 2 then
+			localize{type = 'descriptions', key = 'ap_challenge_locked_deck', set = 'Other', nodes = loc_nodes, default_col = G.C.WHITE}
+			_locked = not G.P_CENTERS['b_challenge'].unlocked
+		
+		-- find any challenge as an AP item
+		elseif challenge_mode == 3 then
+			localize{type = 'descriptions', key = 'ap_challenge_locked_item', set = 'Other', nodes = loc_nodes, default_col = G.C.WHITE}
+			for k, v in pairs(G.CHALLENGES) do
+				if v.unlocked == true then
+					_locked = false
+					break
+				end
+			end
+			
+		-- unlocked from the start (doesnt unlock the challenges themselves LOL)
+		elseif challenge_mode == 4 then
+			_locked = false
+			
+		-- default to disabling challenges
+		else
+			localize{type = 'descriptions', key = 'ap_challenge_locked_none', set = 'Other', nodes = loc_nodes, default_col = G.C.WHITE}
+			
+		end
+		
+		local _result = {
+			n = G.UIT.ROOT, 
+			config = {
+				align = "cm",
+				padding = 0.1,
+				colour = G.C.CLEAR,
+				minh = 8.02,
+				minw = 7
+			},
+			nodes = {
+				transparent_multiline_text(loc_nodes)
+				}
+		}
+		
+		--lock the player out if they fail to meet the requirement
+		if _locked then
+			return _result
+		else -- count the amount of unlocked challenges
+			G.PROFILES[G.SETTINGS.profile].challenges_unlocked = 0
+			for k, v in pairs(G.CHALLENGES) do
+				if v.unlocked == true then
+					G.PROFILES[G.SETTINGS.profile].challenges_unlocked = G.PROFILES[G.SETTINGS.profile].challenges_unlocked + 1
+				end
+			end
+		end
+	end
+	local challenges_ui = GUIDEFchallengesRef(from_game_over)
+	
+	if isAPProfileLoaded() then
+		G.PROFILES[G.SETTINGS.profile].challenges_unlocked = #G.CHALLENGES
+	end
+	
+	return challenges_ui
+end

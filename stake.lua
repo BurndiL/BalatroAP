@@ -339,28 +339,6 @@ function check_stake_unlock(_stake, _deck_key)
     return false
 end
 
-local GUIDEFrun_setup_option = G.UIDEF.run_setup_option
-function G.UIDEF.run_setup_option(type)
-    if isAPProfileLoaded() then
-
-        if not G.SAVED_GAME then
-            G.SAVED_GAME = get_compressed(G.SETTINGS.profile .. '/' .. 'save.jkr')
-            if G.SAVED_GAME ~= nil then
-                G.SAVED_GAME = STR_UNPACK(G.SAVED_GAME)
-            end
-        end
-
-        -- fix AP stake cursor when viewing the continue screen
-        if G.SAVED_GAME ~= nil then
-            saved_game = G.SAVED_GAME
-            G.viewed_stake = saved_game.GAME.stake or 1
-            G.viewed_stake_act[2] = saved_game.GAME.stake or 1
-            G.viewed_stake_act[1] = 0
-        end
-    end
-    return GUIDEFrun_setup_option(type)
-end
-
 local UIDEF_deck_stake_columnRef = G.UIDEF.deck_stake_column
 function G.UIDEF.deck_stake_column(_deck_key)
     -- hijack to use custom logic in AP

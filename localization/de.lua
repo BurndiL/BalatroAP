@@ -21,6 +21,14 @@ return {
 				}
 			}
 		},
+		Back = {
+			b_challenge = {
+				text = {
+					"Hat {C:attention}individuelle Regeln{}",
+					"und Einschränkungen"
+				}
+			}
+		},
 		Trap = { -- Trap names are NOT used
 			t_eternal = {
 				name = "Ewig-Falle",
@@ -266,6 +274,47 @@ return {
 				text = {
 					"Finde dieses Booster-Paket",
 					"als {C:dark_edition}AP item"
+				}
+			},
+			ap_challenge_locked_vanilla = {
+                name = "Gesperrt",
+                text = {
+                    "Gewinne mindestens einen Durchlauf",
+                    "mit #1# unterschiedlichen Decks,",
+                    "um den Herausforderungsmodus freizuschalten",
+                    "{C:attention,s:2}#2#/#1#"
+                }
+            },
+			ap_challenge_locked_deck = {
+                name = "Gesperrt",
+                text = {
+                    "Finde das Herausforderungsdeck",
+                    "als {C:dark_edition}AP Item{},",
+                    "um den Herausforderungsmodus freizuschalten"
+                }
+            },
+			ap_challenge_locked_item = {
+                name = "Gesperrt",
+                text = {
+                    "Finde jede Herausforderung",
+                    "als {C:dark_edition}AP Item{},"
+                    "um den Herausforderungsmodus freizuschalten"
+                }
+            },
+			ap_challenge_locked_none = {
+                name = "Gesperrt",
+                text = {
+                   --"{C:inactive,s:2}Herausforderungen sind deaktiviert"
+				   "Nicht verfügbar",
+                    "in dieser Version",
+				   "{C:attention,s:2}Kommt bald!"
+                }
+            },
+			ap_locked_Deck_c = { --temporary
+				name = "Gesperrt",
+				text = {
+					"Nicht verfügbar",
+                    "in dieser Version"
 				}
 			},
 			ap_goal_decks = {
