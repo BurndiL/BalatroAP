@@ -290,14 +290,15 @@ end
 
 function check_stake_unlock(_stake, _deck_key)
     -- [Mode 0] all unlocked mode
-    if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(0) then
+    if tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.unlocked then
         return true
     end
 
-    -- [Mode 1] linear progression (vanilla)
+    -- [Mode 1/2] linear progression (vanilla/linear)
     -- (beating a stake unlocks the next one in the list)
     -- (per deck)
-    if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(1) then
+    if tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.vanilla or
+        tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.linear then
         if G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key] then
             local _stake_progress = 0
             for k, v in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].wins) do
@@ -314,10 +315,10 @@ function check_stake_unlock(_stake, _deck_key)
         return false
     end
 
-    -- [Mode 2] global unlocks
+    -- [Mode 3] global unlocks
     -- (stakes are unlocked if their .unlocked exists and is true)
     -- stakes are items
-    if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(2) then
+    if tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.stake_as_item then
         if G.P_CENTER_POOLS.Stake[_stake].unlocked then
             return G.P_CENTER_POOLS.Stake[_stake].unlocked
         end
@@ -325,10 +326,10 @@ function check_stake_unlock(_stake, _deck_key)
         return false
     end
 
-    -- [Mode 3] individual unlocks
+    -- [Mode 4] individual unlocks
     -- (stakes are unlocked if their entry in deck_usage.stake_unlocks exists and is true)
     -- stakes are items for each deck; the decks themselves are not items
-    if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(3) then
+    if tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.stake_as_item_per_deck then
         if G.PROFILES[G.SETTINGS.profile].deck_usage and G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key] and
             G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks then
             return G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks[_stake] or false
@@ -478,7 +479,6 @@ function G.UIDEF.stake_option(_type)
         return stake_optionRef(_type)
     end
 end
-
 
 local GUIDEFviewed_stake_optionRef = G.UIDEF.viewed_stake_option
 function G.UIDEF.viewed_stake_option()

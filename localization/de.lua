@@ -297,7 +297,7 @@ return {
                 name = "Gesperrt",
                 text = {
                     "Finde jede Herausforderung",
-                    "als {C:dark_edition}AP Item{},"
+                    "als {C:dark_edition}AP Item{},",
                     "um den Herausforderungsmodus freizuschalten"
                 }
             },
