@@ -942,3 +942,33 @@ function UIDEF_alert_extra_ui(card, price, badge)
         }
     end
 end
+
+--Add Challenge Deck into the pool when opening the deck collection
+local create_UIBox_your_collection_decksRef = create_UIBox_your_collection_decks
+function create_UIBox_your_collection_decks()
+	local _result = nil
+	if isAPProfileLoaded() and
+        tableContains(G.P_CENTER_POOLS.Back, G.P_CENTERS['b_challenge']) == false then
+		    G.P_CENTER_POOLS.Back[#G.P_CENTER_POOLS.Back+1] = G.P_CENTERS['b_challenge']
+		    G.P_CENTERS['b_challenge'].name = "ChaIIenge Deck" --need this to avoid a crash
+	end
+	_result = create_UIBox_your_collection_decksRef()
+	return _result
+end
+
+--Remove Challenge Deck from the pool when closing the deck collection
+local create_UIBox_your_collectionRef = create_UIBox_your_collection
+function create_UIBox_your_collection()
+	local _result = nil
+    if isAPProfileLoaded() then
+    	for k, v in ipairs(G.P_CENTER_POOLS.Back) do
+    		if v == G.P_CENTERS['b_challenge'] then
+    			G.P_CENTERS['b_challenge'].name = "Challenge Deck"
+    			table.remove(G.P_CENTER_POOLS.Back, k)
+    			break
+    		end
+    	end
+    end
+	_result = create_UIBox_your_collectionRef()
+	return _result
+end
