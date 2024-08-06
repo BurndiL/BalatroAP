@@ -6,6 +6,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
+--- VERSION: 0.1.7
 ----------------------------------------------
 ------------MOD CODE -------------------------
 G.AP = {
@@ -458,8 +459,10 @@ function Game:init_item_prototypes()
         -- everything else uses "Other.demo_locked" and overwrites it with their text (not here)
         for k, v in pairs(G.localization.descriptions.Back) do
             v.unlock_parsed = {}
-
-            for _line, _string in pairs(G.localization.descriptions.Other.ap_locked_Back.text_parsed) do
+			local loc_target = k == 'b_challenge' and G.localization.descriptions.Other.ap_locked_Back_c.text_parsed 
+				or G.localization.descriptions.Other.ap_locked_Back.text_parsed
+			
+            for _line, _string in pairs(loc_target) do
                 v.unlock_parsed[_line] = _string
             end
 
@@ -1164,7 +1167,7 @@ SMODS.Voucher {
     end,
     set_card_type_badge = function(self, card, badges)
         if card.ability and card.ability.sprite == 1 then
-            badges[#badges + 1] = create_badge(localize("k_ap_check"), HEX("7749a8"), nil, 1.2)
+            badges[#badges + 1] = create_badge(localize("k_ap_check"), {0.4666, 0.286, 0.6588, 1}, nil, 1.2)
         else
             badges[#badges + 1] = create_badge(localize("k_ap_check"), G.C.DARK_EDITION, nil, 1.2)
         end
