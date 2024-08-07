@@ -459,7 +459,7 @@ function Game:init_item_prototypes()
     local game_init_item_prototypes = game_init_item_prototypesRef(self)
 
     if isAPProfileLoaded() then
-        if tableContains(G.AP.slot_data.included_decks, 'b_red') then
+        if tableContains(G.AP.slot_data.included_decks, 'b_red')  then
             standard_deck = 'b_red'
         end
 
@@ -467,9 +467,9 @@ function Game:init_item_prototypes()
         -- everything else uses "Other.demo_locked" and overwrites it with their text (not here)
         for k, v in pairs(G.localization.descriptions.Back) do
             v.unlock_parsed = {}
-            local loc_target = k == 'b_challenge' and G.localization.descriptions.Other.ap_locked_Back_c and
-                                   G.localization.descriptions.Other.ap_locked_Back_c.text_parsed or
-                                   G.localization.descriptions.Other.ap_locked_Back.text_parsed
+            local loc_target = k == 'b_challenge' and 
+					G.localization.descriptions.Other.ap_locked_Deck_c.text_parsed or
+                    G.localization.descriptions.Other.ap_locked_Back.text_parsed
 
             for _line, _string in pairs(loc_target) do
                 v.unlock_parsed[_line] = _string
@@ -549,7 +549,7 @@ function Game:init_item_prototypes()
 
                 if not tableContains(G.AP.slot_data.included_decks, k) and k ~= 'b_challenge' then
                     SMODS.Back:take_ownership(k, {}):delete()
-                elseif not standard_deck then
+                elseif not standard_deck and k ~= 'b_challenge' then
                     standard_deck = k
                 end
 
