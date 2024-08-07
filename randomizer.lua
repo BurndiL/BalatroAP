@@ -448,8 +448,8 @@ G.FUNCS.AP_unlock_item = function(item)
 
     G.FILE_HANDLER.force = true
 
-    -- prevent duplicate notification on stake_unlock_mode 3
-    if not (item.set == 'Back' and tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.stake_as_item) then
+    -- prevent duplicate notification on stake_unlock_mode 4
+    if not (item.set == 'Back' and tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.stake_as_item_per_deck) then
         notify_alert(item.key, item.set)
     end
 end
