@@ -448,8 +448,8 @@ G.FUNCS.AP_unlock_item = function(item)
 
     G.FILE_HANDLER.force = true
 
-    -- prevent duplicate notification on stake_unlock_mode 3
-    if not (item.set == 'Back' and tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.stake_as_item) then
+    -- prevent duplicate notification on stake_unlock_mode 4
+    if not (item.set == 'Back' and tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.stake_as_item_per_deck) then
         notify_alert(item.key, item.set)
     end
 end
@@ -459,7 +459,7 @@ function Game:init_item_prototypes()
     local game_init_item_prototypes = game_init_item_prototypesRef(self)
 
     if isAPProfileLoaded() then
-        if tableContains(G.AP.slot_data.included_decks, 'b_red') then
+        if tableContains(G.AP.slot_data.included_decks, 'b_red')  then
             standard_deck = 'b_red'
         end
 
@@ -467,9 +467,9 @@ function Game:init_item_prototypes()
         -- everything else uses "Other.demo_locked" and overwrites it with their text (not here)
         for k, v in pairs(G.localization.descriptions.Back) do
             v.unlock_parsed = {}
-            local loc_target = k == 'b_challenge' and G.localization.descriptions.Other.ap_locked_Back_c and
-                                   G.localization.descriptions.Other.ap_locked_Back_c.text_parsed or
-                                   G.localization.descriptions.Other.ap_locked_Back.text_parsed
+            local loc_target = k == 'b_challenge' and 
+					G.localization.descriptions.Other.ap_locked_Deck_c.text_parsed or
+                    G.localization.descriptions.Other.ap_locked_Back.text_parsed
 
             for _line, _string in pairs(loc_target) do
                 v.unlock_parsed[_line] = _string
@@ -549,7 +549,7 @@ function Game:init_item_prototypes()
 
                 if not tableContains(G.AP.slot_data.included_decks, k) and k ~= 'b_challenge' then
                     SMODS.Back:take_ownership(k, {}):delete()
-                elseif not standard_deck then
+                elseif not standard_deck and k ~= 'b_challenge' then
                     standard_deck = k
                 end
 
@@ -882,7 +882,7 @@ function CardArea:emplace(card, location, stay_flipped)
         (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_strength" and card.config.center.unlocked == true) or
         (card.config.center_key == "c_incantation" and card.config.center.unlocked == true)) and
-        (G.your_collection ~= nil and tableContains(G.your_collection, self) == false) then
+        ((G.your_collection ~= nil and tableContains(G.your_collection, self) == false) or G.your_collection == nil) then
 
         -- following blocks handle standard cards appearing in packs/shop
         if not next(find_joker("Showman")) and card.config.center.unlocked == true then
@@ -1582,8 +1582,11 @@ function sendLocationCleared(id)
             G.FUNCS.resolve_location_id_to_name(id)
 
             -- dont send out a location alert if sending item to yourself
-            if G.AP.location_id_to_item_name[id].player_name ~= G.AP.APSlot then
-                notify_alert(id, "location")
+            if (G.AP.location_id_to_item_name[id] and
+		G.AP.location_id_to_item_name[id].player_name and
+		G.AP.location_id_to_item_name[id].player_name ~= G.AP.APSlot) or
+		G.AP.location_id_to_item_name[id] == nil then
+                	notify_alert(id, "location")
             end
         end
         G.APClient:LocationChecks({id})
@@ -1655,7 +1658,7 @@ function Game:start_run(args)
 
     -- ensure its always white stake
     if isAPProfileLoaded() then
-        if args.challenge then
+        if args.challenge and #args.challenge ~= 0 then
             for k, v in ipairs(G.P_CENTER_POOLS.Stake) do
                 if v.stake_level == 1 then
                     _new_args.stake = k

@@ -828,3 +828,111 @@ function set_deck_win()
         return set_deck_winRef()
     end
 end
+
+-- =============
+-- GALDUR (UI MOD) COMPAT
+-- =============
+local populate_stake_card_areasRef = populate_stake_card_areas
+function populate_stake_card_areas(page)
+	if isAPProfileLoaded() then
+		local count = 1 + (page - 1) * 24
+		for i=1, 24 do
+			if count > #G.AP.slot_data.included_stakes then return end
+			local card = Card(Galdur.run_setup.stake_select_areas[i].T.x,Galdur.run_setup.stake_select_areas[i].T.y, 3.4*14/41, 3.4*14/41,
+				Galdur.run_setup.choices.deck.effect.center, Galdur.run_setup.choices.deck.effect.center, {stake_chip = true, stake = count})
+			card.facing = 'back'
+			card.sprite_facing = 'back'
+			card.children.back = get_stake_sprite_in_area(count, 3.4*14/41, card)
+		
+			local unlocked = check_stake_unlock(count, Galdur.run_setup.choices.deck.effect.center.key)
+			if not unlocked and not Galdur.config.unlock_all then
+				card.params.stake_chip_locked = true
+				card.children.back = Sprite(card.T.x, card.T.y, 3.4*14/41, 3.4*14/41,G.ASSET_ATLAS['galdur_locked_stake'], {x=0,y=0})
+				
+			end
+			if G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key] and 
+				#G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key].wins > 0 then
+				card.children.back.won = true
+			end
+			card.children.back.states.hover = card.states.hover
+			card.children.back.states.click = card.states.click
+			card.children.back.states.drag = card.states.drag
+			card.states.collide.can = false
+			card.children.back:set_role({major = card, role_type = 'Glued', draw_major = card})
+			Galdur.run_setup.stake_select_areas[i]:emplace(card)
+			count = count + 1
+		end
+	else
+		populate_stake_card_areasRef(page)
+	end
+end
+
+--more galdur compat
+local build_stake_chainRef = build_stake_chain
+function build_stake_chain(end_stake_index, chain)
+	if isAPProfileLoaded() then
+		local stake_chain = chain or {}
+		
+		for i = 1, G.P_CENTER_POOLS.Stake[end_stake_index].stake_level, 1 do
+			stake_chain[i] = 1
+		end
+		
+		for k, v in pairs(G.P_CENTER_POOLS.Stake) do
+			if v.stake_level <= G.P_CENTER_POOLS.Stake[end_stake_index].stake_level then
+				stake_chain[v.stake_level] = k
+			end
+		end
+		
+		return stake_chain
+	else
+		return build_stake_chainRef(end_stake_index, chain)
+	end
+end
+
+--galdur compat
+local order_stake_chainRef = order_stake_chain
+function order_stake_chain(stake_chain, _stake)
+	if isAPProfileLoaded() then
+		return stake_chain
+	else
+		return order_stake_chain(stake_chain, _stake)
+	end
+end
+
+--galdur compat
+local populate_chip_towerRef = populate_chip_tower
+function populate_chip_tower(_stake)
+	if isAPProfileLoaded() then
+		local AP_stake = 1
+		local galdur_back = Galdur.run_setup.choices.deck.effect.center.key
+		if check_stake_unlock(_stake, galdur_back) == false then
+			if G.PROFILES[G.SETTINGS.profile].deck_usage[galdur_back] and 
+			#G.PROFILES[G.SETTINGS.profile].deck_usage[galdur_back].wins > 0 then
+				
+				local AP_stake_level = 1
+				for k, v in G.PROFILES[G.SETTINGS.profile].deck_usage[galdur_back].wins do
+					if G.P_CENTER_POOLS.Stake[k].stake_level >= AP_stake_level then
+						AP_stake = k
+						AP_stake_level = G.P_CENTER_POOLS.Stake[k].stake_level 
+					end
+				end
+			
+			else
+				for i = 1, 8, 1 do
+					if check_stake_unlock(i, galdur_back) == true then
+						AP_stake = i
+						break
+					end
+				end
+			end
+			Galdur.run_setup.choices.stake = AP_stake
+		else
+			AP_stake = _stake
+		end
+		return populate_chip_towerRef(AP_stake)
+	else
+		return populate_chip_towerRef(_stake)
+	end
+end
+
+-- ==== END OF GALDUR COMPAT

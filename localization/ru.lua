@@ -312,10 +312,24 @@ return {
                 }
             },
 			ap_locked_Deck_c = { --temporary
-				name = "Locked",
+				name = "Недоступно",
 				text = {
 					"Недоступно",
                     "в этой версии"
+				}
+			},
+			ap_locked_StakeItem = {
+				name = "Недоступно",
+				text = {
+					"Найдите эту Ставку",
+					"в виде {C:dark_edition}Айтема AP"
+				}
+			},
+			ap_locked_StakeLine = {
+				name = "Недоступно",
+				text = {
+					"Выйграйте партию с этой колодой",
+                    "на сложности {V:1}#1#{} и выше",
 				}
 			},
 			ap_goal_decks = {

@@ -1089,3 +1089,65 @@ function G.UIDEF.challenges(from_game_over)
 	
 	return challenges_ui
 end
+
+-- ===============
+-- GALDUR (UI MOD) COMPAT
+-- ===============
+
+-- galdur stake message
+local create_stake_unlock_messageRef = create_stake_unlock_message
+function create_stake_unlock_message(stake)
+	if isAPProfileLoaded() then
+		-- vanilla
+		if tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(G.AP.stake_unlock_modes.vanilla) or
+		tonumber(G.AP.slot_data.stake_unlock_mode) == tonumber(G.AP.stake_unlock_modes.linear) then
+			
+			local other_name = localize{
+				type = 'name_text',
+				set = 'Stake',
+				key = stake ~= 1 and G.P_CENTER_POOLS.Stake[stake - 1].key or G.P_CENTER_POOLS.Stake[stake].key
+			}
+			local loc_nodes = {}
+			local _text_nodes = {}
+			local loc_args = {other_name, colours = {get_stake_col(stake-1)}}
+			localize{type = 'descriptions', key = 'ap_locked_StakeLine', set = "Other", nodes = loc_nodes, vars = loc_args}
+			
+			for k, v in ipairs(loc_nodes) do
+                _text_nodes[#_text_nodes + 1] = {
+                    n = G.UIT.R,
+                    config = {
+                        align = "cm",
+                        maxw = 3.2
+                    },
+                    nodes = v
+                }
+            end
+			
+			return _text_nodes
+		-- item-based modes (might need to split in hint update)
+		else
+			local loc_nodes = {}
+			local _text_nodes = {}
+			localize{type = 'descriptions', key = 'ap_locked_StakeItem', set = "Other", nodes = loc_nodes}
+			
+			for k, v in ipairs(loc_nodes) do
+                _text_nodes[#_text_nodes + 1] = {
+                    n = G.UIT.R,
+                    config = {
+                        align = "cm",
+                        maxw = 3.2
+                    },
+                    nodes = v
+                }
+            end
+			
+			return _text_nodes
+		end
+	else
+		return create_stake_unlock_messageRef(stake)
+	end
+end
+
+-- =============
+-- END OF GALDUR COMPAT
+-- =============
