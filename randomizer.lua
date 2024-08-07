@@ -1655,7 +1655,7 @@ function Game:start_run(args)
 
     -- ensure its always white stake
     if isAPProfileLoaded() then
-        if args.challenge then
+        if args.challenge and #args.challenge ~= 0 then
             for k, v in ipairs(G.P_CENTER_POOLS.Stake) do
                 if v.stake_level == 1 then
                     _new_args.stake = k
