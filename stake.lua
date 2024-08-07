@@ -905,26 +905,30 @@ function populate_chip_tower(_stake)
 	if isAPProfileLoaded() then
 		local AP_stake = 1
 		local galdur_back = Galdur.run_setup.choices.deck.effect.center.key
-		if G.PROFILES[G.SETTINGS.profile].deck_usage[galdur_back] and 
-		#G.PROFILES[G.SETTINGS.profile].deck_usage[galdur_back].wins > 0 then
+		if check_stake_unlock(_stake, galdur_back) == false then
+			if G.PROFILES[G.SETTINGS.profile].deck_usage[galdur_back] and 
+			#G.PROFILES[G.SETTINGS.profile].deck_usage[galdur_back].wins > 0 then
+				
+				local AP_stake_level = 1
+				for k, v in G.PROFILES[G.SETTINGS.profile].deck_usage[galdur_back].wins do
+					if G.P_CENTER_POOLS.Stake[k].stake_level >= AP_stake_level then
+						AP_stake = k
+						AP_stake_level = G.P_CENTER_POOLS.Stake[k].stake_level 
+					end
+				end
 			
-			local AP_stake_level = 1
-			for k, v in G.PROFILES[G.SETTINGS.profile].deck_usage[galdur_back].wins do
-				if G.P_CENTER_POOLS.Stake[k].stake_level >= AP_stake_level then
-					AP_stake = k
-					AP_stake_level = G.P_CENTER_POOLS.Stake[k].stake_level 
+			else
+				for i = 1, 8, 1 do
+					if check_stake_unlock(i, galdur_back) == true then
+						AP_stake = i
+						break
+					end
 				end
 			end
-		
+			Galdur.run_setup.choices.stake = AP_stake
 		else
-			for i = 1, 8, 1 do
-				if check_stake_unlock(i, galdur_back) == true then
-					AP_stake = i
-					break
-				end
-			end
+			AP_stake = _stake
 		end
-		
 		return populate_chip_towerRef(AP_stake)
 	else
 		return populate_chip_towerRef(_stake)
