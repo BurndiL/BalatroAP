@@ -317,6 +317,20 @@ return {
                     "in dieser Version"
 				}
 			},
+			ap_locked_StakeItem = {
+				name = "Gesperrt",
+				text = {
+					"Finde diesen Einsatz",
+					"als {C:dark_edition}AP item"
+				}
+			},
+			ap_locked_StakeLine = {
+				name = "Gesperrt",
+				text = {
+					"Gewinne einen Durchlauf mit diesem Deck",
+                    "auf mindestens Schwierigkeitsstufe {V:1}#1#{}",
+				}
+			},
 			ap_goal_decks = {
 				text = {"Gewinne mit #1# Decks (#2#/#1#)"}
 			},

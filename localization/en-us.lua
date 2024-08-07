@@ -318,6 +318,20 @@ return {
                     "in this version"
 				}
 			},
+			ap_locked_StakeItem = {
+				name = "Locked",
+				text = {
+					"Find this Stake",
+					"as an {C:dark_edition}AP item"
+				}
+			},
+			ap_locked_StakeLine = {
+				name = "Locked",
+				text = {
+					"Win a run with this deck",
+                    "on at least {V:1}#1#{} difficulty",
+				}
+			},
 			ap_goal_decks = {
 				text = {"Beat #1# Decks (#2#/#1#)"}
 			},
