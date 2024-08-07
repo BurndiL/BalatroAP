@@ -1582,8 +1582,11 @@ function sendLocationCleared(id)
             G.FUNCS.resolve_location_id_to_name(id)
 
             -- dont send out a location alert if sending item to yourself
-            if G.AP.location_id_to_item_name[id].player_name ~= G.AP.APSlot then
-                notify_alert(id, "location")
+            if (G.AP.location_id_to_item_name[id] and
+		G.AP.location_id_to_item_name[id].player_name and
+		G.AP.location_id_to_item_name[id].player_name ~= G.AP.APSlot) or
+		G.AP.location_id_to_item_name[id] == nil then
+                	notify_alert(id, "location")
             end
         end
         G.APClient:LocationChecks({id})
