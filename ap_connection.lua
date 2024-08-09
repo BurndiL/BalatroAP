@@ -1189,13 +1189,21 @@ function APConnect()
     function on_bounced(bounce)
         -- print("Bounced:")
         -- print(tostring(bounce))
-        if bounce ~= nil and bounce.tags and tbl_contains(bounce.tags, "DeathLink") and bounce.data then
-            G.AP.death_link_cause = bounce.data.cause or "unknown"
-            G.AP.death_link_source = bounce.data.source or "unknown"
-
-            -- lol
-            if not G.GAME.game_over_by_deathlink then
-                G.FUNCS.die()
+        if bounce ~= nil and bounce.tags and tableContains(bounce.tags, "DeathLink") and bounce.data then
+            if G.AP.LAST_DEATH_LINK_TIME ~= nil and tostring(G.AP.LAST_DEATH_LINK_TIME) == tostring(bounce.data.time) then
+                -- our own package -> Do nothing
+                sendDebugMessage("skipping this deathlink")
+            else
+                G.AP.death_link_cause = bounce.data.cause or "unknown"
+                G.AP.death_link_source = bounce.data.source or "unknown"
+    
+    
+                G.AP.game_over_by_deathlink = true
+    
+                -- lol
+                if G.STAGES and G.FUNCS and G.FUNCS.die and G.STAGE == G.STAGES.RUN then
+                    G.FUNCS.die()
+                end
             end
         end
     end
