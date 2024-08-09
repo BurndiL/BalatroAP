@@ -9,6 +9,8 @@
 --- VERSION: 0.1.7
 ----------------------------------------------
 ------------MOD CODE -------------------------
+_RELEASE_MODE = false
+
 G.AP = {
     APAddress = "archipelago.gg",
     APPort = 38281,
@@ -26,6 +28,7 @@ G.AP.stake_unlock_modes = {
 }
 
 G.AP.location_id_to_item_name = {}
+G.AP.game_over_by_deathlink = false
 
 G.AP.this_mod = SMODS.current_mod
 
@@ -42,7 +45,6 @@ AP = require('lua-apclientpp')
 local isInProfileTabCreation = false
 local isInProfileOptionCreation = false
 local unloadAPProfile = false
-local foreignDeathlink = false
 local ap_profile_delete = false
 
 local deck_list = {}
@@ -145,7 +147,6 @@ function Game:init_game_object()
 
     end
 
-    foreignDeathlink = false
     return init_game_object
 end
 
@@ -155,7 +156,6 @@ G.FUNCS.die = function()
 
     if G.STAGE == G.STAGES.RUN and G.AP.slot_data and G.AP.slot_data.deathlink then
 
-        foreignDeathlink = true
         -- G.SETTINGS.screenshake = 300
         G.STATE = G.STATES.GAME_OVER
         if not G.GAME.won and not G.GAME.seeded and not G.GAME.challenge then
@@ -172,7 +172,7 @@ end
 local speech_bubbleref = G.UIDEF.speech_bubble
 function G.UIDEF.speech_bubble(text_key, loc_vars)
     if isAPProfileLoaded() and
-        (not G.GAME.game_over_by_deathlink and G.AP.death_link_cause and G.AP.death_link_cause ~= "unknown" and loc_vars and
+        (G.AP.death_link_cause and G.AP.death_link_cause ~= "unknown" and loc_vars and
             loc_vars.quip) then
         -- split cause into chunks
         local lines = split_text_to_lines(G.AP.death_link_cause)
@@ -236,6 +236,8 @@ function G.UIDEF.speech_bubble(text_key, loc_vars)
                 }}
             }}
         }
+        G.AP.death_link_cause = nil
+        G.AP.death_link_source = nil
         return t
     end
     return speech_bubbleref(text_key, loc_vars)
@@ -244,28 +246,31 @@ end
 -- send out deathlink
 
 function sendDeathLinkBounce(cause, source)
+
+    sendDebugMessage("sendDeathLinkBounce started")
     cause = cause or "Balatro"
     source = source or G.AP.APSlot or "BalatroPlayer"
     local time = G.APClient:get_server_time()
+    G.AP.LAST_DEATH_LINK_TIME = time
     sendDebugMessage("AP:sendDeathLinkBounce " .. tostring(time) .. " " .. cause .. " " .. source)
     local res = G.APClient:Bounce({
         time = time,
         cause = cause,
         source = source
     }, {}, {}, {"DeathLink"})
-    sendDebugMessage("AP:sendDeathLinkBounce " .. tostring(G.APClient))
-    sendDebugMessage("AP:sendDeathLinkBounce " .. tostring(res))
 end
 
 local update_game_overRef = Game.update_game_over
 function Game:update_game_over(dt)
+
     -- only sends deathlink if run ended before and during ante 8
     -- also checks if run is over because of deathlink coming in (not sure if necessary)
-    if isAPProfileLoaded() and G.AP.slot_data and G.AP.slot_data.deathlink and G.GAME.round_resets.ante <=
-        G.GAME.win_ante and not foreignDeathlink and not G.GAME.game_over_by_deathlink then
+    if isAPProfileLoaded() and not G.STATE_COMPLETE and G.AP.slot_data and G.AP.slot_data.deathlink and
+        G.GAME.round_resets.ante <= G.GAME.win_ante and not G.AP.game_over_by_deathlink then
+
         sendDeathLinkBounce("Run ended at ante " .. G.GAME.round_resets.ante)
-        G.GAME.game_over_by_deathlink = true
     end
+    G.AP.game_over_by_deathlink = false
     return update_game_overRef(self, dt)
 end
 
@@ -277,12 +282,6 @@ function Game:update(dt)
     if G.APClient ~= nil then
         G.APClient:poll()
     end
-
-    if G.STAGE == G.STAGES.MAIN_MENU and foreignDeathlink then
-
-        foreignDeathlink = false
-    end
-
     return game_update
 end
 
@@ -449,7 +448,8 @@ G.FUNCS.AP_unlock_item = function(item)
     G.FILE_HANDLER.force = true
 
     -- prevent duplicate notification on stake_unlock_mode 4
-    if not (item.set == 'Back' and tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.stake_as_item_per_deck) then
+    if not (item.set == 'Back' and tonumber(G.AP.slot_data.stake_unlock_mode) ==
+        G.AP.stake_unlock_modes.stake_as_item_per_deck) then
         notify_alert(item.key, item.set)
     end
 end
@@ -459,7 +459,7 @@ function Game:init_item_prototypes()
     local game_init_item_prototypes = game_init_item_prototypesRef(self)
 
     if isAPProfileLoaded() then
-        if tableContains(G.AP.slot_data.included_decks, 'b_red')  then
+        if tableContains(G.AP.slot_data.included_decks, 'b_red') then
             standard_deck = 'b_red'
         end
 
@@ -467,9 +467,8 @@ function Game:init_item_prototypes()
         -- everything else uses "Other.demo_locked" and overwrites it with their text (not here)
         for k, v in pairs(G.localization.descriptions.Back) do
             v.unlock_parsed = {}
-            local loc_target = k == 'b_challenge' and 
-					G.localization.descriptions.Other.ap_locked_Deck_c.text_parsed or
-                    G.localization.descriptions.Other.ap_locked_Back.text_parsed
+            local loc_target = k == 'b_challenge' and G.localization.descriptions.Other.ap_locked_Deck_c.text_parsed or
+                                   G.localization.descriptions.Other.ap_locked_Back.text_parsed
 
             for _line, _string in pairs(loc_target) do
                 v.unlock_parsed[_line] = _string
@@ -1582,11 +1581,10 @@ function sendLocationCleared(id)
             G.FUNCS.resolve_location_id_to_name(id)
 
             -- dont send out a location alert if sending item to yourself
-            if (G.AP.location_id_to_item_name[id] and
-		G.AP.location_id_to_item_name[id].player_name and
-		G.AP.location_id_to_item_name[id].player_name ~= G.AP.APSlot) or
-		G.AP.location_id_to_item_name[id] == nil then
-                	notify_alert(id, "location")
+            if (G.AP.location_id_to_item_name[id] and G.AP.location_id_to_item_name[id].player_name and
+                G.AP.location_id_to_item_name[id].player_name ~= G.AP.APSlot) or G.AP.location_id_to_item_name[id] ==
+                nil then
+                notify_alert(id, "location")
             end
         end
         G.APClient:LocationChecks({id})
