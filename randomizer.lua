@@ -6,7 +6,8 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.7
+--- VERSION: 0.1.8
+--- LOADER_VERSION_GEQ: 1.0.0~ALPHA-0813a-STEAMODDED
 ----------------------------------------------
 ------------MOD CODE -------------------------
 _RELEASE_MODE = false
@@ -567,6 +568,12 @@ function Game:init_item_prototypes()
                 end
                 if not G.PROFILES[G.AP.profile_Id].deck_usage[k].losses then
                     G.PROFILES[G.AP.profile_Id].deck_usage[k].losses = {}
+                end
+                if not G.PROFILES[G.AP.profile_Id].deck_usage[k].wins_by_key then
+                    G.PROFILES[G.AP.profile_Id].deck_usage[k].wins_by_key = {}
+                end
+                if not G.PROFILES[G.AP.profile_Id].deck_usage[k].losses_by_key then
+                    G.PROFILES[G.AP.profile_Id].deck_usage[k].losses_by_key = {}
                 end
                 if not G.PROFILES[G.AP.profile_Id].deck_usage[k].stake_unlocks then
                     G.PROFILES[G.AP.profile_Id].deck_usage[k].stake_unlocks = {}
