@@ -255,8 +255,11 @@ function init_AP_stakes()
 
 	G.P_CENTER_POOLS.Stake = {}
     for i = 1, 8, 1 do
-        G.P_CENTER_POOLS.Stake[i] = _defaul_stake[_stake_list[i]]
+        G.P_CENTER_POOLS.Stake[i] = _defaul_stakes[_stake_list[i]]
 		G.P_CENTER_POOLS.Stake[i].order = _stake_list[i]
+		G.P_CENTER_POOLS.Stake[i].stake_level = _stake_list[i]
+		G.P_CENTER_POOLS.Stake[i].set = "Stake"
+		
 
         -- read global unlock from the profile
         G.P_CENTER_POOLS.Stake[i].unlocked = G.PROFILES[G.AP.profile_Id].stake_unlocks[i]
@@ -768,8 +771,8 @@ function set_deck_win()
             if G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] then
                 G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[G.GAME.stake] =
                     (G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[G.GAME.stake] or 0) + 1
-				G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins_by_key[SMODS.stake_by_index(G.GAME.stake)] =
-					(G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins_by_key[SMODS.stake_by_index(G.GAME.stake)] or 0) + 1
+				G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins_by_key[SMODS.stake_from_index(G.GAME.stake)] =
+					(G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins_by_key[SMODS.stake_from_index(G.GAME.stake)] or 0) + 1
             end
             set_challenge_unlock()
             G:save_settings()
