@@ -1644,11 +1644,7 @@ end
 local SMODScenter_injectRef = SMODS.Center.inject
 function SMODS.Center.inject(self)
     if isAPProfileLoaded() then
-        -- this is needed to prevent a crash when a vanilla object is taken over
-        if self.old_center == nil then
-            self.old_center = self.config.center
-        end
-        if self.mod == nil or self.key == 'v_rand_ap_item' then
+        if (self.mod == nil or self.name ~= nil) or self.key == 'v_rand_ap_item' then
             SMODScenter_injectRef(self)
         end
     else
