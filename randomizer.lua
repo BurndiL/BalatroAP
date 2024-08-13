@@ -47,6 +47,7 @@ local isInProfileTabCreation = false
 local isInProfileOptionCreation = false
 local unloadAPProfile = false
 local ap_profile_delete = false
+local standard_deck = nil
 
 local deck_list = {}
 deck_list[0] = 'Red Deck'
@@ -114,7 +115,7 @@ G.FUNCS.APDisconnect = function()
     G.APClient = nil
     collectgarbage("collect")
     unloadAPProfile = true
-
+    standard_deck = nil
 end
 
 -- Initialize AP Buffs
@@ -419,8 +420,6 @@ function Game:load_profile(_profile)
 
     return game_load_profile
 end
-
-local standard_deck = nil
 
 local back_initRef = Back.init
 function Back:init(selected_back)
