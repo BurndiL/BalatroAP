@@ -156,7 +156,7 @@ end
 
 G.FUNCS.die = function()
 
-    if G.STAGE == G.STAGES.RUN and G.AP.slot_data and G.AP.slot_data.deathlink then
+    if G.STAGE == G.STAGES.RUN and G.AP.slot_data and IsDeathlinkOn() then
 
         -- G.SETTINGS.screenshake = 300
         G.STATE = G.STATES.GAME_OVER
@@ -267,7 +267,7 @@ function Game:update_game_over(dt)
 
     -- only sends deathlink if run ended before and during ante 8
     -- also checks if run is over because of deathlink coming in (not sure if necessary)
-    if isAPProfileLoaded() and not G.STATE_COMPLETE and G.AP.slot_data and G.AP.slot_data.deathlink and
+    if isAPProfileLoaded() and not G.STATE_COMPLETE and G.AP.slot_data and IsDeathlinkOn() and
         G.GAME.round_resets.ante <= G.GAME.win_ante and not G.AP.game_over_by_deathlink then
 
         sendDeathLinkBounce("Run ended at ante " .. G.GAME.round_resets.ante)
@@ -1673,7 +1673,7 @@ end
 
 -- check whether jokers removed or debuffed
 function AreJokersRemoved()
-	if G.AP.this_mod.config.jokers == 1 or
+	if G.AP.this_mod.config.jokers == 3 or
 		(G.AP.this_mod.config.jokers == 2 and G.AP.slot_data.remove_jokers) then
 			return true
 	end
@@ -1683,8 +1683,18 @@ end
 
 -- check whether consumables removed or debuffed
 function AreConsumablesRemoved()
-	if G.AP.this_mod.config.consumables == 1 or
+	if G.AP.this_mod.config.consumables == 3 or
 		(G.AP.this_mod.config.consumables == 2 and G.AP.slot_data.remove_consumables) then
+			return true
+	end
+	
+	return nil
+end
+
+-- check if deathlink is on
+function IsDeathlinkOn()
+	if G.AP.this_mod.config.deathlink == 3 or
+		(G.AP.this_mod.config.deathlink == 2 and G.AP.slot_data and G.AP.slot_data.deathlink) then
 			return true
 	end
 	
