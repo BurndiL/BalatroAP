@@ -224,6 +224,15 @@ G.FUNCS.update_ap_config = function(args)
 	args = args or {}
     if args.cycle_config and args.cycle_config.ref_table and args.cycle_config.ref_value then
         args.cycle_config.ref_table[args.cycle_config.ref_value] = args.to_key
+		-- update deathlink
+		if args.cycle_config.ref_value == 'deathlink' and isAPProfileLoaded() then
+			local tags = {"Lua-APClientPP"}
+			if (IsDeathlinkOn()) then
+				tags[#tags + 1] = "DeathLink"
+			end
+
+			G.APClient:ConnectUpdate(nil, tags)
+		end
     end
 end
 
