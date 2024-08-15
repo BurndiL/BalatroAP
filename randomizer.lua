@@ -505,7 +505,7 @@ function Game:init_item_prototypes()
             -- for jokers
             if string.find(k, '^j_') then
 
-                if G.AP.slot_data.remove_jokers then
+                if AreJokersRemoved() then
                     v.demo = true
                     v.unlocked = false
                     v.discovered = false
@@ -519,7 +519,7 @@ function Game:init_item_prototypes()
 
                 if G.PROFILES[G.AP.profile_Id]["jokers"][v.name] ~= nil then
 
-                    if G.AP.slot_data.remove_jokers then
+                    if AreJokersRemoved() then
                         v.demo = nil
                         v.unlocked = true
                         v.discovered = true
@@ -620,7 +620,7 @@ function Game:init_item_prototypes()
 
             elseif string.find(k, '^c_') and not string.find(k, '^c_base') then
 
-                if G.AP.slot_data.remove_consumables then
+                if AreConsumablesRemoved() then
                     v.demo = true
                     v.unlocked = false
                 else
@@ -629,7 +629,7 @@ function Game:init_item_prototypes()
                 end
 
                 if G.PROFILES[G.AP.profile_Id]["consumables"][v.name] ~= nil then
-                    if G.AP.slot_data.remove_consumables then
+                    if AreConsumablesRemoved() then
                         v.demo = nil
                         v.unlocked = true
                         v.discovered = true
@@ -844,7 +844,7 @@ local create_cardRef = create_card
 
 function create_card(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
     -- to properly generate only unlocked jokers in buffoon packs
-    if isAPProfileLoaded() and not G.AP.slot_data.remove_jokers and G.STATE == G.STATES.BUFFOON_PACK and _type ==
+    if isAPProfileLoaded() and not AreJokersRemoved() and G.STATE == G.STATES.BUFFOON_PACK and _type ==
         'Joker' and (G.P_CENTERS) then
         for k, v in pairs(G.P_CENTERS) do
             if string.find(tostring(k), '^j_') then
@@ -857,7 +857,7 @@ function create_card(_type, area, legendary, _rarity, skip_materialize, soulable
     local create_card = create_cardRef(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key,
         key_append)
 
-    if isAPProfileLoaded() and not G.AP.slot_data.remove_jokers and G.STATE == G.STATES.BUFFOON_PACK and _type ==
+    if isAPProfileLoaded() and not AreJokersRemoved() and G.STATE == G.STATES.BUFFOON_PACK and _type ==
         'Joker' and (G.P_CENTERS) then
         for k, v in pairs(G.P_CENTERS) do
             if string.find(tostring(k), '^j_') then
@@ -1441,7 +1441,7 @@ function get_unlocked_jokers()
     if (G.P_CENTERS) then
         for k, v in pairs(G.P_CENTERS) do
             if string.find(tostring(k), '^j_') and
-                (not G.AP.slot_data.remove_jokers and v.ap_unlocked == true or G.AP.slot_data.remove_jokers and
+                (not AreJokersRemoved() and v.ap_unlocked == true or AreJokersRemoved() and
                     v.unlocked == true) then
                 count = count + 1
             end
@@ -1669,6 +1669,26 @@ function Game:start_run(args)
     end
 
     return Gamestart_runRef(self, _new_args)
+end
+
+-- check whether jokers removed or debuffed
+function AreJokersRemoved()
+	if G.AP.this_mod.config.jokers == 1 or
+		(G.AP.this_mod.config.jokers == 2 and G.AP.slot_data.remove_jokers) then
+			return true
+	end
+	
+	return nil
+end
+
+-- check whether consumables removed or debuffed
+function AreConsumablesRemoved()
+	if G.AP.this_mod.config.consumables == 1 or
+		(G.AP.this_mod.config.consumables == 2 and G.AP.slot_data.remove_consumables) then
+			return true
+	end
+	
+	return nil
 end
 
 ----------------------------------------------
