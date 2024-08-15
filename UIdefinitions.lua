@@ -1,17 +1,7 @@
 -- Config Tab
-SMODS.current_mod.config_tab = function()
-	return {
-		n = G.UIT.ROOT, 
-		config = {
-			r = 0.1, 
-			minw = 8, 
-			minh = 6, 
-			align = "tm", 
-			padding = 0.2, 
-			colour = G.C.BLACK
-		},
-		nodes = {
-			{
+SMODS.current_mod.config_tab = function(_from_profile)
+	
+	local innards = {
 				n = G.UIT.C,
 				nodes = {
 					create_option_cycle({ -- connection status info cycle
@@ -135,8 +125,77 @@ SMODS.current_mod.config_tab = function()
 					}),
 				}
 			}
-		}
-		
+	
+	local root = not _from_profile and {
+		n = G.UIT.ROOT, 
+		config = {
+			r = 0.1, 
+			minw = 8, 
+			minh = 6, 
+			align = "tm", 
+			padding = 0.2, 
+			colour = G.C.BLACK
+		},
+		nodes = {innards}
+	-- non-smods version of the window
+	-- for the profile selector
+	} or create_UIBox_generic_options({
+		back_func = 'go_to_ap_tab',
+		contents = {{
+			n = G.UIT.R, 
+			config = {
+				r = 0.1, 
+				minw = 8, 
+				minh = 6, 
+				align = "tm", 
+				padding = 0.2, 
+				colour = G.C.BLACK
+			},
+			nodes = {innards}
+		}}
+	})
+	
+	return root
+end
+
+-- 'Connect' tab in config to go directly to AP profile
+SMODS.current_mod.extra_tabs = function()
+	if isAPProfileLoaded() then
+		return {}
+	end
+	return {
+		label = localize('b_ap_connect'),
+		tab_definition_function = function()
+			G.FUNCS.go_to_ap_tab()
+			return {
+				n = G.UIT.ROOT, 
+				config = {
+					r = 0.1, 
+					minw = 8, 
+					minh = 6, 
+					align = "tm", 
+					padding = 0.2, 
+					colour = G.C.BLACK
+				},
+				nodes = {}
+			}
+		end
+	}
+end
+
+function G.FUNCS.go_to_ap_tab()
+	-- create AP profile if it doesnt exist
+	if G.AP.profile_Id == -1 then
+        G.AP.profile_Id = #G.PROFILES + 1
+        G.PROFILES[G.AP.profile_Id] = {}
+        sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
+    end
+	-- save config
+	SMODS.save_mod_config(G.AP.this_mod)
+	-- go to ap tab in profile selector
+	G.focused_profile = (G.AP.profile_Id) or G.SETTINGS.profile or 1
+	G.FUNCS.overlay_menu{
+		definition = G.UIDEF.profile_select(),
 	}
 end
 
@@ -307,7 +366,7 @@ function G.UIDEF.profile_option(_profile)
             }, UIBox_button({
                 button = "APConnect",
                 label = {localize("b_ap_connect")},
-                minw = 3,
+                minw = 5,
                 func = "can_APConnect"
             }), {
                 n = G.UIT.R,
@@ -316,24 +375,63 @@ function G.UIDEF.profile_option(_profile)
                     padding = 0,
                     minh = 0.7
                 },
-                nodes = {{
-                    n = G.UIT.R,
-                    config = {
-                        align = "cm",
-                        minw = 3,
-                        maxw = 4,
-                        minh = 0.6,
-                        padding = 0.2,
-                        r = 0.1,
-                        hover = true,
-                        colour = G.C.RED,
-                        func = 'can_delete_AP_profile',
-                        button = "delete_profile",
-                        shadow = true,
-                        focus_args = {
-                            nav = 'wide'
-                        }
-                    },
+                nodes = {
+					{
+						n = G.UIT.C,
+						config = {
+							align = "cm",
+							minw = 2.5,
+							maxw = 4,
+							minh = 0.6,
+							padding = 0.2,
+							r = 0.1,
+							hover = true,
+							colour = G.C.RED,
+							func = 'can_delete_AP_profile',
+							button = "delete_profile",
+							shadow = true,
+							focus_args = {
+								nav = 'wide'
+							}
+						},
+						nodes = {{
+							n = G.UIT.T,
+							config = {
+								text = _profile == G.SETTINGS.profile and localize('b_reset_profile') or
+									localize('b_delete_profile'),
+								scale = 0.3,
+								colour = G.C.UI.TEXT_LIGHT
+							}
+						}}
+					}, {
+						n = G.UIT.C,
+						config = {
+							align = "cm",
+							minw = 2.5,
+							maxw = 4,
+							minh = 0.6,
+							padding = 0.2,
+							r = 0.1,
+							hover = true,
+							colour = G.C.RED,
+							--func = true,
+							button = "ap_config",
+							shadow = true,
+							focus_args = {
+								nav = 'wide'
+							}
+						},
+						nodes = {{
+							n = G.UIT.T,
+							config = {
+								text = localize('b_config'),
+								scale = 0.3,
+								colour = G.C.UI.TEXT_LIGHT
+							}
+						}}
+					},
+				}
+            },
                     nodes = {{
                         n = G.UIT.T,
                         config = {
