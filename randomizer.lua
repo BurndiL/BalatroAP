@@ -733,7 +733,7 @@ function Game:init_item_prototypes()
 
         while ci <= #G.CHALLENGES do
             -- remove modded challenges
-            if G.CHALLENGES[ci].mod ~= nil then
+            if not IsVanillaItem(G.CHALLENGES[ci].key) then
                 G.AP.ChallengeCache[#G.AP.ChallengeCache + 1] = G.CHALLENGES[ci]
                 table.remove(G.CHALLENGES, ci)
             else -- prepare vanilla challenges
@@ -1643,7 +1643,7 @@ end
 local SMODScenter_injectRef = SMODS.Center.inject
 function SMODS.Center.inject(self)
     if isAPProfileLoaded() then
-        if (self.mod == nil or self.name ~= nil) or self.key == 'v_rand_ap_item' then
+        if self.key == 'v_rand_ap_item' or IsVanillaItem(self.key) then
             SMODScenter_injectRef(self)
         end
     else
