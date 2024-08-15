@@ -482,6 +482,13 @@ function G.UIDEF.profile_option(_profile)
 
 end
 
+-- config tab in profile select
+G.FUNCS.ap_config = function()
+	G.FUNCS.overlay_menu({
+		definition = G.AP.this_mod.config_tab(true)
+	})
+end
+
 -- AP debuff and locked messages
 local Cardgenerate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
 function Card:generate_UIBox_ability_table()
@@ -507,27 +514,35 @@ function Card:generate_UIBox_ability_table()
                 for k, v in pairs(G.localization.descriptions.Other["ap_locked_" .. self.config.center.set].text_parsed) do
                     G.localization.descriptions.Other.demo_locked.text_parsed[k] = v
                 end
+            end
+            
+            -- modded item locked message
+            if G.AP.this_mod.config.modded == 2 and not IsVanillaItem(self.config.center.key) then
+                G.localization.descriptions.Other.demo_locked.text_parsed = {}
+                for k, v in pairs(G.localization.descriptions.Other["ap_locked_modded") do
+                    G.localization.descriptions.Other.demo_locked.text_parsed[k] = v
+                end
+            end
 
-                if self.config.center.set ~= "Booster" then
+            if self.config.center.set ~= "Booster" then
+                G.localization.descriptions.Other.demo_locked.text_parsed[#G.localization.descriptions.Other
+                    .demo_locked.text_parsed + 1] = loc_parse_string("{C:inactive,s:0.8}(" ..
+                                                                         G.localization.descriptions[self.config
+                                                                             .center.set][self.config.center.key]
+                                                                             .name .. ")")
+            else
+                local _loc_target = nil
+                for k, v in pairs(G.localization.descriptions.Other) do
+                    if string.find(self.config.center.key, k) then
+                        _loc_target = v
+                        break
+                    end
+                end
+
+                if _loc_target then
                     G.localization.descriptions.Other.demo_locked.text_parsed[#G.localization.descriptions.Other
-                        .demo_locked.text_parsed + 1] = loc_parse_string("{C:inactive,s:0.8}(" ..
-                                                                             G.localization.descriptions[self.config
-                                                                                 .center.set][self.config.center.key]
-                                                                                 .name .. ")")
-                else
-                    local _loc_target = nil
-                    for k, v in pairs(G.localization.descriptions.Other) do
-                        if string.find(self.config.center.key, k) then
-                            _loc_target = v
-                            break
-                        end
-                    end
-
-                    if _loc_target then
-                        G.localization.descriptions.Other.demo_locked.text_parsed[#G.localization.descriptions.Other
-                            .demo_locked.text_parsed + 1] = loc_parse_string(
-                            "{C:inactive,s:0.8}(" .. _loc_target.name .. ")")
-                    end
+                        .demo_locked.text_parsed + 1] = loc_parse_string(
+                        "{C:inactive,s:0.8}(" .. _loc_target.name .. ")")
                 end
             end
         end
