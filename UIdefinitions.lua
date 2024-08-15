@@ -1,6 +1,5 @@
 -- Config Tab
 SMODS.current_mod.config_tab = function(_from_profile)
-	
 	local innards = {
 				n = G.UIT.C,
 				nodes = {
@@ -517,7 +516,7 @@ function Card:generate_UIBox_ability_table()
             end
             
             -- modded item locked message
-            if G.AP.this_mod.config.modded == 2 and not IsVanillaItem(self.config.center.key) then
+            if G.AP.this_mod.config.modded == 2 and not self.config.center.modded then
                 G.localization.descriptions.Other.demo_locked.text_parsed = {}
                 for k, v in pairs(G.localization.descriptions.Other["ap_locked_modded") do
                     G.localization.descriptions.Other.demo_locked.text_parsed[k] = v
