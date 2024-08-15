@@ -656,6 +656,24 @@ function Game:init_item_prototypes()
                 self.P_LOCKED[#self.P_LOCKED + 1] = v
             end
 
+            -- modded item overrides (backs excluded)
+			if G.AP.this_mod.modded ~= 1 and not string.find(k, '^b_') then
+				if not IsVanillaItem(k) then
+                    v.modded = true
+				    if G.AP.this_mod.modded == 2 then
+						v.demo = true
+						v.unlocked = false
+						v.discovered = false
+						v.hidden = true
+					else
+						v.demo = nil
+						v.unlocked = true
+						v.discovered = true
+						v.hidden = false
+					end
+				end
+			end
+            
         end
 
         -- Handle global stake unlock save data
@@ -1442,7 +1460,7 @@ function get_unlocked_jokers()
         for k, v in pairs(G.P_CENTERS) do
             if string.find(tostring(k), '^j_') and
                 (not AreJokersRemoved() and v.ap_unlocked == true or AreJokersRemoved() and
-                    v.unlocked == true) then
+                    v.unlocked == true) and not v.modded then
                 count = count + 1
             end
         end
@@ -1639,12 +1657,13 @@ function check_and_set_high_score(score, amt)
     return check_and_set_high_scoreRef(score, amt)
 end
 
--- prevent modded centers from being injected for AP
+-- prevent modded centers from being injected for AP if removed
 local SMODScenter_injectRef = SMODS.Center.inject
 function SMODS.Center.inject(self)
     if isAPProfileLoaded() then
-        if self.key == 'v_rand_ap_item' or IsVanillaItem(self.key) then
-            SMODScenter_injectRef(self)
+        if self.key == 'v_rand_ap_item' or IsVanillaItem(self.key) or
+            (G.AP.this_mod.config.modded ~= 1 and not string.find(self.key, '^b_')) then
+                SMODScenter_injectRef(self)
         end
     else
         SMODScenter_injectRef(self)
