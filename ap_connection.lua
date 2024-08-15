@@ -594,8 +594,8 @@ function APConnect()
                             item = item.nextVoucher
                         end
 
-                        if (not G.AP.slot_data.remove_jokers and item.set == "Joker") or
-                            (not G.AP.slot_data.remove_consumables and
+                        if (not AreJokersRemoved() and item.set == "Joker") or
+                            (not AreConsumablesRemoved() and
                                 (item.set == "Tarot" or item.set == "Planet" or item.set == "Spectral")) then
 
                             item.ap_unlocked = true
