@@ -520,7 +520,7 @@ function APConnect()
         -- G.APClient:Set("empty_array", nil, true, {{"replace", AP.EMPTY_ARRAY}})
 
         local tags = {"Lua-APClientPP"}
-        if (G.AP.slot_data.deathlink) then
+        if (IsDeathlinkOn()) then
             tags[#tags + 1] = "DeathLink"
         end
 
