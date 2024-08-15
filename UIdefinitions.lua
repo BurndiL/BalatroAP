@@ -1,3 +1,174 @@
+-- Config Tab
+SMODS.current_mod.config_tab = function()
+	return {
+		n = G.UIT.ROOT, 
+		config = {
+			r = 0.1, 
+			minw = 8, 
+			minh = 6, 
+			align = "tm", 
+			padding = 0.2, 
+			colour = G.C.BLACK
+		},
+		nodes = {
+			{
+				n = G.UIT.C,
+				nodes = {
+					create_option_cycle({ -- connection status info cycle
+						label = localize('k_ap_connection_status'),
+						current_option = G.AP.this_mod.config.connection_status,
+						options = localize('k_ap_connection_status_options'),
+						ref_table = G.AP.this_mod.config, 
+						ref_value = 'connection_status',
+						colour = G.AP.this_mod.badge_colour,
+						text_scale = 0.4,
+						scale = 0.8,
+						w = 4,
+						opt_callback = 'update_ap_config'
+					}),
+					create_option_cycle({ -- deathlink cycle
+						label = localize('k_ap_deathlink'),
+						current_option = G.AP.this_mod.config.deathlink,
+						options = localize('k_ap_deathlink_options'),
+						ref_table = G.AP.this_mod.config, 
+						ref_value = 'deathlink',
+						colour = G.AP.this_mod.badge_colour,
+						text_scale = 0.4,
+						scale = 0.8,
+						w = 4,
+						opt_callback = 'update_ap_config'
+					}),
+					-- Notice for unchangable options when connected
+					isAPProfileLoaded() and { 
+						n = G.UIT.R,
+						config = {
+							colour = G.C.CLEAR,
+							align = 'tm',
+							padding = 0.2
+						},
+						nodes = {{
+							n = G.UIT.T,
+							config = {
+								align = 'tm',
+								scale = 0.3,
+								text = localize('k_ap_cant_change')
+							}
+						}}
+					} or nil,
+					-- when connected, create a list of currently chosen options
+					isAPProfileLoaded() and list_ap_option({
+						label = 'k_ap_locked_jokers',
+						options = 'k_ap_locked_options',
+						current_option = G.AP.this_mod.config.jokers
+					}) or nil,
+					isAPProfileLoaded() and list_ap_option({
+						label = 'k_ap_locked_consums',
+						options = 'k_ap_locked_options',
+						current_option = G.AP.this_mod.config.consumables
+					}) or nil,
+					-- when not connected, create cycles
+					not isAPProfileLoaded() and {
+						n = G.UIT.R,
+						config = {
+							colour = G.C.CLEAR,
+						},
+						nodes = {
+							{
+								n = G.UIT.C,
+								config = {
+									colour = G.C.CLEAR,
+								},
+								nodes = {
+									create_option_cycle({
+										label = localize('k_ap_locked_jokers'),
+										current_option = G.AP.this_mod.config.jokers,
+										options = localize('k_ap_locked_options'),
+										ref_table = G.AP.this_mod.config, 
+										ref_value = 'jokers',
+										colour = G.C.DARK_EDITION,
+										text_scale = 0.4,
+										scale = 0.8,
+										w = 3,
+										opt_callback = 'update_ap_config'
+									})
+								}
+							},
+							{
+								n = G.UIT.C,
+								config = {
+									colour = G.C.CLEAR,
+								},
+								nodes = {
+									create_option_cycle({
+										label = localize('k_ap_locked_consums'),
+										current_option = G.AP.this_mod.config.consumables,
+										options = localize('k_ap_locked_options'),
+										ref_table = G.AP.this_mod.config, 
+										ref_value = 'consumables',
+										colour = G.C.DARK_EDITION,
+										text_scale = 0.4,
+										scale = 0.8,
+										w = 3,
+										opt_callback = 'update_ap_config'
+									})
+								}
+							},
+							
+						}
+					} or nil, --Modded item notice and cycle
+					isAPProfileLoaded() and list_ap_option({
+						label = 'k_ap_modded_items',
+						options = 'k_ap_modded_items_options',
+						current_option = G.AP.this_mod.config.modded
+					}) or
+					create_option_cycle({
+						label = localize('k_ap_modded_items'),
+						current_option = G.AP.this_mod.config.modded,
+						options = localize('k_ap_modded_items_options'),
+						ref_table = G.AP.this_mod.config, 
+						ref_value = 'modded',
+						colour = G.AP.this_mod.badge_colour,
+						text_scale = 0.4,
+						scale = 0.8,
+						w = 4,
+						opt_callback = 'update_ap_config'
+					}),
+				}
+			}
+		}
+		
+	}
+end
+
+function list_ap_option(args) -- to create text in config when connected
+	return {
+		n = G.UIT.R,
+		config = {
+			colour = G.C.CLEAR,
+			align = 'bm',
+			padding = 0.1
+		},
+		nodes = {{
+			n = G.UIT.T,
+			config = {
+				align = 'bm',
+				colour = G.C.JOKER_GREY,
+				scale = 0.4,
+				text = "["..localize(args.label).."] - "..localize(args.options)[args.current_option]
+			}}
+		}
+	}
+end
+
+--update config function
+G.FUNCS.update_ap_config = function(args)
+	args = args or {}
+    if args.cycle_config and args.cycle_config.ref_table and args.cycle_config.ref_value then
+        args.cycle_config.ref_table[args.cycle_config.ref_value] = args.to_key
+    end
+end
+
+
 -- Profile interface
 
 local create_tabsRef = create_tabs
