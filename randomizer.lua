@@ -1242,10 +1242,18 @@ SMODS.Consumable {
 	set = 'Tarot',
 	atlas = 'ap_item_tarot',
 	inject = function(self) -- prevent injection outside of AP
-        if isAPProfileLoaded() then
-            SMODS.Center.inject(self)
-        end
+    	if isAPProfileLoaded() then
+    	    SMODS.Center.inject(self)
+    	end
     end,
+	in_pool = function(self)
+        if self.unlocked then
+            if get_tarot_location() then
+                return true
+            end
+        end
+        return false
+	end,
 	config = {
 		extra = {id = 0}
 	},
@@ -1390,6 +1398,14 @@ SMODS.Consumable {
             SMODS.Center.inject(self)
         end
     end,
+    in_pool = function(self)
+        if self.unlocked then
+            if get_tarot_location() then
+                return true
+            end
+        end
+        return false
+	end,
 	set_card_type_badge = function(self, card, badges)
            badges[#badges + 1] = create_badge(localize("k_asteroid_belt"), G.C.SECONDARY_SET.Planet, nil, 1.2)
     end,
@@ -1537,6 +1553,14 @@ SMODS.Consumable {
             SMODS.Center.inject(self)
         end
     end,
+    in_pool = function(self)
+        if self.unlocked then
+            if get_tarot_location() then
+                return true
+            end
+        end
+        return false
+	end,
 	config = {
 		extra = {id = 0}
 	},
