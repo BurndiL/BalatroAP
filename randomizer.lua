@@ -290,45 +290,48 @@ end
 local game_drawRef = Game.draw
 function Game:draw()
     local game_draw = game_drawRef(self)
-    if G and G.STAGES and G.STAGE == G.STAGES.MAIN_MENU then
+    if G and G.STAGES and G.STAGE == G.STAGES.MAIN_MENU and G.AP.status_text then
+	
+		local status = G.AP.status_text:get_UIE_by_ID('status_text')
+		local status_string = ""
+		local goal = G.AP.status_text:get_UIE_by_ID('goal_text')
+		local goal_string = ""
         if G.APClient ~= nil then
             if G.APClient:get_state() == AP.State.SLOT_CONNECTED then
-                local _status = string.gsub(localize("k_ap_connected"), "#1#", tostring(G.AP.APAddress))
-                _status = string.gsub(_status, '#2#', tostring(G.AP.APPort))
-                love.graphics.print(string.gsub(_status, '#3#', tostring(G.AP.APSlot)), 10, 30)
+                status_string = string.gsub(G.AP.this_mod.config.connection_status ~= 3 and localize("k_ap_connected") or 
+					localize('k_ap_connected_no_ip'),'#3#', tostring(G.AP.APSlot))
+				if G.AP.this_mod.config.connection_status ~= 3 then
+					status_string = string.gsub(status_string, '#2#', tostring(G.AP.APPort))
+					status_string = string.gsub(status_string, "#1#", tostring(G.AP.APAddress))
+				end
 
                 if G.AP.goal and G.AP.GameObjectInit then
-                    local _goal = localize("k_ap_goal") .. ": "
-
+					
+					goal_string = localize("k_ap_goal") .. ": "..localize('ap_goal_text')[G.AP.goal+1]
                     -- beat # of decks
-                    if G.AP.goal == 0 and G.localization.descriptions.Other.ap_goal_decks then
-                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_decks.text[1]
-                        _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.decks_win_goal))
-                        _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
+                    if G.AP.goal == 0 then
+                        goal_string = string.gsub(goal_string, "#1#", tostring(G.AP.slot_data.decks_win_goal))
+                        goal_string = string.gsub(goal_string, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
 
                         -- unlock # of jokers
-                    elseif G.AP.goal == 1 and G.localization.descriptions.Other.ap_goal_jokers then
+                    elseif G.AP.goal == 1 then
                         local unlocked_jokers = get_unlocked_jokers()
-                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_jokers.text[1]
-                        _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.jokers_unlock_goal))
-                        _goal = string.gsub(_goal, "#2#", tostring(unlocked_jokers))
+                        goal_string = string.gsub(goal_string, "#1#", tostring(G.AP.slot_data.jokers_unlock_goal))
+                        goal_string = string.gsub(goal_string, "#2#", tostring(unlocked_jokers))
 
                         -- beat specific ante
-                    elseif G.AP.goal == 2 and G.localization.descriptions.Other.ap_goal_ante then
-                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_ante.text[1]
-                        _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.ante_win_goal))
+                    elseif G.AP.goal == 2 then
+                        goal_string = string.gsub(goal_string, "#1#", tostring(G.AP.slot_data.ante_win_goal))
 
                         -- beat # decks on at least # stake
-                        -- TODO: add exception for languages that use a different font
-                    elseif G.AP.goal == 3 and G.localization.descriptions.Other.ap_goal_deck_stickers then
-                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_deck_stickers.text[1]
-                        _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.decks_win_goal))
-                        _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
+                    elseif G.AP.goal == 3 then
+                        goal_string = string.gsub(goal_string, "#1#", tostring(G.AP.slot_data.decks_win_goal))
+                        goal_string = string.gsub(goal_string, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
 
                         if G.AP.StakesInit then
                             for i = 1, 8, 1 do
                                 if G.P_CENTER_POOLS.Stake[i].stake_level == tonumber(G.AP.slot_data.required_stake) then
-                                    _goal = string.gsub(_goal, "#3#", localize({
+                                    goal_string = string.gsub(goal_string, "#3#", localize({
                                         type = "name_text",
                                         key = G.P_CENTER_POOLS.Stake[i].key,
                                         set = "Stake"
@@ -337,21 +340,19 @@ function Game:draw()
                                 end
                             end
                         else
-                            _goal = string.gsub(_goal, "#3#",
+                            goal_string = string.gsub(goal_string, "#3#",
                                 localize("b_stake") .. " " .. tostring(G.AP.slot_data.required_stake))
                         end
 
                         -- win with # jokers on at least # stake
-                        -- TODO: add exception for languages that use a different font
-                    elseif G.AP.goal == 4 and G.localization.descriptions.Other.ap_goal_joker_stickers then
-                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_joker_stickers.text[1]
-                        _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.jokers_unlock_goal))
-                        _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
+                    elseif G.AP.goal == 4 then
+                        goal_string = string.gsub(goal_string, "#1#", tostring(G.AP.slot_data.jokers_unlock_goal))
+                        goal_string = string.gsub(goal_string, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
 
                         if G.AP.StakesInit then
                             for i = 1, 8, 1 do
                                 if G.P_CENTER_POOLS.Stake[i].stake_level == tonumber(G.AP.slot_data.required_stake) then
-                                    _goal = string.gsub(_goal, "#3#", localize({
+                                    goal_string = string.gsub(goal_string, "#3#", localize({
                                         type = "name_text",
                                         key = G.P_CENTER_POOLS.Stake[i].key,
                                         set = "Stake"
@@ -360,27 +361,36 @@ function Game:draw()
                                 end
                             end
                         else
-                            _goal = string.gsub(_goal, "#3#",
+                            goal_string = string.gsub(goal_string, "#3#",
                                 localize("b_stake") .. " " .. tostring(G.AP.slot_data.required_stake))
                         end
 
                         -- win with # of unique combinations of deck and stake
-                    elseif G.AP.goal == 5 and G.localization.descriptions.Other.ap_goal_unique_wins then
-
-                        _goal = _goal .. G.localization.descriptions.Other.ap_goal_unique_wins.text[1]
-                        _goal = string.gsub(_goal, "#1#", tostring(G.AP.slot_data.unique_deck_win_goal))
-                        _goal = string.gsub(_goal, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
+                    elseif G.AP.goal == 5 then
+                        goal_string = string.gsub(goal_string, "#1#", tostring(G.AP.slot_data.unique_deck_win_goal))
+                        goal_string = string.gsub(goal_string, "#2#", tostring(G.PROFILES[G.AP.profile_Id].ap_progress))
                     end
-                    love.graphics.print(_goal, 10, 60)
                 end
             else
-                local _string = string.gsub(localize("k_ap_connecting"), "#1#", tostring(G.AP.APAddress))
-                love.graphics.print(string.gsub(_string, "#2#", tostring(G.AP.APPort)), 10, 30)
+                status_string = string.gsub(localize("k_ap_connecting"), "#1#", tostring(G.AP.APAddress))
+                status_string = string.gsub(status_string, "#2#", tostring(G.AP.APPort))
             end
 
         else
-            love.graphics.print(localize("k_ap_not_connected"), 10, 30)
+            status_string = localize("k_ap_not_connected")
         end
+		
+		if status then
+			status.config.text = status_string
+			status.config.text_drawable:set(status.config.text)
+		end
+		
+		if goal then
+			goal.config.text = goal_string
+			goal.config.text_drawable:set(goal.config.text)
+		end
+		
+		G.AP.status_text:recalculate()
     end
 
     return game_draw
@@ -657,10 +667,10 @@ function Game:init_item_prototypes()
             end
 
             -- modded item overrides (backs excluded)
-			if G.AP.this_mod.modded ~= 1 and not string.find(k, '^b_') then
-				if not IsVanillaItem(k) then
+			if G.AP.this_mod.config.modded ~= 1 and not string.find(k, '^b_') then
+				if k ~= 'v_rand_ap_item' and not IsVanillaItem(k) then
                     v.modded = true
-				    if G.AP.this_mod.modded == 2 then
+				    if G.AP.this_mod.config.modded == 2 then
 						v.demo = true
 						v.unlocked = false
 						v.discovered = false

@@ -316,7 +316,7 @@ function IsVanillaItem(key)
 			'j_8_ball', 'j_misprint', 'j_dusk', 'j_raised_fist', 'j_chaos',
 			
 			-- page 3
-			'j_fibbonacci', 'j_steel_joker', 'j_scary_face', 'j_abstract', 'j_delayed_grat',
+			'j_fibonacci', 'j_steel_joker', 'j_scary_face', 'j_abstract', 'j_delayed_grat',
 			'j_hack', 'j_pareidolia', 'j_gros_michel', 'j_even_steven', 'j_odd_todd',
 			'j_scholar', 'j_business', 'j_supernova', 'j_ride_the_bus', 'j_space',
 			
@@ -332,13 +332,13 @@ function IsVanillaItem(key)
 			
 			-- page 6
 			'j_midas_mask', 'j_luchador', 'j_photograph', 'j_gift', 'j_turtle_bean',
-			'j_erosion', 'j_reserved parking', 'j_mail', 'j_to_the_moon', 'j_hallucination',
+			'j_erosion', 'j_reserved_parking', 'j_mail', 'j_to_the_moon', 'j_hallucination',
 			'j_fortune_teller', 'j_juggler', 'j_drunkard','j_stone', 'j_golden',
 			
 			-- page 7
 			'j_lucky_cat', 'j_baseball', 'j_bull', 'j_diet_cola', 'j_trading',
 			'j_flash','j_popcorn','j_trousers','j_ancient','j_ramen',
-			'j_walkie talkie', 'j_selzer', 'j_castle', 'j_smiley', 'j_campfire',
+			'j_walkie_talkie', 'j_selzer', 'j_castle', 'j_smiley', 'j_campfire',
 			
 			-- page 8
 			'j_ticket', 'j_mr_bones', 'j_acrobat', 'j_sock_and_buskin', 'j_swashbuckler',
@@ -379,7 +379,9 @@ function IsVanillaItem(key)
 			-- Spectrals
 			'c_familiar', 'c_grim', 'c_incantation', 'c_talisman', 'c_aura', 'c_wraith',
 			'c_sigil', 'c_ouija', 'c_ectoplasm', 'c_immolate', 'c_ankh', 'c_deja_vu', 
-			'c_hex', 'c_trance', 'c_medium', 'c_cryptid', 'c_soul', 'c_black_hole'
+			'c_hex', 'c_trance', 'c_medium', 'c_cryptid', 'c_soul', 'c_black_hole',
+			
+			'c_base'
 		}
 		
 		if tableContains(c_whitelist, key) then
@@ -466,6 +468,19 @@ function IsVanillaItem(key)
 	}
 	
 	if tableContains(chal_whitelist, key) then
+		return true
+	end
+	
+	local misc_whitelist = {
+		'm_steel', 'm_wild', 'm_glass', 'm_stone', 'm_mult', 
+		'm_bonus', 'm_gold', 'm_lucky',
+		
+		'e_base', 'e_foil', 'e_polychrome', 'e_holo', 'e_negative',
+		
+		'undiscovered_joker', 'undiscovered_tarot', 'soul'
+	}
+	
+	if tableContains(misc_whitelist, key) then
 		return true
 	end
 	

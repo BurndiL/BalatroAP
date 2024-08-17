@@ -277,6 +277,13 @@ return {
 					"as an {C:dark_edition}AP item"
 				}
 			},
+			ap_locked_Modded = {
+				name = "Locked",
+				text = {
+					"Modded items",
+					"cannot be unlocked"
+				}
+			},
 			ap_challenge_locked_vanilla = {
                 name = "Locked",
                 text = {
@@ -331,24 +338,6 @@ return {
 					"Win a run with this deck",
                     "on at least {V:1}#1#{} difficulty",
 				}
-			},
-			ap_goal_decks = {
-				text = {"Beat #1# Decks (#2#/#1#)"}
-			},
-			ap_goal_jokers = {
-				text = {"Unlock #1# Jokers (#2#/#1#)"}
-			},
-			ap_goal_ante = {
-				text = {"Beat ante #1#"}
-			},
-			ap_goal_deck_stickers = {
-				text = {"Beat #1# Decks on at least #3# difficulty (#2#/#1#)"}
-			},
-			ap_goal_joker_stickers = {
-				text = {"Win with #1# Jokers on at least #3# difficulty (#2#/#1#)"}
-			},
-			ap_goal_unique_wins = {
-				text = {"Win with #1# unique combinations of Decks and Stakes (#2#/#1#)"}
 			}
 		}
 	},
@@ -365,8 +354,44 @@ return {
 			k_ap_pass = "Password",
 			b_ap_connect = "Connect",
 			k_ap_connected = "Connected to Archipelago at #1#:#2# as #3#",
+			k_ap_connected_no_ip = "Connected to Archipelago as #3#",
 			k_ap_connecting = "Connecting to Archipelago at #1#:#2#...",
-			k_ap_not_connected = "Not connected to Archipelago."
+			k_ap_not_connected = "Not connected to Archipelago.",
+			k_ap_locked_jokers = 'Locked Jokers',
+			k_ap_locked_consums = 'Locked Consumables',
+			k_ap_locked_options = {
+				'Debuff',
+				'Follow YAML',
+				'Remove'
+			},
+			k_ap_modded_items = 'Modded Items',
+			k_ap_modded_items_options = {
+				'Remove',
+				'Lock',
+				'Unlock'
+			},
+			k_ap_deathlink = 'Deathlink',
+			k_ap_deathlink_options = {
+				'Force off',
+				'Follow YAML',
+				'Force on'
+			},
+			k_ap_connection_status = 'Connection Status Info',
+			k_ap_connection_status_options = {
+				'Full',
+				'Connected Only',
+				'Hide IP',
+				'None'
+			},
+			k_ap_cant_change = "These options cannot be changed while connected to Archipelago",
+			ap_goal_text = {
+				"Beat #1# Decks (#2#/#1#)",
+				"Unlock #1# Jokers (#2#/#1#)",
+				"Beat ante #1#",
+				"Beat #1# Decks on at least #3# difficulty (#2#/#1#)",
+				"Win with #1# Jokers on at least #3# difficulty (#2#/#1#)",
+				"Win with #1# unique combinations of Decks and Stakes (#2#/#1#)"
+			},
 		}
 	}
 }

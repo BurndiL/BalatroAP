@@ -276,6 +276,13 @@ return {
 					"als {C:dark_edition}AP item"
 				}
 			},
+			ap_locked_Modded = {
+				name = "Gesperrt",
+				text = {
+					"Gemoddete Items können",
+					"nicht freigeschaltet werden"
+				}
+			},
 			ap_challenge_locked_vanilla = {
                 name = "Gesperrt",
                 text = {
@@ -331,24 +338,6 @@ return {
                     "auf mindestens Schwierigkeitsstufe {V:1}#1#{}",
 				}
 			},
-			ap_goal_decks = {
-				text = {"Gewinne mit #1# Decks (#2#/#1#)"}
-			},
-			ap_goal_jokers = {
-				text = {"Schalte #1# Joker frei (#2#/#1#)"}
-			},
-			ap_goal_ante = {
-				text = {"Schlage Ante #1#"}
-			},
-			ap_goal_deck_stickers = {
-				text = {"Gewinne mit #1# Decks auf zumindest #3# Schwierigkeit (#2#/#1#)"}
-			},
-			ap_goal_joker_stickers = {
-				text = {"Gewinne mit #1# Joker auf zumindest #3# Schwierigkeit (#2#/#1#)"}
-			},
-			ap_goal_unique_wins = {
-				text = {"Gewinne mit #1# unterschiedlichen Kombinationen von Decks und Schwierigkeiten (#2#/#1#)"}
-			}
 		}
 	},
 	misc = {
@@ -364,8 +353,44 @@ return {
 			k_ap_pass = "Passwort",
 			b_ap_connect = "Verbinden",
 			k_ap_connected = "Verbunden zu Archipelago bei #1#:#2# as #3#",
+			k_ap_connected_no_ip = "Verbunden zu Archipelago as #3#",
 			k_ap_connecting = "Verbindet zu Archipelago bei #1#:#2#...",
-			k_ap_not_connected = "Nicht verbunden zu Archipelago."
+			k_ap_not_connected = "Nicht verbunden zu Archipelago.",
+			k_ap_locked_jokers = 'Gesperrte Joker',
+			k_ap_locked_consums = 'Gesperrte Verbrauchsgegenstände',
+			k_ap_locked_options = {
+				'Debuff',
+				'Follow YAML',
+				'Remove'
+			},
+			k_ap_modded_items = 'Gemoddete Items',
+			k_ap_modded_items_options = {
+				'Remove',
+				'Lock',
+				'Unlock'
+			},
+			k_ap_deathlink = 'Deathlink',
+			k_ap_deathlink_options = {
+				'Force off',
+				'Follow YAML',
+				'Force on'
+			},
+			k_ap_connection_status = 'Connection Status Info',
+			k_ap_connection_status_options = {
+				'Full',
+				'Connected Only',
+				'Hide IP',
+				'None'
+			},
+			k_ap_cant_change = "These options cannot be changed while connected to Archipelago",
+			ap_goal_text = {
+				"Gewinne mit #1# Decks (#2#/#1#)",
+				"Schalte #1# Joker frei (#2#/#1#)",
+				"Schlage Ante #1#",
+				"Gewinne mit #1# Decks auf zumindest #3# Schwierigkeit (#2#/#1#)",
+				"Gewinne mit #1# Joker auf zumindest #3# Schwierigkeit (#2#/#1#)",
+				"Gewinne mit #1# unterschiedlichen Kombinationen von Decks und Schwierigkeiten (#2#/#1#)"
+			},
 		}
 	}
 }
