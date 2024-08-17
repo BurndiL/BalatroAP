@@ -6,7 +6,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.8
+--- VERSION: 0.1.9
 --- LOADER_VERSION_GEQ: 1.0.0~ALPHA-0813a-STEAMODDED
 ----------------------------------------------
 ------------MOD CODE -------------------------
