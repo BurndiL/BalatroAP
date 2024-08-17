@@ -441,7 +441,7 @@ return {
 			k_ap_connection_status = "Informations sur l'état de la connexion",
 			k_ap_connection_status_options = {
 				'Complet',
-				'Uniquement vonnecté',
+				'Uniquement connecté',
 				'IP Caché',
 				'Aucune'
 			},
