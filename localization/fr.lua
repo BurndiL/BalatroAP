@@ -4,7 +4,7 @@ return {
 			v_rand_ap_item = {
 				name = "Item d'Archipelago",
 				text = {
-					'Déverrouille un {C:dark_edition}Item AP {}', 
+					'Débloque un {C:dark_edition}Item AP {}', 
 					"quand on l'achete"
 					}
 			},
@@ -26,7 +26,7 @@ return {
 			c_rand_ap_tarot = {
 				name = "Archipelago Tarot",
 				text = {
-					'Déverrouille un {C:dark_edition}Item AP {}', 
+					'Débloque un {C:dark_edition}Item AP {}', 
 					"lors de l'utilisation"
 				}
 			},
@@ -70,7 +70,7 @@ return {
 			c_rand_ap_spectral = {
 				name = "Archipelago Spectral",
 				text = {
-					'Déverrouille un {C:dark_edition}Item AP {},', 
+					'Débloque un {C:dark_edition}Item AP {},', 
 					"Crée une copie de l'objet",
 					"si c'est le votre",
 					"{C:inactive}(Selon la place disponible)"
@@ -162,7 +162,7 @@ return {
 			op_interest = {
 				name = "Bonus Max Interest",
 				text = {
-					"{s:0.7}Augmenter les intérêts", 
+					"{s:0.7}Augmente les intérêts", 
 					"{s:1}de {C:money}$5{}"
 					}
 			},
@@ -186,35 +186,35 @@ return {
 				name = "Receive Buffoon Pack",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:attention}Mega Buffoon Pack{}"
+					"{s:1,C:attention}Paquet Méga-Bouffon{}"
 				}
 			},
 			fill_tag_charm = {
 				name = "Receive Consumable Pack",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:tarot}Mega Arcana Pack{}"
+					"{s:1,C:tarot}Paquet Méga-Arcana{}"
 				}
 			},
 			fill_tag_meteor = {
 				name = "Receive Consumable Pack",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:planet}Mega Celestial Pack{}"
+					"{s:1,C:planet}Paquet Méga-Céleste{}"
 				}
 			},
 			fill_tag_ethereal = {
 				name = "Receive Consumable Pack",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:spectral}Mega Spectral Pack{}"
+					"{s:1,C:spectral}Paquet Méga-Spectral{}"
 				}
 			},
 			fill_juggle = {
-				name = "Bonus Juggle Tag",
+				name = "Bonus Badge jongleur",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:attention}Juggle Tag{}"
+					"{s:1,C:attention}Badge jongleur{}"
 				}
 			},
 			fill_d_six = {
@@ -239,38 +239,38 @@ return {
 				}
 			},
 			fill_negative = {
-				name = "Bonus Negative Tag",
+				name = "Bonus Badge négatif",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:dark_edition}Badge Negatif{}"
+					"{s:1,C:dark_edition}Badge négatif{}"
 				}
 			},
 			fill_foil = {
-				name = "Bonus Foil Tag",
+				name = "Bonus Badge brillant",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:dark_edition}Badge Foil{}"
+					"{s:1,C:dark_edition}Badge brillant{}"
 				}
 			},
 			fill_holo = {
-				name = "Bonus Holographic Tag",
+				name = "Bonus Badge holographique",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:dark_edition}Badge Holographic{}"
+					"{s:1,C:dark_edition}Badge holographique{}"
 				}
 			},
 			fill_poly = {
-				name = "Bonus Polychrome Tag",
+				name = "Bonus Badge polychrome",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:dark_edition}Badge Polychrome{}"
+					"{s:1,C:dark_edition}Badge polychrome{}"
 				}
 			},
 			fill_double = {
-				name = "Bonus Double Tag",
+				name = "Bonus Badge double",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:attention}Badge Double{}"
+					"{s:1,C:attention}Badge double{}"
 				}
 			}
 		},
@@ -291,63 +291,63 @@ return {
                 }
             },
 			ap_locked_Joker = {
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 					"Trouvez ce Joker",
 					"en tant qu'{C:dark_edition}Item AP"
 				}
 			},
 			ap_locked_Tarot = {
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 					"Trouver cette carte {C:tarot}Tarot{}",
 					"en tant qu'{C:dark_edition}Item AP"
 				}
 			},
 			ap_locked_Planet = {
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 					"Trouver cette carte {C:planet}Planet{}",
 					"en tant qu'{C:dark_edition}Item AP"
 				}
 			},
 			ap_locked_Spectral = {
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 					"Trouver cette carte {C:spectral}Spectral{}",
 					"en tant qu'{C:dark_edition}Item AP"
 				}
 			},
 			ap_locked_Back = {
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 					"Trouver ce Deck",
 					"en tant qu'{C:dark_edition}Item AP"
 				}
 			},
 			ap_locked_Voucher = {
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 					"Trouver ce coupon",
 					"en tant qu'{C:dark_edition}Item AP"
 				}
 			},
 			ap_locked_Booster = {
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 					"Trouver ce Booster Pack",
 					"en tant qu'{C:dark_edition}Item AP"
 				}
 	 
 			ap_locked_Modded = {
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 					"Les items moddés",
-					"ne peuvent pas être déverrouillé"
+					"ne peuvent pas être déBloqué"
 				}
 			},
 			ap_challenge_locked_vanilla = {
-                name = "Verrouillé",
+                name = "Bloqué",
                 text = {
                     "Gagner une manche avec au moins",
                     "#1# decks différents à débloquer",
@@ -356,7 +356,7 @@ return {
                 }
             },
 			ap_challenge_locked_deck = {
-                name = "Verrouillé",
+                name = "Bloqué",
                 text = {
                     "Trouver le Défi Deck",
                     "en tant qu'{C:dark_edition}Item AP{} à débloquer",
@@ -364,7 +364,7 @@ return {
                 }
             },
 			ap_challenge_locked_item = {
-                name = "Verrouillé",
+                name = "Bloqué",
                 text = {
                     "Trouver n'importe quel Défi",
                     "en tant qu'{C:dark_edition}Item AP{} à débloquer",
@@ -372,7 +372,7 @@ return {
                 }
             },
 			ap_challenge_locked_none = {
-                name = "Verrouillé",
+                name = "Bloqué",
                 text = {
                    --"{C:inactive,s:2}Challenges are disabled"
 				   "Non disponible",
@@ -381,21 +381,21 @@ return {
                 }
             },
 			ap_locked_Deck_c = { --temporary
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 				   "Non disponible",
                    "dans cette version",
 				}
 			},
 			ap_locked_StakeItem = {
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 					"Trouver cette mise",
                     "en tant qu'{C:dark_edition}item AP",
 				}
 			},
 			ap_locked_StakeLine = {
-				name = "Verrouillé",
+				name = "Bloqué",
 				text = {
 					"Gagnez une manche avec ce deck",
                     "en difficulté {V:1}#1#{} au moins",
@@ -405,7 +405,7 @@ return {
 	},
 	misc = {
 		dictionary = {
-			k_ap_unlocked = "Déverrouillé",
+			k_ap_unlocked = "Débloqué",
 			k_ap_location = "Emplacement trouvé",
 			k_ap_permanent = "Permanent",
 			k_ap_check = "Check",
@@ -416,11 +416,11 @@ return {
 			k_ap_pass = "Mot de passe",
 			b_ap_connect = "Connexion",
 			k_ap_connected = "Connecté à Archipelago à #1#:#2# dans le monde #3#",
-			k_ap_connected_no_ip = "CConnecté à Archipelago dans le monde #3#",
+			k_ap_connected_no_ip = "Connecté à Archipelago dans le monde #3#",
 			k_ap_connecting = "Connexion à Archipelago à #1#:#2#...",
 			k_ap_not_connected = "Non connecté à Archipelago",
-			k_ap_locked_jokers = 'Jokers Verrouillés',
-			k_ap_locked_consums = 'Consommable Verrouillé',
+			k_ap_locked_jokers = 'Jokers Bloqués',
+			k_ap_locked_consums = 'Consommable Bloqué',
 			k_ap_locked_options = {
 				'Débuff',
 				'Suivre le YAML',
@@ -429,14 +429,14 @@ return {
 			k_ap_modded_items = 'Items Moddés',
 			k_ap_modded_items_options = {
 				'Supprimer',
-				'Verrouillé',
-				'Déverrouillé'
+				'Bloqué',
+				'Débloqué'
 			},
 			k_ap_deathlink = 'Deathlink',
 			k_ap_deathlink_options = {
-				'Forcer à off',
+				'Forcer à arret',
 				'Suivre le YAML',
-				'Forcer à on'
+				'Forcer à actif'
 			},
 			k_ap_connection_status = "Informations sur l'état de la connexion",
 			k_ap_connection_status_options = {
@@ -448,7 +448,7 @@ return {
 			k_ap_cant_change = "Ces options ne peuvent pas être modifiées lorsque l'on est connecté à Archipelago",
 			ap_goal_text = {
 				"Battre #1# Decks (#2#/#1#)",
-				"Déverrouiller #1# Jokers (#2#/#1#)",
+				"Débloquer #1# Jokers (#2#/#1#)",
 				"Battre #1# mises",
 				"Battre #1# Decks avec au moins la difficulté #3# (#2#/#1#)",
 				"Gagne avec #1# Jokers avec au moins la difficulté #3# (#2#/#1#)",
