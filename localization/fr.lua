@@ -73,7 +73,7 @@ return {
 					'Déverrouille un {C:dark_edition}Item AP {},', 
 					"Crée une copie de l'objet",
 					"si c'est le votre",
-					"{C:inactive}(Vous devez avoir de la place)"
+					"{C:inactive}(Selon la place disponible)"
 				}
 			},
 			c_rand_ap_spectral_invalid = {
