@@ -1706,6 +1706,7 @@ SMODS.Consumable {
 						elseif G.AP.Spectral.item.type == 'center' then
 							if G.AP.Spectral.item.center.set == 'Joker' and
 								#G.jokers.cards < G.jokers.config.card_limit then
+									play_sound('timpani')
 									spec_success = true
 									G.E_MANAGER:add_event(Event({
 										trigger = 'before',
