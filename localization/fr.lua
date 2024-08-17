@@ -46,20 +46,20 @@ return {
 		},
 		Planet = {
 			c_rand_ap_planet = {
-				name = "Archipelago Belt",
+				name = "La ceinture d'Archipelago",
 				text = {
 					'Déverrouille un {C:dark_edition}Item AP {}', 
 					"lors de l'utilisation"
 				}
 			},
 			c_rand_ap_planet_location = {
-				name = "Archipelago Belt",
+				name = "La ceinture d'Archipelago",
 				text = {--item name is handled through code
 					'pour {C:dark_edition}#1#{}'
 					}
 			},
 			c_rand_ap_planet_invalid = {
-				name = "Archipelago Belt",
+				name = "La ceinture d'Archipelago",
 				text = {
 					"{C:inactive}Cet emplacement a",
 					"{C:inactive}déjà été recupéré."
