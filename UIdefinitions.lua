@@ -773,6 +773,10 @@ function create_UIBox_notify_alert(_achievement, _type)
                 tableContains({"Back", "BackStake"}, _type) and G.ASSET_ATLAS["centers"] or _type == "location" and
                 G.ASSET_ATLAS["rand_ap_logo"] or G.ASSET_ATLAS["icons"]
 
+        if tableContains({'c_rand_ap_tarot','c_rand_ap_planet','c_rand_ap_spectral'}, _achievement) then
+            _atlas = G.ASSET_ATLAS['rand_ap_item_tarot']
+        end
+	
         -- stake-specific _c
         if _type == 'Stake' then
             _c = {
