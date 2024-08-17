@@ -22,6 +22,68 @@ return {
 				}
 			}
 		},
+		Tarot = {
+			c_rand_ap_tarot = {
+				name = "Таро Archipelago",
+				text = {
+					'Открывает {C:dark_edition}Айтем AP{}',
+					'при использовании'
+				}
+			},
+			c_rand_ap_tarot_location = {
+				name = "Таро Archipelago",
+				text = {--item name is handled through code
+					'для {C:dark_edition}#1#{}'
+					}
+			},
+			c_rand_ap_tarot_invalid = {
+				name = "Таро Archipelago",
+				text = {
+					"{C:inactive}Эта локация",
+					"{C:inactive}уже чекнута."
+				}
+			},
+		},
+		Planet = {
+			c_rand_ap_planet = {
+				name = "Пояс Archipelago",
+				text = {
+					'Открывает {C:dark_edition}Айтем AP{}',
+					'при использовании'
+				}
+			},
+			c_rand_ap_planet_location = {
+				name = "Пояс Archipelago",
+				text = {--item name is handled through code
+					'для {C:dark_edition}#1#{}'
+					}
+			},
+			c_rand_ap_planet_invalid = {
+				name = "Пояс Archipelago",
+				text = {
+					"{C:inactive}Эта локация",
+					"{C:inactive}уже чекнута."
+				}
+			}
+		},
+		Spectral = {
+			c_rand_ap_spectral = {
+				name = "Спектральный Archipelago",
+				text = {
+					'Открывает {C:dark_edition}Айтем AP{},',
+					'создваёт его копию,',
+					"если он Ваш",
+					"{C:inactive}(Должно быть место)"
+				}
+			},
+			c_rand_ap_spectral_invalid = {
+				name = "Спектральный Archipelago",
+				text = {
+					"{C:inactive}Эта локация",
+					"{C:inactive}уже чекнута."
+				}
+			},
+		},
 		Back = {
 			b_challenge = {
 				text = {
@@ -392,6 +454,15 @@ return {
 				"Выйграйте с #1# Джокерами на сложности #3# и выше (#2#/#1#)",
 				"Выйграте на #1# уникальных комбинациях колод и ставок (#2#/#1#)"
 			},
+			k_ap_item_names = 'Названия Айтемов AP',
+			k_ap_item_names_options = {
+				'Показывать все',
+				'Только на ваучере',
+				'Только на расходуемом',
+				'Спрятать все'
+			},
+			k_ap_yeah = 'Да!',
+			k_asteroid_belt = 'Пояс астероидов'
 		}
 	}
 }

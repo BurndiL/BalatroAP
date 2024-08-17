@@ -3,5 +3,6 @@ return {
 	['jokers'] = 2,
 	['consumables'] = 2,
 	['modded'] = 1,
-	['connection_status'] = 1
+	['connection_status'] = 1,
+	['item_names'] = 1
 }

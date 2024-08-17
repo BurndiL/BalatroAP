@@ -21,6 +21,66 @@ return {
 				}
 			}
 		},
+		Tarot = {
+			c_rand_ap_tarot = {
+				name = "Archipelago Tarot",
+				text = {
+					'Schaltet ein {C:dark_edition}AP Item{} frei'
+					}
+			},
+			c_rand_ap_tarot_location = {
+				name = "Archipelago Tarot",
+				text = {--item name is handled through code
+					'für {C:dark_edition}#1#{}'
+					}
+			},
+			c_rand_ap_tarot_invalid = {
+				name = "Archipelago Tarot",
+				text = {
+					"{C:inactive}Dieser Ort",
+					"{C:inactive}wurde bereits erkundet."
+				}
+			},
+		},
+		Planet = {
+			c_rand_ap_planet = {
+				name = "Archipelago-gürtel",
+				text = {
+					'Schaltet ein {C:dark_edition}AP Item{} frei'
+				}
+			},
+			c_rand_ap_planet_location = {
+				name = "Archipelago-gürtel",
+				text = {--item name is handled through code
+					'für {C:dark_edition}#1#{}'
+					}
+			},
+			c_rand_ap_planet_invalid = {
+				name = "Archipelago-gürtel",
+				text = {
+					"{C:inactive}Dieser Ort",
+					"{C:inactive}wurde bereits erkundet."
+				}
+			}
+		},
+		Spectral = {
+			c_rand_ap_spectral = {
+				name = "Archipelago Spectral",
+				text = {
+					'Unlocks an {C:dark_edition}AP Item{},',
+					'creates a copy of it',
+					"if it's yours",
+					"{C:inactive}(Must have room)"
+				}
+			},
+			c_rand_ap_spectral_invalid = {
+				name = "Archipelago Spectral",
+				text = {
+					"{C:inactive}Dieser Ort",
+					"{C:inactive}wurde bereits erkundet."
+				}
+			},
+		},
 		Back = {
 			b_challenge = {
 				text = {
@@ -391,6 +451,15 @@ return {
 				"Gewinne mit #1# Joker auf zumindest #3# Schwierigkeit (#2#/#1#)",
 				"Gewinne mit #1# unterschiedlichen Kombinationen von Decks und Schwierigkeiten (#2#/#1#)"
 			},
+			k_ap_item_names = 'AP Item Names',
+			k_ap_item_names_options = {
+				'Show All',
+				'Voucher Only',
+				'Consumables Only',
+				'Hide All'
+			},
+			k_ap_yeah = 'Jawohl!',
+			k_asteroid_belt = 'Asteroidengürtel'
 		}
 	}
 }

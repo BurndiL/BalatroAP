@@ -381,7 +381,10 @@ function IsVanillaItem(key)
 			'c_sigil', 'c_ouija', 'c_ectoplasm', 'c_immolate', 'c_ankh', 'c_deja_vu', 
 			'c_hex', 'c_trance', 'c_medium', 'c_cryptid', 'c_soul', 'c_black_hole',
 			
-			'c_base'
+			'c_base',
+			
+			-- not vanilla but we need these to pass the vanilla check
+			'c_rand_ap_tarot', 'c_rand_ap_planet', 'c_rand_ap_spectral'
 		}
 		
 		if tableContains(c_whitelist, key) then
@@ -403,6 +406,8 @@ function IsVanillaItem(key)
 			'v_omen_globe', 'v_observatory', 'v_nacho_tong','v_recyclomancy',
 			'v_tarot_tycoon','v_planet_tycoon','v_money_tree','v_antimatter',
 			'v_illusion','v_petroglyph','v_retcon','v_palette',
+			
+			'v_rand_ap_item'
 		}
 		
 		if tableContains(v_whitelist, key) then
@@ -654,6 +659,14 @@ function APConnect()
                         item.hidden = false
                         wasLocked = true
                         item.demo = nil
+						
+						-- spectral gimmick
+						if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+							G.AP.Spectral.item = {
+								type = 'center',
+								center = item
+							}
+						end
 
                         G.FUNCS.AP_unlock_item(item)
                     end
@@ -880,6 +893,14 @@ function APConnect()
                                     return true
                                 end)
                             }))
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_buffoon')
+								}
+							end
 
                             notify_alert('fill_buffoon', "Bonus")
                         end
@@ -900,6 +921,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_'..choice, "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag(choice)
+								}
+							end
                         end
                     elseif item_id == 313 then
                         -- plus 3 hand size next round (must be during a game)
@@ -913,6 +942,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_juggle', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_juggle')
+								}
+							end
                         end
                     elseif item_id == 314 then
                         -- rerolls start at $0 next shop (must be during a game)
@@ -926,6 +963,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_d_six', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_d_six')
+								}
+							end
                         end
                     elseif item_id == 315 then
                         -- Free uncommon joker next shop (must be during a game)
@@ -939,6 +984,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_uncommon', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_uncommon')
+								}
+							end
                         end
                     elseif item_id == 316 then
                         -- Free rare joker next shop (must be during a game)
@@ -952,6 +1005,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_rare', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_rare')
+								}
+							end
                         end
                     elseif item_id == 317 then
                         -- Free negative joker next shop (must be during a game)
@@ -965,6 +1026,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_negative', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_negative')
+								}
+							end
                         end
                     elseif item_id == 318 then
                         -- Free foil joker next shop (must be during a game)
@@ -978,6 +1047,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_foil', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_foil')
+								}
+							end
                         end
                     elseif item_id == 319 then
                         -- Free holographic joker next shop (must be during a game)
@@ -991,6 +1068,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_holo', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_holo')
+								}
+							end
                         end
                     elseif item_id == 320 then
                         -- Free polychrome joker next shop (must be during a game)
@@ -1004,6 +1089,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_poly', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_polychrome')
+								}
+							end
                         end
                     elseif item_id == 321 then
                         -- Receive double tag (must be during a game)
@@ -1017,6 +1110,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_double', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_double')
+								}
+							end
                         end
                     end
 
@@ -1323,6 +1424,13 @@ function APConnect()
                         }
                     end
                 end
+				
+				-- spectral gimmick
+				if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+					G.AP.Spectral.item = {
+						type = 'fail'
+					}
+				end
 
             end
         end

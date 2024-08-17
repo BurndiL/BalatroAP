@@ -22,6 +22,68 @@ return {
 				}
 			}
 		},
+		Tarot = {
+			c_rand_ap_tarot = {
+				name = "Archipelago Tarot",
+				text = {
+					'Unlocks an {C:dark_edition}AP Item{}',
+					'upon use'
+				}
+			},
+			c_rand_ap_tarot_location = {
+				name = "Archipelago Tarot",
+				text = {--item name is handled through code
+					'for {C:dark_edition}#1#{}'
+					}
+			},
+			c_rand_ap_tarot_invalid = {
+				name = "Archipelago Tarot",
+				text = {
+					"{C:inactive}This location has",
+					"{C:inactive}already been checked."
+				}
+			},
+		},
+		Planet = {
+			c_rand_ap_planet = {
+				name = "Archipelago Belt",
+				text = {
+					'Unlocks an {C:dark_edition}AP Item{}',
+					'upon use'
+				}
+			},
+			c_rand_ap_planet_location = {
+				name = "Archipelago Belt",
+				text = {--item name is handled through code
+					'for {C:dark_edition}#1#{}'
+					}
+			},
+			c_rand_ap_planet_invalid = {
+				name = "Archipelago Belt",
+				text = {
+					"{C:inactive}This location has",
+					"{C:inactive}already been checked."
+				}
+			}
+		},
+		Spectral = {
+			c_rand_ap_spectral = {
+				name = "Archipelago Spectral",
+				text = {
+					'Unlocks an {C:dark_edition}AP Item{},',
+					'creates a copy of it',
+					"if it's yours",
+					"{C:inactive}(Must have room)"
+				}
+			},
+			c_rand_ap_spectral_invalid = {
+				name = "Archipelago Spectral",
+				text = {
+					"{C:inactive}This location has",
+					"{C:inactive}already been checked."
+				}
+			},
+		},
 		Back = {
 			b_challenge = {
 				text = {
@@ -392,6 +454,15 @@ return {
 				"Win with #1# Jokers on at least #3# difficulty (#2#/#1#)",
 				"Win with #1# unique combinations of Decks and Stakes (#2#/#1#)"
 			},
+			k_ap_item_names = 'AP Item Names',
+			k_ap_item_names_options = {
+				'Show All',
+				'Voucher Only',
+				'Consumables Only',
+				'Hide All'
+			},
+			k_ap_yeah = 'Yeah!',
+			k_asteroid_belt = 'Asteroid Belt'
 		}
 	}
 }

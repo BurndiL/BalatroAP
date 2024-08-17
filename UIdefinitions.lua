@@ -11,22 +11,61 @@ SMODS.current_mod.config_tab = function(_from_profile)
 						ref_value = 'connection_status',
 						colour = G.AP.this_mod.badge_colour,
 						text_scale = 0.4,
-						scale = 0.8,
+						scale = 0.75,
 						w = 4,
 						opt_callback = 'update_ap_config'
-					}),
-					create_option_cycle({ -- deathlink cycle
-						label = localize('k_ap_deathlink'),
-						current_option = G.AP.this_mod.config.deathlink,
-						options = localize('k_ap_deathlink_options'),
-						ref_table = G.AP.this_mod.config, 
-						ref_value = 'deathlink',
-						colour = G.AP.this_mod.badge_colour,
-						text_scale = 0.4,
-						scale = 0.8,
-						w = 4,
-						opt_callback = 'update_ap_config'
-					}),
+					}),{ --deathlink and item names
+						n = G.UIT.R,
+						config = {
+							colour = G.C.CLEAR,
+							aling = 'cm'
+						},
+						nodes = {
+							{
+								n = G.UIT.C,
+								config = {
+									colour = G.C.CLEAR,
+									aling = 'cm'
+								},
+								nodes = {
+									create_option_cycle({
+										label = localize('k_ap_deathlink'),
+										current_option = G.AP.this_mod.config.jokers,
+										options = localize('k_ap_deathlink_options'),
+										ref_table = G.AP.this_mod.config, 
+										ref_value = 'deathlink',
+										colour = G.AP.this_mod.badge_colour,
+										text_scale = 0.4,
+										scale = 0.75,
+										w = 3,
+										opt_callback = 'update_ap_config'
+									})
+								}
+							},
+							{
+								n = G.UIT.C,
+								config = {
+									colour = G.C.CLEAR,
+									aling = 'cm'
+								},
+								nodes = {
+									create_option_cycle({
+										label = localize('k_ap_item_names'),
+										current_option = G.AP.this_mod.config.consumables,
+										options = localize('k_ap_item_names_options'),
+										ref_table = G.AP.this_mod.config, 
+										ref_value = 'item_names',
+										colour = G.AP.this_mod.badge_colour,
+										text_scale = 0.4,
+										scale = 0.75,
+										w = 3,
+										opt_callback = 'update_ap_config'
+									})
+								}
+							},
+							
+						}
+					},
 					-- Notice for unchangable options when connected
 					isAPProfileLoaded() and { 
 						n = G.UIT.R,
@@ -60,12 +99,14 @@ SMODS.current_mod.config_tab = function(_from_profile)
 						n = G.UIT.R,
 						config = {
 							colour = G.C.CLEAR,
+							aling = 'cm'
 						},
 						nodes = {
 							{
 								n = G.UIT.C,
 								config = {
 									colour = G.C.CLEAR,
+									aling = 'cm'
 								},
 								nodes = {
 									create_option_cycle({
@@ -76,7 +117,7 @@ SMODS.current_mod.config_tab = function(_from_profile)
 										ref_value = 'jokers',
 										colour = G.C.DARK_EDITION,
 										text_scale = 0.4,
-										scale = 0.8,
+										scale = 0.75,
 										w = 3,
 										opt_callback = 'update_ap_config'
 									})
@@ -86,6 +127,7 @@ SMODS.current_mod.config_tab = function(_from_profile)
 								n = G.UIT.C,
 								config = {
 									colour = G.C.CLEAR,
+									aling = 'cm'
 								},
 								nodes = {
 									create_option_cycle({
@@ -96,7 +138,7 @@ SMODS.current_mod.config_tab = function(_from_profile)
 										ref_value = 'consumables',
 										colour = G.C.DARK_EDITION,
 										text_scale = 0.4,
-										scale = 0.8,
+										scale = 0.75,
 										w = 3,
 										opt_callback = 'update_ap_config'
 									})
@@ -118,7 +160,7 @@ SMODS.current_mod.config_tab = function(_from_profile)
 						ref_value = 'modded',
 						colour = G.AP.this_mod.badge_colour,
 						text_scale = 0.4,
-						scale = 0.8,
+						scale = 0.75,
 						w = 4,
 						opt_callback = 'update_ap_config'
 					}),
@@ -176,7 +218,7 @@ function create_AP_text()
 					padding = 0.3
 				},
 				nodes = {
-					G.AP.this_mod.config.connection_status ~= 4 and {
+					(not isAPProfileLoaded() or G.AP.this_mod.config.connection_status ~= 4) and {
 						n = G.UIT.R,
 						config = {
 							align = 'cm'
@@ -252,6 +294,8 @@ SMODS.current_mod.extra_tabs = function()
 	return {
 		label = localize('b_ap_connect'),
 		tab_definition_function = function()
+			G.FUNCS.exit_mods()
+			G.FUNCS:exit_overlay_menu()
 			G.FUNCS.go_to_ap_tab()
 			return {
 				n = G.UIT.ROOT, 

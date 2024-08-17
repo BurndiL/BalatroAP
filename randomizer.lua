@@ -72,6 +72,12 @@ G.AP.StakesInit = false
 G.AP.UnlockConsCache = {}
 G.AP.ChallengeCache = {}
 
+G.AP.Spectral = {
+	item = nil,
+	active = false,
+	item_detected = false
+}
+
 -- stake cursor used for AP logic
 G.viewed_stake_act = {}
 G.viewed_stake_act[1] = 1
@@ -307,7 +313,11 @@ function Game:draw()
 
                 if G.AP.goal and G.AP.GameObjectInit then
 					
-					goal_string = localize("k_ap_goal") .. ": "..localize('ap_goal_text')[G.AP.goal+1]
+					local goal_loc = localize('ap_goal_text')
+					
+					if goal_loc and type(goal_loc) == "table" then
+						goal_string = localize("k_ap_goal") .. ": "..goal_loc[G.AP.goal+1]
+					end
                     -- beat # of decks
                     if G.AP.goal == 0 then
                         goal_string = string.gsub(goal_string, "#1#", tostring(G.AP.slot_data.decks_win_goal))
@@ -628,7 +638,8 @@ function Game:init_item_prototypes()
                 end
                 -- for consumables
 
-            elseif string.find(k, '^c_') and not string.find(k, '^c_base') then
+            elseif string.find(k, '^c_') and not string.find(k, '^c_base') then --and 
+				--not tableContains({'c_rand_ap_tarot', 'c_rand_ap_planet', 'c_rand_ap_spectral'}, k) then
 
                 if AreConsumablesRemoved() then
                     v.demo = true
@@ -668,14 +679,16 @@ function Game:init_item_prototypes()
 
             -- modded item overrides (backs excluded)
 			if G.AP.this_mod.config.modded ~= 1 and not string.find(k, '^b_') then
-				if k ~= 'v_rand_ap_item' and not IsVanillaItem(k) then
+				if not IsVanillaItem(k) then
                     v.modded = true
 				    if G.AP.this_mod.config.modded == 2 then
+						v.ap_unlocked = false
 						v.demo = true
 						v.unlocked = false
 						v.discovered = false
 						v.hidden = true
 					else
+						v.ap_unlocked = true
 						v.demo = nil
 						v.unlocked = true
 						v.discovered = true
@@ -683,7 +696,6 @@ function Game:init_item_prototypes()
 					end
 				end
 			end
-            
         end
 
         -- Handle global stake unlock save data
@@ -1037,8 +1049,9 @@ local card_set_debuffRef = Card.set_debuff
 
 function Card:set_debuff(should_debuff)
 
-    if isAPProfileLoaded() and self.config.center.ap_unlocked == false and should_debuff == false then
-        should_debuff = true
+    if isAPProfileLoaded() and (self.config.center.ap_unlocked == false) and should_debuff == false and
+		((AreJokersRemoved() and self.config.center.set == 'Joker') or AreConsumablesRemoved()) then
+			should_debuff = true
     end
 
     return card_set_debuffRef(self, should_debuff)
@@ -1166,7 +1179,7 @@ SMODS.Voucher {
             return {} -- no location = default description
         elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
             if (G.AP.location_id_to_item_name[card.ability.extra.id] and -- construct entry if names are available
-                G.AP.location_id_to_item_name[card.ability.extra.id].item_name) then
+                G.AP.location_id_to_item_name[card.ability.extra.id].item_name) and tableContains({1,2}, G.AP.this_mod.config.item_names) then
 
                 local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
                 local _desc = {}
@@ -1224,10 +1237,610 @@ SMODS.Voucher {
     requires = {'fuck!! shit!!!! (put here anything so it doesnt spawn naturally)'}
 }
 
+SMODS.Consumable {
+	key = 'ap_tarot',
+	set = 'Tarot',
+	atlas = 'ap_item_tarot',
+	inject = function(self) -- prevent injection outside of AP
+        if isAPProfileLoaded() then
+            SMODS.Center.inject(self)
+        end
+    end,
+	config = {
+		extra = {id = 0}
+	},
+	load = function(self, card, card_table, other_card)
+		G.E_MANAGER:add_event(Event({
+            blockable = false,
+            trigger = 'after',
+            delay = 0.01,
+            func = function()
+                if card.ability.id ~= 0 then
+                    if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+                        G.FUNCS.resolve_location_id_to_name(card.ability.extra.id) -- scout the location
+                    else
+                        card.cost = 0 -- free if the location is invalid
+                    end
+                end
+                return true
+            end
+        }))
+	end,
+	can_use = function(self, card)
+		return true
+	end,
+	loc_vars = function(self, info_queue, card)
+        if card.ability.extra.id == 0 then
+            return {} -- no location = default description
+        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+            if (G.AP.location_id_to_item_name[card.ability.extra.id] and -- construct entry if names are available
+                G.AP.location_id_to_item_name[card.ability.extra.id].item_name) and tableContains({1,3}, G.AP.this_mod.config.item_names) then
+
+                local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
+                local _desc = {}
+
+                if #_item_name <= 24 then -- use short names as the voucher name
+                    G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = {loc_parse_string(
+                        _item_name)}
+                else -- otherwise put it into description
+                    G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = G.localization
+                                                                                                  .descriptions.Tarot
+                                                                                                  .c_rand_ap_tarot
+                                                                                                  .name_parsed
+                    _desc = split_text_to_lines(_item_name)
+                    for k, v in pairs(_desc) do
+                        _desc[k] = "{C:attention}" .. v
+                    end
+                end
+
+                for k, v in pairs(G.localization.descriptions.Tarot.c_rand_ap_tarot_location.text) do
+                    _desc[#_desc + 1] = v
+                end
+
+                G.localization.descriptions.Tarot.c_rand_ap_tarot_location.text_parsed = {}
+                for k, v in pairs(_desc) do
+                    G.localization.descriptions.Tarot.c_rand_ap_tarot_location.text_parsed[k] = loc_parse_string(v)
+                end
+
+                return {
+                    vars = {tostring(G.AP.location_id_to_item_name[card.ability.extra.id].player_name)},
+                    key = 'c_rand_ap_tarot_location'
+                }
+            else
+                return {} -- default description if item name is unavailable
+            end
+        else -- use a special message if the location is invalid
+            return {
+                key = 'c_rand_ap_tarot_invalid'
+            }
+        end
+    end,
+	set_ability = function(self, card, initial, delay_sprites)
+		G.E_MANAGER:add_event(Event({
+			blockable = false,
+			trigger = 'after',
+			func = function()
+				-- only fire if outside of collection
+				if not (G.your_collection and tableContains(G.your_collection, card.area)) and card.ability.extra.id == 0 then
+					local id = get_tarot_location(25)
+					if id then
+						card.ability.extra.id = id
+					else -- set to blank card if invalid id
+						card.cost = 0
+						card.ability.extra.id = -1
+						card.children.center.atlas = G.ASSET_ATLAS["Tarot"]
+						card.children.center:set_sprite_pos({
+							x = 6,
+							y = 2
+						})
+					end
+				end
+				return true
+			end
+		}))
+	end,
+	set_sprites = function(self, card, card_table, other_card)
+		if card.ability and card.ability.extra and card.ability.extra.id ~= 0 then
+			if G.APClient ~= nil and not tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+				card.children.center.atlas = G.ASSET_ATLAS["Tarot"]
+				card.children.center:set_sprite_pos({
+					x = 6,
+					y = 2
+				})
+			end
+		end
+	end,
+	use = function(self, card, area, copier)
+		delay(0.4)
+		G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+			local success = false
+			if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+				sendLocationCleared(card.ability.extra.id)
+				success = true
+			end
+			attention_text({
+				text = success and localize('k_ap_yeah') or localize('k_nope_ex'),
+				scale = 1.3, 
+				hold = 1.4,
+				major = card,
+				backdrop_colour = G.C.SECONDARY_SET.Tarot,
+				align = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and 'tm' or 'cm',
+				offset = {x = 0, y = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and -0.2 or 0},
+				silent = true
+			})
+			G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.06*G.SETTINGS.GAMESPEED, blockable = false, blocking = false, func = function()
+				play_sound('tarot2', 0.76, 0.4);return true end}))
+			play_sound('tarot2', 1, 0.4)
+			card:juice_up(0.3, 0.5)
+		consumable_update_sprite(card.ability.extra.id)
+		return true end }))
+	end,
+	unlocked = true,
+	discovered = true,
+	cost = 3,
+}
+
+SMODS.Consumable {
+	key = 'ap_planet',
+	set = 'Planet',
+	atlas = 'ap_item_tarot',
+	pos = {x = 1, y = 0},
+	inject = function(self) -- prevent injection outside of AP
+        if isAPProfileLoaded() then
+            SMODS.Center.inject(self)
+        end
+    end,
+	set_card_type_badge = function(self, card, badges)
+           badges[#badges + 1] = create_badge(localize("k_asteroid_belt"), G.C.SECONDARY_SET.Planet, nil, 1.2)
+    end,
+	config = {
+		extra = {id = 0}
+	},
+	can_use = function(self, card)
+		return true
+	end,
+	loc_vars = function(self, info_queue, card)
+        if card.ability.extra.id == 0 then
+            return {} -- no location = default description
+        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+            if (G.AP.location_id_to_item_name[card.ability.extra.id] and -- construct entry if names are available
+                G.AP.location_id_to_item_name[card.ability.extra.id].item_name) and tableContains({1,3}, G.AP.this_mod.config.item_names) then
+
+                local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
+                local _desc = {}
+
+                if #_item_name <= 24 then -- use short names as the voucher name
+                    G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = {loc_parse_string(
+                        _item_name)}
+                else -- otherwise put it into description
+                    G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = G.localization
+                                                                                                  .descriptions.Planet
+                                                                                                  .c_rand_ap_planet
+                                                                                                  .name_parsed
+                    _desc = split_text_to_lines(_item_name)
+                    for k, v in pairs(_desc) do
+                        _desc[k] = "{C:attention}" .. v
+                    end
+                end
+
+                for k, v in pairs(G.localization.descriptions.Planet.c_rand_ap_planet_location.text) do
+                    _desc[#_desc + 1] = v
+                end
+
+                G.localization.descriptions.Planet.c_rand_ap_planet_location.text_parsed = {}
+                for k, v in pairs(_desc) do
+                    G.localization.descriptions.Planet.c_rand_ap_planet_location.text_parsed[k] = loc_parse_string(v)
+                end
+
+                return {
+                    vars = {tostring(G.AP.location_id_to_item_name[card.ability.extra.id].player_name)},
+                    key = 'c_rand_ap_tarot_location'
+                }
+            else
+                return {} -- default description if item name is unavailable
+            end
+        else -- use a special message if the location is invalid
+            return {
+                key = 'c_rand_ap_planet_invalid'
+            }
+        end
+    end,
+	load = function(self, card, card_table, other_card)
+		G.E_MANAGER:add_event(Event({
+            blockable = false,
+            trigger = 'after',
+            delay = 0.01,
+            func = function()
+                if card.ability.id ~= 0 then
+                    if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+                        G.FUNCS.resolve_location_id_to_name(card.ability.extra.id) -- scout the location
+                    else
+                        card.cost = 0 -- free if the location is invalid
+                    end
+                end
+                return true
+            end
+        }))
+	end,
+	set_ability = function(self, card, initial, delay_sprites)
+		G.E_MANAGER:add_event(Event({
+			blockable = false,
+			trigger = 'after',
+			func = function()
+				-- only fire if outside of collection
+				if not (G.your_collection and tableContains(G.your_collection, card.area)) and card.ability.extra.id == 0 then
+					local id = get_tarot_location(5)
+					if id then
+						card.ability.extra.id = id
+					else -- set to blank card if invalid id
+						card.cost = 0
+						card.ability.extra.id = -1
+						card.children.center.atlas = G.ASSET_ATLAS["Tarot"]
+						card.children.center:set_sprite_pos({
+							x = 7,
+							y = 2
+						})
+					end
+				end
+				return true
+			end
+		}))
+	end,
+	set_sprites = function(self, card, card_table, other_card)
+		if card.ability and card.ability.extra and card.ability.extra.id ~= 0 then
+			if G.APClient ~= nil and not tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+				card.children.center.atlas = G.ASSET_ATLAS["Tarot"]
+				card.children.center:set_sprite_pos({
+					x = 7,
+					y = 2
+				})
+			end
+		end
+	end,
+	use = function(self, card, area, copier)
+		delay(0.4)
+		G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+			local success = false
+			if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+				sendLocationCleared(card.ability.extra.id)
+				success = true
+			end
+			attention_text({
+				text = success and localize('k_ap_yeah') or localize('k_nope_ex'),
+				scale = 1.3, 
+				hold = 1.4,
+				major = card,
+				backdrop_colour = G.C.SECONDARY_SET.Planet,
+				align = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and 'tm' or 'cm',
+				offset = {x = 0, y = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and -0.2 or 0},
+				silent = true
+			})
+			G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.06*G.SETTINGS.GAMESPEED, blockable = false, blocking = false, func = function()
+				play_sound('tarot2', 0.76, 0.4);return true end}))
+			play_sound('tarot2', 1, 0.4)
+			card:juice_up(0.3, 0.5)
+		consumable_update_sprite(card.ability.extra.id)
+		return true end }))
+	end,
+	unlocked = true,
+	discovered = true,
+	cost = 3,
+}
+
+SMODS.Consumable {
+	key = 'ap_spectral',
+	set = 'Spectral',
+	atlas = 'ap_item_tarot',
+	pos = {x = 2, y = 0},
+	inject = function(self) -- prevent injection outside of AP
+        if isAPProfileLoaded() then
+            SMODS.Center.inject(self)
+        end
+    end,
+	config = {
+		extra = {id = 0}
+	},
+	can_use = function(self, card)
+		return true
+	end,
+	loc_vars = function(self, info_queue, card)
+        if card.ability.extra.id == 0 then
+            return {} -- no location = default description
+        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+            return {} -- also default description because thats the gimmick LOL
+        else -- use a special message if the location is invalid
+            return {
+                key = 'c_rand_ap_spectral_invalid'
+            }
+        end
+    end,
+	load = function(self, card, card_table, other_card)
+		G.E_MANAGER:add_event(Event({
+            blockable = false,
+            trigger = 'after',
+            func = function()
+                if card.ability.id ~= 0 then
+                    if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+                        G.FUNCS.resolve_location_id_to_name(card.ability.extra.id) -- scout the location
+                    else
+                        card.cost = 0 -- free if the location is invalid
+                    end
+                end
+                return true
+            end
+        }))
+	end,
+	set_ability = function(self, card, initial, delay_sprites)
+		G.E_MANAGER:add_event(Event({
+			blockable = false,
+			trigger = 'after',
+			func = function()
+				-- only fire if outside of collection
+				if not (G.your_collection and tableContains(G.your_collection, card.area)) and card.ability.extra.id == 0 then
+					local id = get_tarot_location()
+					if id then
+						card.ability.extra.id = id
+						if G.APClient ~= nil then
+							G.FUNCS.resolve_location_id_to_name(card.ability.extra.id)
+						end
+					else -- set to blank card if invalid id
+						card.cost = 0
+						card.ability.extra.id = -1
+						card.children.center.atlas = G.ASSET_ATLAS["Tarot"]
+						card.children.center:set_sprite_pos({
+							x = 5,
+							y = 2
+						})
+					end
+				end
+				return true
+			end
+		}))
+	end,
+	set_sprites = function(self, card, card_table, other_card)
+		if card.ability and card.ability.extra and card.ability.extra.id ~= 0 then
+			if G.APClient ~= nil and not tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+				card.children.center.atlas = G.ASSET_ATLAS["Tarot"]
+				card.children.center:set_sprite_pos({
+					x = 5,
+					y = 2
+				})
+			end
+		end
+	end,
+	use = function(self, card, area, copier)
+		G.AP.Spectral.active = false
+		G.AP.Spectral.item = nil
+		G.AP.Spectral.item_detected = false
+		delay(0.4)
+		G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+			local success = false
+			if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+				-- the gimmick
+				if G.AP.location_id_to_item_name[card.ability.extra.id] and 
+					G.AP.location_id_to_item_name[card.ability.extra.id].player_name and
+						G.AP.location_id_to_item_name[card.ability.extra.id].player_name == G.AP.APSlot then
+							G.AP.Spectral.active = true
+				end
+				
+				sendLocationCleared(card.ability.extra.id)
+				success = true
+			end
+			attention_text({
+				text = success and localize('k_ap_yeah') or localize('k_nope_ex'),
+				scale = 1.3, 
+				hold = 1.4,
+				major = card,
+				backdrop_colour = G.C.SECONDARY_SET.Tarot,
+				align = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and 'tm' or 'cm',
+				offset = {x = 0, y = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and -0.2 or 0},
+				silent = true
+			})
+			
+			G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.06*G.SETTINGS.GAMESPEED, blockable = false, blocking = false, func = function()
+				play_sound('tarot2', 0.76, 0.4);return true end}))
+			play_sound('tarot2', 1, 0.4)
+			card:juice_up(0.3, 0.5)
+				
+			if G.AP.Spectral.active == true then
+				G.E_MANAGER:add_event(Event({
+					trigger = 'condition', 
+					blockable = false, 
+					blocking = true, 
+					ref_table = G.AP.Spectral, 
+					ref_value = 'item_detected',
+					stop_val = true,
+					func = function()
+					
+					if G.AP.Spectral.item ~= nil then
+						G.AP.Spectral.item_detected = true
+						return true
+					end
+					
+				return false end}))
+				
+				G.E_MANAGER:add_event(Event({
+					trigger = 'after', 
+					blockable = true, 
+					delay = 0.1,
+					func = function()
+						G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.06*G.SETTINGS.GAMESPEED, blockable = false, blocking = false, func = function()
+							play_sound('tarot2', 0.76, 0.4);return true end}))
+						play_sound('tarot2', 1, 0.4)
+						card:juice_up(0.3, 0.5)
+						
+						local spec_success = false
+						
+						if G.AP.Spectral.item.type == 'tag' then
+							spec_success = true
+							G.E_MANAGER:add_event(Event({
+                                func = (function()
+                                    add_tag(G.AP.Spectral.item.center)
+                                    return true
+                                end)
+                            }))
+						elseif G.AP.Spectral.item.type == 'center' then
+							if G.AP.Spectral.item.center.set == 'Joker' and
+								#G.jokers.cards < G.jokers.config.card_limit then
+									spec_success = true
+									G.E_MANAGER:add_event(Event({
+										trigger = 'before',
+										delay = 0.0,
+										func = (function()
+											local card = create_card(nil, G.jokers, nil, nil, true, nil, G.AP.Spectral.item.center.key)
+											card:add_to_deck()
+											G.jokers:emplace(card)
+											return true
+										end)}))
+							elseif tableContains({'Tarot','Planet','Spectral'}, G.AP.Spectral.item.center.set) and 
+								#G.consumeables.cards < G.consumeables.config.card_limit then
+									spec_success = true
+									G.E_MANAGER:add_event(Event({
+										trigger = 'before',
+										delay = 0.0,
+										func = (function()
+											local card = create_card(nil, G.consumables, nil, nil, true, nil, G.AP.Spectral.item.center.key)
+											card:add_to_deck()
+											G.consumeables:emplace(card)
+											return true
+										end)}))
+							end
+						end
+						
+						if spec_success == false then
+							attention_text({
+								text = localize('k_nope_ex'),
+								scale = 1.3, 
+								hold = 1.4,
+								major = card,
+								backdrop_colour = G.C.SECONDARY_SET.Tarot,
+								align = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and 'tm' or 'cm',
+								offset = {x = 0, y = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and -0.2 or 0},
+								silent = true
+							})
+						end
+					return true end}))
+			end
+			consumable_update_sprite(card.ability.extra.id)
+		return true end }))
+	end,
+	unlocked = true,
+	discovered = true,
+	cost = 3,
+}
+
+function get_tarot_location(_pool_length)
+	-- CHANGE THIS!!!!!!!!!!!!!!!!!
+	if G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) .. "_shop_locations"] then
+        local valid_locations = {}
+        local all_locations = G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) ..
+                                  "_shop_locations"]
+        -- optional argument in case we want to make
+        -- the selection of possible locations limited to a smaller pool
+        _pool_length = _pool_length or #all_locations
+
+        for i, v in ipairs(all_locations) do
+            if (tableContains(G.APClient.missing_locations, v)) then
+				local found = false
+				local tarots = SMODS.find_card('c_rand_ap_tarot', true)
+				
+				for _, card in pairs(tarots) do
+					if card.ability.extra.id == v then
+						found = true
+						break
+					end
+				end
+				
+				if found == false then
+					local planets = SMODS.find_card('c_rand_ap_planet', true)
+					for _, card in pairs(planets) do
+						if card.ability.extra.id == v then
+							found = true
+							break
+						end
+					end
+				end
+				
+				if found == false then
+					local spectrals = SMODS.find_card('c_rand_ap_spectral', true)
+					for _, card in pairs(spectrals) do
+						if card.ability.extra.id == v then
+							found = true
+							break
+						end
+					end
+				end
+				
+				if found == false then
+					valid_locations[#valid_locations + 1] = v
+				end
+            end
+
+            if #valid_locations >= _pool_length then
+                break
+            end
+        end
+
+        if #valid_locations ~= 0 then
+			local id = valid_locations[math.random(#valid_locations)]
+            G.FUNCS.resolve_location_id_to_name(id)
+
+            sendDebugMessage("Returning Tarot Location" .. tostring(id))
+            return id
+        else
+            sendDebugMessage("Out of Tarot Locations...")
+            return nil
+        end
+
+    end
+    return nil
+end
+
 G.FUNCS.resolve_location_id_to_name = function(id)
     if not G.AP.location_id_to_item_name[id] then
         G.APClient:LocationScouts({id})
     end
+end
+
+function consumable_update_sprite(_id)
+	cards = {}
+	for _, card in pairs(SMODS.find_card('c_rand_ap_tarot', true)) do
+		if card.ability.extra.id == _id and card.children.center.atlas ~= G.ASSET_ATLAS["Tarot"] then
+			cards[#cards+1] = card
+		end
+	end
+	
+	for _, card in pairs(SMODS.find_card('c_rand_ap_planet', true)) do
+		if card.ability.extra.id == _id and card.children.center.atlas ~= G.ASSET_ATLAS["Tarot"] then
+			cards[#cards+1] = card
+		end
+	end
+	
+	for _, card in pairs(SMODS.find_card('c_rand_ap_spectral', true)) do
+		if card.ability.extra.id == _id and card.children.center.atlas ~= G.ASSET_ATLAS["Tarot"] then
+			cards[#cards+1] = card
+		end
+	end
+	
+	if #cards > 0 then
+		for i = 1, #cards do
+			local percent = 1.15 - (i-0.999)/(#cards-0.998)*0.3
+			G.E_MANAGER:add_event(
+				Event({
+					trigger = 'after',
+					delay = 0.15,
+					func = function() 
+						cards[i].children.center.atlas = G.ASSET_ATLAS["Tarot"]
+						cards[i].children.center:set_sprite_pos({
+							x = cards[i].config.center.set == 'Planet' and 7 or 
+								cards[i].config.center.set == 'Tarot' and 6 or 5,
+							y = 2
+						})
+						play_sound('card1', percent)
+						cards[i]:juice_up(0.3, 0.3)
+					return true end }))	
+		end
+	end
 end
 
 function get_shop_location(_pool_length)
@@ -1306,6 +1919,27 @@ G.FUNCS.select_blind = function(e)
     end
 
     return select_blindRef(e)
+end
+
+local start_runRef = Game.start_run
+function Game:start_run(args)
+	start_runRef(self, args)
+	
+	if isAPProfileLoaded() then
+        -- scout upcoming locations semi regularly
+        G.GAME.current_shop_check = get_shop_location()
+        local deck_name = G.GAME.selected_back.name
+
+        if (G.GAME.round_resets.ante >= 1 and G.GAME.round_resets.ante <= 8) then
+            for k, v in pairs(deck_list) do
+                if deck_name == v then
+                    G.APClient:LocationScouts({G.AP.id_offset + (64 * k) + (G.GAME.round_resets.ante - 1) * 8 +
+                        (G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level - 1)})
+                    break -- break the loop once the correct deck is found
+                end
+            end
+        end
+    end
 end
 
 local redeemref = Card.redeem
@@ -1671,7 +2305,7 @@ end
 local SMODScenter_injectRef = SMODS.Center.inject
 function SMODS.Center.inject(self)
     if isAPProfileLoaded() then
-        if self.key == 'v_rand_ap_item' or IsVanillaItem(self.key) or
+        if IsVanillaItem(self.key) or
             (G.AP.this_mod.config.modded ~= 1 and not string.find(self.key, '^b_')) then
                 SMODScenter_injectRef(self)
         end
