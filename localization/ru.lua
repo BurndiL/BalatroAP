@@ -73,7 +73,7 @@ return {
 					'Открывает {C:dark_edition}Айтем AP{},',
 					'создваёт его копию,',
 					"если он Ваш",
-					"{C:inactive}(Должно быть место)"
+					"{C:inactive}(должно быть место)"
 				}
 			},
 			c_rand_ap_spectral_invalid = {
