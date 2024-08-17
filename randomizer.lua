@@ -1655,7 +1655,7 @@ SMODS.Consumable {
 				scale = 1.3, 
 				hold = 1.4,
 				major = card,
-				backdrop_colour = G.C.SECONDARY_SET.Tarot,
+				backdrop_colour = G.C.SECONDARY_SET.Spectral,
 				align = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and 'tm' or 'cm',
 				offset = {x = 0, y = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and -0.2 or 0},
 				silent = true
@@ -1737,7 +1737,7 @@ SMODS.Consumable {
 								scale = 1.3, 
 								hold = 1.4,
 								major = card,
-								backdrop_colour = G.C.SECONDARY_SET.Tarot,
+								backdrop_colour = G.C.SECONDARY_SET.Spectral,
 								align = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and 'tm' or 'cm',
 								offset = {x = 0, y = (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.PLANET_PACK) and -0.2 or 0},
 								silent = true
