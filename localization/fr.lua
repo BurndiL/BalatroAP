@@ -414,7 +414,7 @@ return {
 			k_ap_pass = "Mot de passe",
 			b_ap_connect = "Connexion",
 			k_ap_connected = "Connecté à Archipelago à #1#:#2# dans le monde #3#",
-			k_ap_connected_no_ip = "CConnecté à Archipelago dans le monde #3#",
+			k_ap_connected_no_ip = "Connecté à Archipelago dans le monde #3#",
 			k_ap_connecting = "Connexion à Archipelago à #1#:#2#...",
 			k_ap_not_connected = "Non connecté à Archipelago",
 			k_ap_locked_jokers = 'Jokers Verrouillés',
