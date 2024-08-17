@@ -20,7 +20,8 @@ return {
 					"{C:inactive}Cet emplacement a",
 					"{C:inactive}déjà été recupéré."
 				}
-			}
+	
+		},
 		Tarot = {
 			c_rand_ap_tarot = {
 				name = "Archipelago Tarot",
@@ -69,10 +70,10 @@ return {
 			c_rand_ap_spectral = {
 				name = "Archipelago Spectral",
 				text = {
-					'Unlocks an {C:dark_edition}AP Item{},',
-					'creates a copy of it',
-					"if it's yours",
-					"{C:inactive}(Must have room)"
+					'Déverrouille un {C:dark_edition}Item AP {},', 
+					"Crée une copie de l'objet",
+					"si c'est le votre",
+					"{C:inactive}(Vous devez avoir de la place)"
 				}
 			},
 			c_rand_ap_spectral_invalid = {
@@ -86,7 +87,7 @@ return {
 		Back = {
 			b_challenge = {
 				text = {
-					"S'applique {C:attention}Custom Rules{}",
+					"Applique des {C:attention}Régles Custom{}",
 					"et des restrictions"
 				}
 			}
@@ -337,6 +338,7 @@ return {
 					"Trouver ce Booster Pack",
 					"en tant qu'{C:dark_edition}Item AP"
 				}
+	 
 			ap_locked_Modded = {
 				name = "Verrouillé",
 				text = {
@@ -414,7 +416,7 @@ return {
 			k_ap_pass = "Mot de passe",
 			b_ap_connect = "Connexion",
 			k_ap_connected = "Connecté à Archipelago à #1#:#2# dans le monde #3#",
-			k_ap_connected_no_ip = "Connecté à Archipelago dans le monde #3#",
+			k_ap_connected_no_ip = "CConnecté à Archipelago dans le monde #3#",
 			k_ap_connecting = "Connexion à Archipelago à #1#:#2#...",
 			k_ap_not_connected = "Non connecté à Archipelago",
 			k_ap_locked_jokers = 'Jokers Verrouillés',
@@ -424,7 +426,7 @@ return {
 				'Suivre le YAML',
 				'Supprimer'
 			},
-			k_ap_modded_items = 'Modded Items',
+			k_ap_modded_items = 'Items Moddés',
 			k_ap_modded_items_options = {
 				'Supprimer',
 				'Verrouillé',
@@ -436,14 +438,14 @@ return {
 				'Suivre le YAML',
 				'Forcer à on'
 			},
-			k_ap_connection_status = 'Connection Status Info',
+			k_ap_connection_status = "Informations sur l'état de la connexion",
 			k_ap_connection_status_options = {
 				'Complet',
 				'uniquement Connecté',
 				'IP Caché',
-				'None'
+				'Aucun'
 			},
-			k_ap_cant_change = "These options cannot be changed while connected to Archipelago",
+			k_ap_cant_change = "Ces options ne peuvent pas être modifiées lorsque l'on est connecté à Archipelago",
 			ap_goal_text = {
 				"Battre #1# Decks (#2#/#1#)",
 				"Déverrouiller #1# Jokers (#2#/#1#)",
@@ -457,7 +459,7 @@ return {
 				'Afficher tout',
 				'Uniquement Coupon',
 				'Uniquement Consommables',
-				'Hide All'
+				'Masquer tout'
 			},
 			k_ap_yeah = 'Yeah!',
 			k_asteroid_belt = "La ceinture d'astéroïdes"
