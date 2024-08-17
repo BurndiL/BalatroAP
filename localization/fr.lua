@@ -21,6 +21,67 @@ return {
 					"{C:inactive}déjà été recupéré."
 				}
 			}
+		Tarot = {
+			c_rand_ap_tarot = {
+				name = "Archipelago Tarot",
+				text = {
+					'Déverrouille un {C:dark_edition}Item AP {}', 
+					"lors de l'utilisation"
+				}
+			},
+			c_rand_ap_tarot_location = {
+				name = "Archipelago Tarot",
+				text = {--item name is handled through code
+					'pour {C:dark_edition}#1#{}'
+					}
+			},
+			c_rand_ap_tarot_invalid = {
+				name = "Archipelago Tarot",
+				text = {
+					"{C:inactive}Cet emplacement a",
+					"{C:inactive}déjà été recupéré."
+				}
+			},
+		},
+		Planet = {
+			c_rand_ap_planet = {
+				name = "Archipelago Belt",
+				text = {
+					'Déverrouille un {C:dark_edition}Item AP {}', 
+					"lors de l'utilisation"
+				}
+			},
+			c_rand_ap_planet_location = {
+				name = "Archipelago Belt",
+				text = {--item name is handled through code
+					'pour {C:dark_edition}#1#{}'
+					}
+			},
+			c_rand_ap_planet_invalid = {
+				name = "Archipelago Belt",
+				text = {
+					"{C:inactive}Cet emplacement a",
+					"{C:inactive}déjà été recupéré."
+				}
+			}
+		},
+		Spectral = {
+			c_rand_ap_spectral = {
+				name = "Archipelago Spectral",
+				text = {
+					'Unlocks an {C:dark_edition}AP Item{},',
+					'creates a copy of it',
+					"if it's yours",
+					"{C:inactive}(Must have room)"
+				}
+			},
+			c_rand_ap_spectral_invalid = {
+				name = "Archipelago Spectral",
+				text = {
+					"{C:inactive}Cet emplacement a",
+					"{C:inactive}déjà été recupéré."
+				}
+			},
 		},
 		Back = {
 			b_challenge = {
@@ -276,6 +337,12 @@ return {
 					"Trouver ce Booster Pack",
 					"en tant qu'{C:dark_edition}Item AP"
 				}
+			ap_locked_Modded = {
+				name = "Verrouillé",
+				text = {
+					"Les items moddés",
+					"ne peuvent pas être déverrouillé"
+				}
 			},
 			ap_challenge_locked_vanilla = {
                 name = "Verrouillé",
@@ -331,24 +398,6 @@ return {
 					"Gagnez une manche avec ce deck",
                     "en difficulté {V:1}#1#{} au moins",
 				}
-			},
-			ap_goal_decks = {
-				text = {"Gagnez avec #1# Decks (#2#/#1#)"}
-			},
-			ap_goal_jokers = {
-				text = {"Gagnez en deverouillant #1# Jokers (#2#/#1#)"}
-			},
-			ap_goal_ante = {
-				text = {"Gagnez avec #1# mises"}
-			},
-			ap_goal_deck_stickers = {
-				text = {"Gagnez avec #1# Decks sur au moins la difficulté #3# (#2#/#1#)"}
-			},
-			ap_goal_joker_stickers = {
-				text = {"Gagnez avec #1# Jokers en difficulté #3# minimum (#2#/#1#)"}
-			},
-			ap_goal_unique_wins = {
-				text = {"Gagnez avec #1# combinaisons uniques de decks et de mises (#2#/#1#)"}
 			}
 		}
 	},
@@ -365,8 +414,53 @@ return {
 			k_ap_pass = "Mot de passe",
 			b_ap_connect = "Connexion",
 			k_ap_connected = "Connecté à Archipelago à #1#:#2# dans le monde #3#",
+			k_ap_connected_no_ip = "CConnecté à Archipelago dans le monde #3#",
 			k_ap_connecting = "Connexion à Archipelago à #1#:#2#...",
-			k_ap_not_connected = "Non connecté à Archipelago"
+			k_ap_not_connected = "Non connecté à Archipelago",
+			k_ap_locked_jokers = 'Jokers Verrouillés',
+			k_ap_locked_consums = 'Consommable Verrouillé',
+			k_ap_locked_options = {
+				'Débuff',
+				'Suivre le YAML',
+				'Supprimer'
+			},
+			k_ap_modded_items = 'Modded Items',
+			k_ap_modded_items_options = {
+				'Supprimer',
+				'Verrouillé',
+				'Déverrouillé'
+			},
+			k_ap_deathlink = 'Deathlink',
+			k_ap_deathlink_options = {
+				'Forcer à off',
+				'Suivre le YAML',
+				'Forcer à on'
+			},
+			k_ap_connection_status = 'Connection Status Info',
+			k_ap_connection_status_options = {
+				'Complet',
+				'uniquement Connecté',
+				'IP Caché',
+				'None'
+			},
+			k_ap_cant_change = "These options cannot be changed while connected to Archipelago",
+			ap_goal_text = {
+				"Battre #1# Decks (#2#/#1#)",
+				"Déverrouiller #1# Jokers (#2#/#1#)",
+				"Battre #1# mises",
+				"Battre #1# Decks avec au moins la difficulté #3# (#2#/#1#)",
+				"Gagne avec #1# Jokers avec au moins la difficulté #3# (#2#/#1#)",
+				"Gagne avec #1# des combinaisons uniques de jeux et de mises (#2#/#1#)"
+			},
+			k_ap_item_names = "Nom d'Item AP",
+			k_ap_item_names_options = {
+				'Afficher tout',
+				'Uniquement Coupon',
+				'Uniquement Consommables',
+				'Hide All'
+			},
+			k_ap_yeah = 'Yeah!',
+			k_asteroid_belt = "La ceinture d'astéroïdes"
 		}
 	}
 }
