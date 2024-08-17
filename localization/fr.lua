@@ -434,16 +434,16 @@ return {
 			},
 			k_ap_deathlink = 'Deathlink',
 			k_ap_deathlink_options = {
-				'Forcer à arret',
+				"Forcer à l'arret",
 				'Suivre le YAML',
-				'Forcer à actif'
+				"Forcer en marche"
 			},
 			k_ap_connection_status = "Informations sur l'état de la connexion",
 			k_ap_connection_status_options = {
 				'Complet',
-				'uniquement Connecté',
+				'Uniquement vonnecté',
 				'IP Caché',
-				'Aucun'
+				'Aucune'
 			},
 			k_ap_cant_change = "Ces options ne peuvent pas être modifiées lorsque l'on est connecté à Archipelago",
 			ap_goal_text = {
