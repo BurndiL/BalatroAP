@@ -97,21 +97,21 @@ return {
 				name = "Trap Eternel",
 				text = {
 					"{s:0.7}Un Joker aléatoire", 
-					"{s:1}est {C:attention}Eternal{}!"
+					"{s:1}est devenu {C:attention}Éternel{}!"
 					}
 			},
 			t_perishable = {
 				name = "Perishable Trap",
 				text = {
 					"{s:0.7}Un Joker aléatoire", 
-					"{s:1}est {C:attention}Perishable{}!"
+					"{s:1}est devenu {C:attention}Périssable{}!"
 				}
 			},
 			t_rental = {
 				name = "Rental Trap",
 				text = {
 					"{s:0.7}Un Joker aléatoire", 
-					"{s:1}est {C:attention}Rental{}!"
+					"{s:1}est devenu {C:attention}Location{}!"
 					}
 			},
 			t_money = {
