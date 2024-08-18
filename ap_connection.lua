@@ -300,6 +300,201 @@ G.APSave = {
     ShopLocations = 0
 }
 
+-- vanilla item whitelist
+function IsVanillaItem(key)
+	--Jokers
+	if string.find(key, '^j_') then
+		local j_whitelist = { --organized in collection order
+			-- page 1
+			'j_joker', 'j_greedy_joker', 'j_lusty_joker','j_wrathful_joker','j_gluttenous_joker',
+			'j_jolly', 'j_zany', 'j_mad', 'j_crazy', 'j_droll', 
+			'j_sly', 'j_wily', 'j_clever', 'j_devious', 'j_crafty',
+			
+			-- page 2
+			'j_half', 'j_stencil', 'j_four_fingers', 'j_mime', 'j_credit_card',
+			'j_ceremonial', 'j_banner', 'j_mystic_summit', 'j_marble', 'j_loyalty_card',
+			'j_8_ball', 'j_misprint', 'j_dusk', 'j_raised_fist', 'j_chaos',
+			
+			-- page 3
+			'j_fibonacci', 'j_steel_joker', 'j_scary_face', 'j_abstract', 'j_delayed_grat',
+			'j_hack', 'j_pareidolia', 'j_gros_michel', 'j_even_steven', 'j_odd_todd',
+			'j_scholar', 'j_business', 'j_supernova', 'j_ride_the_bus', 'j_space',
+			
+			-- page 4
+			'j_egg', 'j_burglar', 'j_blackboard', 'j_runner', 'j_ice_cream',
+			'j_dna', 'j_splash', 'j_blue_joker', 'j_sixth_sense', 'j_constellation',
+			'j_hiker', 'j_faceless', 'j_green_joker', 'j_superposition', 'j_todo_list',
+			
+			-- page 5
+			'j_cavendish','j_card_sharp', 'j_red_card', 'j_madness', 'j_square',
+			'j_seance', 'j_riff_raff', 'j_vampire', 'j_shortcut', 'j_hologram',
+			'j_vagabond','j_baron', 'j_cloud_9', 'j_rocket', 'j_obelisk',
+			
+			-- page 6
+			'j_midas_mask', 'j_luchador', 'j_photograph', 'j_gift', 'j_turtle_bean',
+			'j_erosion', 'j_reserved_parking', 'j_mail', 'j_to_the_moon', 'j_hallucination',
+			'j_fortune_teller', 'j_juggler', 'j_drunkard','j_stone', 'j_golden',
+			
+			-- page 7
+			'j_lucky_cat', 'j_baseball', 'j_bull', 'j_diet_cola', 'j_trading',
+			'j_flash','j_popcorn','j_trousers','j_ancient','j_ramen',
+			'j_walkie_talkie', 'j_selzer', 'j_castle', 'j_smiley', 'j_campfire',
+			
+			-- page 8
+			'j_ticket', 'j_mr_bones', 'j_acrobat', 'j_sock_and_buskin', 'j_swashbuckler',
+			'j_troubadour', 'j_certificate', 'j_smeared', 'j_throwback', 'j_hanging_chad',
+			'j_rough_gem', 'j_bloodstone', 'j_arrowhead', 'j_onyx_agate', 'j_glass',
+			
+			-- page 9
+			'j_ring_master', 'j_flower_pot', 'j_blueprint', 'j_wee', 'j_merry_andy',
+			'j_oops', 'j_idol', 'j_seeing_double', 'j_matador', 'j_hit_the_road',
+			'j_duo', 'j_trio', 'j_family', 'j_order', 'j_tribe',
+			
+			-- page 10
+			'j_stuntman', 'j_invisible', 'j_brainstorm', 'j_satellite', 'j_shoot_the_moon',
+			'j_drivers_license', 'j_cartomancer', 'j_astronomer', 'j_burnt', 'j_bootstraps',
+			'j_caino', 'j_triboulet', 'j_yorick', 'j_chicot', 'j_perkeo'
+		}
+		
+		if tableContains(j_whitelist, key) then
+			return true
+		else
+			return nil
+		end
+	end
+	
+	-- Consumables
+	if string.find(key, '^c_') then
+		local c_whitelist = {
+			-- Tarots
+			'c_fool', 'c_magician', 'c_high_priestess', 'c_empress', 'c_emperor',
+			'c_heirophant', 'c_lovers', 'c_chariot', 'c_justice', 'c_hermit',
+			'c_wheel_of_fortune', 'c_strength', 'c_hanged_man', 'c_death', 'c_temperance',
+			'c_devil', 'c_tower', 'c_star', 'c_moon', 'c_sun', 'c_judgement', 'c_world',
+			
+			-- Planets
+			'c_mercury', 'c_venus', 'c_earth', 'c_mars', 'c_jupiter', 'c_saturn',
+			'c_uranus', 'c_neptune', 'c_pluto', 'c_planet_x', 'c_ceres', 'c_eris',
+			
+			-- Spectrals
+			'c_familiar', 'c_grim', 'c_incantation', 'c_talisman', 'c_aura', 'c_wraith',
+			'c_sigil', 'c_ouija', 'c_ectoplasm', 'c_immolate', 'c_ankh', 'c_deja_vu', 
+			'c_hex', 'c_trance', 'c_medium', 'c_cryptid', 'c_soul', 'c_black_hole',
+			
+			'c_base',
+			
+			-- not vanilla but we need these to pass the vanilla check
+			'c_rand_ap_tarot', 'c_rand_ap_planet', 'c_rand_ap_spectral'
+		}
+		
+		if tableContains(c_whitelist, key) then
+			return true
+		else
+			return nil
+		end
+	end
+	
+	-- Vouchers
+	if string.find(key, '^v_') then
+		local v_whitelist = {
+			'v_overstock_norm', 'v_clearance_sale', 'v_hone', 'v_reroll_surplus',
+			'v_crystal_ball', 'v_telescope', 'v_grabber', 'v_wasteful',
+			'v_tarot_merchant', 'v_planet_merchant', 'v_seed_money', 'v_blank',
+			'v_magic_trick', 'v_hieroglyph', 'v_directors_cut','v_paint_brush',
+			
+			'v_overstock_plus', 'v_liquidation', 'v_glow_up', 'v_reroll_glut',
+			'v_omen_globe', 'v_observatory', 'v_nacho_tong','v_recyclomancy',
+			'v_tarot_tycoon','v_planet_tycoon','v_money_tree','v_antimatter',
+			'v_illusion','v_petroglyph','v_retcon','v_palette',
+			
+			'v_rand_ap_item'
+		}
+		
+		if tableContains(v_whitelist, key) then
+			return true
+		else
+			return nil
+		end
+	end
+	
+	-- Backs/Decks
+	if string.find(key, '^b_') then
+		local b_whitelist = {
+			'b_red', 'b_blue', 'b_yellow', 'b_green', 'b_black',
+			'b_magic', 'b_nebula', 'b_ghost', 'b_abandoned', 'b_checkered',
+			'b_zodiac', 'b_painted', 'b_anaglyph', 'b_plasma', 'b_erratic',
+			
+			'b_challenge'
+		}
+		
+		if tableContains(b_whitelist, key) then
+			return true
+		else
+			return nil
+		end
+	end
+	
+	-- Booster Packs
+	if string.find(key, '^p_') then
+		local p_whitelist = {
+			-- Arcana
+			'p_arcana_normal_1', 'p_arcana_normal_2', 'p_arcana_normal_3', 'p_arcana_normal_4',
+			'p_arcana_jumbo_1', 'p_arcana_jumbo_2', 'p_arcana_mega_1', 'p_arcana_mega_2',
+			
+			-- Celestial
+			'p_celestial_normal_1', 'p_celestial_normal_2', 'p_celestial_normal_3', 'p_celestial_normal_4',
+			'p_celestial_jumbo_1', 'p_celestial_jumbo_2', 'p_celestial_mega_1', 'p_celestial_mega_2',
+			
+			-- Spectral
+			'p_spectral_normal_1', 'p_spectral_normal_2', 'p_spectral_jumbo_1', 'p_spectral_mega_1',
+			
+			-- Standard
+			'p_standard_normal_1', 'p_standard_normal_2', 'p_standard_normal_3', 'p_standard_normal_4',
+			'p_standard_jumbo_1', 'p_standard_jumbo_2', 'p_standard_mega_1', 'p_standard_mega_2',
+			
+			-- Buffoon
+			'p_buffoon_normal_1', 'p_buffoon_normal_2', 'p_buffoon_jumbo_1', 'p_buffoon_mega_1',
+		}
+		
+		if tableContains(p_whitelist, key) then
+			return true
+		else
+			return nil
+		end
+	end
+	
+	-- Challenges
+	local chal_whitelist = {
+		'omelette_1', 'city_1', 'rich_1', 'knife_1', 'xray_1',
+		'mad_world_1', 'luxury_1', 'non_perishable_1', 'medusa_1', 'double_nothing_1',
+	
+        'typecast_1', 'inflation_1', 'bram_poker_1', 'fragile_1', 'monolith_1',
+		'blast_off_1', 'five_card_1', 'golden_needle_1', 'cruelty_1', 'jokerless_1',
+	}
+	
+	if tableContains(chal_whitelist, key) then
+		return true
+	end
+	
+	local misc_whitelist = {
+		'm_steel', 'm_wild', 'm_glass', 'm_stone', 'm_mult', 
+		'm_bonus', 'm_gold', 'm_lucky',
+		
+		'e_base', 'e_foil', 'e_polychrome', 'e_holo', 'e_negative',
+		
+		'undiscovered_joker', 'undiscovered_tarot', 'soul'
+	}
+	
+	if tableContains(misc_whitelist, key) then
+		return true
+	end
+	
+	-- Stakes are hardcoded to always chain into the vanilla 8
+	-- so they dont need this check
+	
+	return nil
+end
+
 function APConnect()
     server = G.AP.APAddress .. ":" .. G.AP.APPort
     slot = G.AP.APSlot
@@ -345,7 +540,7 @@ function APConnect()
         -- G.APClient:Set("empty_array", nil, true, {{"replace", AP.EMPTY_ARRAY}})
 
         local tags = {"Lua-APClientPP"}
-        if (G.AP.slot_data.deathlink) then
+        if (IsDeathlinkOn()) then
             tags[#tags + 1] = "DeathLink"
         end
 
@@ -419,8 +614,8 @@ function APConnect()
                             item = item.nextVoucher
                         end
 
-                        if (not G.AP.slot_data.remove_jokers and item.set == "Joker") or
-                            (not G.AP.slot_data.remove_consumables and
+                        if (not AreJokersRemoved() and item.set == "Joker") or
+                            (not AreConsumablesRemoved() and
                                 (item.set == "Tarot" or item.set == "Planet" or item.set == "Spectral")) then
 
                             item.ap_unlocked = true
@@ -464,6 +659,14 @@ function APConnect()
                         item.hidden = false
                         wasLocked = true
                         item.demo = nil
+						
+						-- spectral gimmick
+						if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+							G.AP.Spectral.item = {
+								type = 'center',
+								center = item
+							}
+						end
 
                         G.FUNCS.AP_unlock_item(item)
                     end
@@ -690,6 +893,14 @@ function APConnect()
                                     return true
                                 end)
                             }))
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_buffoon')
+								}
+							end
 
                             notify_alert('fill_buffoon', "Bonus")
                         end
@@ -710,6 +921,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_'..choice, "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag(choice)
+								}
+							end
                         end
                     elseif item_id == 313 then
                         -- plus 3 hand size next round (must be during a game)
@@ -723,6 +942,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_juggle', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_juggle')
+								}
+							end
                         end
                     elseif item_id == 314 then
                         -- rerolls start at $0 next shop (must be during a game)
@@ -736,6 +963,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_d_six', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_d_six')
+								}
+							end
                         end
                     elseif item_id == 315 then
                         -- Free uncommon joker next shop (must be during a game)
@@ -749,6 +984,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_uncommon', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_uncommon')
+								}
+							end
                         end
                     elseif item_id == 316 then
                         -- Free rare joker next shop (must be during a game)
@@ -762,6 +1005,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_rare', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_rare')
+								}
+							end
                         end
                     elseif item_id == 317 then
                         -- Free negative joker next shop (must be during a game)
@@ -775,6 +1026,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_negative', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_negative')
+								}
+							end
                         end
                     elseif item_id == 318 then
                         -- Free foil joker next shop (must be during a game)
@@ -788,6 +1047,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_foil', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_foil')
+								}
+							end
                         end
                     elseif item_id == 319 then
                         -- Free holographic joker next shop (must be during a game)
@@ -801,6 +1068,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_holo', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_holo')
+								}
+							end
                         end
                     elseif item_id == 320 then
                         -- Free polychrome joker next shop (must be during a game)
@@ -814,6 +1089,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_poly', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_polychrome')
+								}
+							end
                         end
                     elseif item_id == 321 then
                         -- Receive double tag (must be during a game)
@@ -827,6 +1110,14 @@ function APConnect()
                                 end)
                             }))
                             notify_alert('fill_double', "Bonus")
+							
+							-- spectral gimmick
+							if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+								G.AP.Spectral.item = {
+									type = 'tag',
+									center = Tag('tag_double')
+								}
+							end
                         end
                     end
 
@@ -1133,6 +1424,13 @@ function APConnect()
                         }
                     end
                 end
+				
+				-- spectral gimmick
+				if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+					G.AP.Spectral.item = {
+						type = 'fail'
+					}
+				end
 
             end
         end

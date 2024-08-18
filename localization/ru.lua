@@ -22,6 +22,68 @@ return {
 				}
 			}
 		},
+		Tarot = {
+			c_rand_ap_tarot = {
+				name = "Таро Archipelago",
+				text = {
+					'Открывает {C:dark_edition}Айтем AP{}',
+					'при использовании'
+				}
+			},
+			c_rand_ap_tarot_location = {
+				name = "Таро Archipelago",
+				text = {--item name is handled through code
+					'для {C:dark_edition}#1#{}'
+					}
+			},
+			c_rand_ap_tarot_invalid = {
+				name = "Таро Archipelago",
+				text = {
+					"{C:inactive}Эта локация",
+					"{C:inactive}уже чекнута."
+				}
+			},
+		},
+		Planet = {
+			c_rand_ap_planet = {
+				name = "Пояс Archipelago",
+				text = {
+					'Открывает {C:dark_edition}Айтем AP{}',
+					'при использовании'
+				}
+			},
+			c_rand_ap_planet_location = {
+				name = "Пояс Archipelago",
+				text = {--item name is handled through code
+					'для {C:dark_edition}#1#{}'
+					}
+			},
+			c_rand_ap_planet_invalid = {
+				name = "Пояс Archipelago",
+				text = {
+					"{C:inactive}Эта локация",
+					"{C:inactive}уже чекнута."
+				}
+			}
+		},
+		Spectral = {
+			c_rand_ap_spectral = {
+				name = "Спектральный Archipelago",
+				text = {
+					'Открывает {C:dark_edition}Айтем AP{},',
+					'создваёт его копию,',
+					"если он Ваш",
+					"{C:inactive}(должно быть место)"
+				}
+			},
+			c_rand_ap_spectral_invalid = {
+				name = "Спектральный Archipelago",
+				text = {
+					"{C:inactive}Эта локация",
+					"{C:inactive}уже чекнута."
+				}
+			},
+		},
 		Back = {
 			b_challenge = {
 				text = {
@@ -277,6 +339,13 @@ return {
 					"в виде {C:dark_edition}Айтема AP"
 				}
 			},
+			ap_locked_Modded = {
+				name = "Заблокировано",
+				text = {
+					"Предметы из модов",
+					"не открываются"
+				}
+			},
 			ap_challenge_locked_vanilla = {
                 name = "Заблокировано",
                 text = {
@@ -332,30 +401,6 @@ return {
                     "на сложности {V:1}#1#{} и выше",
 				}
 			},
-			ap_goal_decks = {
-				--text = {"Выйграйте с #1# колодами (#2#/#1#)"}
-				text = {"Vyigraite s #1# kolodami (#2#/#1#)"}
-			},
-			ap_goal_jokers = {
-				--text = {"Разблокируйте #1# Джокеров (#2#/#1#)"}
-				text = {"Razblokiruyite #1# Dzhokerov (#2#/#1#)"}
-			},
-			ap_goal_ante = {
-				--text = {"Победите Босс-блайнд на анте #1#"}
-				text = {"Pobedide Boss-blaind na ante #1#"}
-			},
-			ap_goal_deck_stickers = {
-				--text = {"Выйграйте с #1# колодами на сложности #3# и выше (#2#/#1#)"}
-				text = {"Vyigraite s #1# kolodami na slozhnosti #3# i vyshe (#2#/#1#)"}
-			},
-			ap_goal_joker_stickers = {
-				--text = {"Выйграйте с #1# Джокерами на сложности #3# и выше (#2#/#1#)"}
-				text = {"Vyigtaite s #1# Dzhokerami na slozhnosti #3# i vyshe (#2#/#1#)"}
-			},
-			ap_goal_unique_wins = {
-				--text = {"Выйграте на #1# уникальных комбинациях колод и ставок (#2#/#1#)"}
-				text = {"Vyigraite na #1# unikal'nyh kombinatsiyah kolod i stavok (#2#/#1#)"}
-			}
 		}
 	},
 	misc = {
@@ -370,12 +415,54 @@ return {
 			k_ap_slot = "Название слота",
 			k_ap_pass = "Пароль",
 			b_ap_connect = "Подключиться",
-			--k_ap_connected = "Подключено к Archipelago по адресу #1#:#2# как #3#",
-			k_ap_connected = "Podklyucheno k Archipelago po adresu #1#:#2# kak #3#",
-			--k_ap_connecting = "Идёт подключение с Archipelago по адресу #1#:#2#...",
-			k_ap_connecting = "Idyot pokdlyuchenie k Archipelago po adresu #1#:#2#...",
-			--k_ap_not_connected = "Не подключено к Archipelago."
-			k_ap_not_connected = "Ne podklyucheno k Archipelago."
+			k_ap_connected = "Подключено к Archipelago по адресу #1#:#2# как #3#",
+			k_ap_connected_no_ip = "Подключено к Archipelago как #3#",
+			k_ap_connecting = "Идёт подключение с Archipelago по адресу #1#:#2#...",
+			k_ap_not_connected = "Не подключено к Archipelago.",
+			k_ap_locked_jokers = 'Закрытые Джокеры',
+			k_ap_locked_consums = 'Закрытое расходуемое',
+			k_ap_locked_options = {
+				'Ослабить',
+				'Следовать YAML',
+				'Убрать'
+			},
+			k_ap_modded_items = 'Предметы из модов',
+			k_ap_modded_items_options = {
+				'Убрать',
+				'Закрыть',
+				'Разблокировать'
+			},
+			k_ap_deathlink = 'Deathlink',
+			k_ap_deathlink_options = {
+				'Выключить',
+				'Следовать YAML',
+				'Включить'
+			},
+			k_ap_connection_status = 'Информация о подключении',
+			k_ap_connection_status_options = {
+				'Полная',
+				'Когда подключено',
+				'Спрятать IP',
+				'Никакой'
+			},
+			k_ap_cant_change = "Эти настройки нельзя менять, пока Вы подключены к Archipelago",
+			ap_goal_text = {
+				"Выйграйте с #1# колодами (#2#/#1#)",
+				"Разблокируйте #1# Джокеров (#2#/#1#)",
+				"Победите Босс-блайнд на анте #1#",
+				"Выйграйте с #1# колодами на сложности #3# и выше (#2#/#1#)",
+				"Выйграйте с #1# Джокерами на сложности #3# и выше (#2#/#1#)",
+				"Выйграте на #1# уникальных комбинациях колод и ставок (#2#/#1#)"
+			},
+			k_ap_item_names = 'Названия Айтемов AP',
+			k_ap_item_names_options = {
+				'Показывать все',
+				'Только на ваучере',
+				'Только на расходуемом',
+				'Спрятать все'
+			},
+			k_ap_yeah = 'Да!',
+			k_asteroid_belt = 'Пояс астероидов'
 		}
 	}
 }

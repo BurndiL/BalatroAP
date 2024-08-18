@@ -1,3 +1,419 @@
+-- Config Tab
+SMODS.current_mod.config_tab = function(_from_profile)
+	local innards = {
+				n = G.UIT.C,
+				nodes = {
+					create_option_cycle({ -- connection status info cycle
+						label = localize('k_ap_connection_status'),
+						current_option = G.AP.this_mod.config.connection_status,
+						options = localize('k_ap_connection_status_options'),
+						ref_table = G.AP.this_mod.config, 
+						ref_value = 'connection_status',
+						colour = G.AP.this_mod.badge_colour,
+						text_scale = 0.4,
+						scale = 0.75,
+						w = 4,
+						opt_callback = 'update_ap_config'
+					}),{ --deathlink and item names
+						n = G.UIT.R,
+						config = {
+							colour = G.C.CLEAR,
+							aling = 'cm'
+						},
+						nodes = {
+							{
+								n = G.UIT.C,
+								config = {
+									colour = G.C.CLEAR,
+									aling = 'cm'
+								},
+								nodes = {
+									create_option_cycle({
+										label = localize('k_ap_deathlink'),
+										current_option = G.AP.this_mod.config.jokers,
+										options = localize('k_ap_deathlink_options'),
+										ref_table = G.AP.this_mod.config, 
+										ref_value = 'deathlink',
+										colour = G.AP.this_mod.badge_colour,
+										text_scale = 0.4,
+										scale = 0.75,
+										w = 3,
+										opt_callback = 'update_ap_config'
+									})
+								}
+							},
+							{
+								n = G.UIT.C,
+								config = {
+									colour = G.C.CLEAR,
+									aling = 'cm'
+								},
+								nodes = {
+									create_option_cycle({
+										label = localize('k_ap_item_names'),
+										current_option = G.AP.this_mod.config.consumables,
+										options = localize('k_ap_item_names_options'),
+										ref_table = G.AP.this_mod.config, 
+										ref_value = 'item_names',
+										colour = G.AP.this_mod.badge_colour,
+										text_scale = 0.4,
+										scale = 0.75,
+										w = 3,
+										opt_callback = 'update_ap_config'
+									})
+								}
+							},
+							
+						}
+					},
+					-- Notice for unchangable options when connected
+					isAPProfileLoaded() and { 
+						n = G.UIT.R,
+						config = {
+							colour = G.C.CLEAR,
+							align = 'tm',
+							padding = 0.2
+						},
+						nodes = {{
+							n = G.UIT.T,
+							config = {
+								align = 'tm',
+								scale = 0.3,
+								text = localize('k_ap_cant_change')
+							}
+						}}
+					} or nil,
+					-- when connected, create a list of currently chosen options
+					isAPProfileLoaded() and list_ap_option({
+						label = 'k_ap_locked_jokers',
+						options = 'k_ap_locked_options',
+						current_option = G.AP.this_mod.config.jokers
+					}) or nil,
+					isAPProfileLoaded() and list_ap_option({
+						label = 'k_ap_locked_consums',
+						options = 'k_ap_locked_options',
+						current_option = G.AP.this_mod.config.consumables
+					}) or nil,
+					-- when not connected, create cycles
+					not isAPProfileLoaded() and {
+						n = G.UIT.R,
+						config = {
+							colour = G.C.CLEAR,
+							aling = 'cm'
+						},
+						nodes = {
+							{
+								n = G.UIT.C,
+								config = {
+									colour = G.C.CLEAR,
+									aling = 'cm'
+								},
+								nodes = {
+									create_option_cycle({
+										label = localize('k_ap_locked_jokers'),
+										current_option = G.AP.this_mod.config.jokers,
+										options = localize('k_ap_locked_options'),
+										ref_table = G.AP.this_mod.config, 
+										ref_value = 'jokers',
+										colour = G.C.DARK_EDITION,
+										text_scale = 0.4,
+										scale = 0.75,
+										w = 3,
+										opt_callback = 'update_ap_config'
+									})
+								}
+							},
+							{
+								n = G.UIT.C,
+								config = {
+									colour = G.C.CLEAR,
+									aling = 'cm'
+								},
+								nodes = {
+									create_option_cycle({
+										label = localize('k_ap_locked_consums'),
+										current_option = G.AP.this_mod.config.consumables,
+										options = localize('k_ap_locked_options'),
+										ref_table = G.AP.this_mod.config, 
+										ref_value = 'consumables',
+										colour = G.C.DARK_EDITION,
+										text_scale = 0.4,
+										scale = 0.75,
+										w = 3,
+										opt_callback = 'update_ap_config'
+									})
+								}
+							},
+							
+						}
+					} or nil, --Modded item notice and cycle
+					isAPProfileLoaded() and list_ap_option({
+						label = 'k_ap_modded_items',
+						options = 'k_ap_modded_items_options',
+						current_option = G.AP.this_mod.config.modded
+					}) or
+					create_option_cycle({
+						label = localize('k_ap_modded_items'),
+						current_option = G.AP.this_mod.config.modded,
+						options = localize('k_ap_modded_items_options'),
+						ref_table = G.AP.this_mod.config, 
+						ref_value = 'modded',
+						colour = G.AP.this_mod.badge_colour,
+						text_scale = 0.4,
+						scale = 0.75,
+						w = 4,
+						opt_callback = 'update_ap_config'
+					}),
+				}
+			}
+	
+	local root = not _from_profile and {
+		n = G.UIT.ROOT, 
+		config = {
+			r = 0.1, 
+			minw = 8, 
+			minh = 6, 
+			align = "tm", 
+			padding = 0.2, 
+			colour = G.C.BLACK
+		},
+		nodes = {innards}
+	-- non-smods version of the window
+	-- for the profile selector
+	} or create_UIBox_generic_options({
+		back_func = 'go_to_ap_tab',
+		contents = {{
+			n = G.UIT.R, 
+			config = {
+				r = 0.1, 
+				minw = 8, 
+				minh = 6, 
+				align = "tm", 
+				padding = 0.2, 
+				colour = G.C.BLACK
+			},
+			nodes = {innards}
+		}}
+	})
+	
+	return root
+end
+
+-- new goal ui
+function create_AP_text()
+	
+	local t = {
+		n = G.UIT.ROOT,
+		config = {
+			minw = 10,
+			colour = G.C.CLEAR,
+			align = 'tm'
+		},
+		nodes = {
+			{
+				n = G.UIT.C,
+				config = {
+					colour = G.C.BLACK,
+					r = 0.1,
+					padding = 0.3
+				},
+				nodes = {
+					(not isAPProfileLoaded() or G.AP.this_mod.config.connection_status ~= 4) and {
+						n = G.UIT.R,
+						config = {
+							align = 'cm'
+						},
+						nodes = {
+							{
+								n = G.UIT.T,
+								config = {
+									text = 'status',
+									scale = 0.3,
+									id = "status_text",
+									colour = G.C.JOKER_GREY
+								}
+							}
+						}
+					} or nil, isAPProfileLoaded() and {
+						n = G.UIT.R,
+						config = {
+							align = 'cm'
+						},
+						nodes = {
+							{
+								n = G.UIT.T,
+								config = {
+									text = 'goal',
+									scale = 0.45,
+									id = "goal_text"
+								}
+							}
+						}
+					} or nil,
+				}
+			}
+		}
+	}
+	
+	return t
+end
+
+local set_main_menu_UIRef = set_main_menu_UI
+function set_main_menu_UI()
+	set_main_menu_UIRef()
+	set_ap_text_UI()
+	if (G.AP.this_mod.config.connection_status > 1 and not isAPProfileLoaded()) then
+			G.AP.status_text.states.visible = false
+	end
+end
+
+function set_ap_text_UI(_from_config)
+	if G.AP.status_text then G.AP.status_text:remove(); G.AP.status_text = nil end
+	G.AP.status_text = UIBox{
+        definition = create_AP_text(), 
+        config = {align="tmi", offset = {x=0,y=_from_config and 0 or -10}, major = G.ROOM_ATTACH, bond = 'Weak'}
+    }
+	G.AP.status_text.alignment.offset.y = 0
+    G.AP.status_text:align_to_major()
+end
+
+-- remove the status text when needed
+local delete_runRef = Game.delete_run
+function Game:delete_run()
+	if self.ROOM then
+		if G.AP.status_text then G.AP.status_text:remove(); G.AP.status_text = nil end
+	end
+	delete_runRef(self)
+end
+
+-- 'Connect' tab in config to go directly to AP profile
+SMODS.current_mod.extra_tabs = function()
+	if isAPProfileLoaded() then
+		return {}
+	end
+	return {
+		label = localize('b_ap_connect'),
+		tab_definition_function = function()
+			G.FUNCS.exit_mods()
+			G.FUNCS:exit_overlay_menu()
+			G.FUNCS.go_to_ap_tab()
+			return {
+				n = G.UIT.ROOT, 
+				config = {
+					r = 0.1, 
+					minw = 8, 
+					minh = 6, 
+					align = "tm", 
+					padding = 0.2, 
+					colour = G.C.BLACK
+				},
+				nodes = {}
+			}
+		end
+	}
+end
+
+function G.FUNCS.go_to_ap_tab()
+	-- create AP profile if it doesnt exist
+	if G.AP.profile_Id == -1 then
+        G.AP.profile_Id = #G.PROFILES + 1
+        G.PROFILES[G.AP.profile_Id] = {}
+        sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
+		
+		-- load data to avoid resetting the text inputs
+		local APSettings = NFS.read('APSettings.json')
+
+		if APSettings ~= nil then
+			APSettings = json.decode(APSettings)
+			if APSettings ~= nil then
+				G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
+				G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
+				G.AP.APPort = APSettings['APPort'] or G.AP.APPort
+				G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
+			end
+		end
+    end
+	
+	-- save config
+	SMODS.save_mod_config(G.AP.this_mod)
+	-- go to ap tab in profile selector
+	G.focused_profile = (G.AP.profile_Id) or G.SETTINGS.profile or 1
+	G.FUNCS.overlay_menu{
+		definition = G.UIDEF.profile_select(),
+	}
+end
+
+-- handle config button in ap profile
+G.FUNCS.can_config_AP_profile = function(e)
+    if (G.APClient and G.APClient:get_state() == AP.State.SOCKET_CONNECTING) then
+        G.AP.CHECK_PROFILE_DATA = false
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+    else
+        e.config.colour = G.C.RED
+        e.config.button = 'ap_config'
+    end
+end
+
+-- create text listing currently chosen unchangable
+-- options for looking at config while connected
+function list_ap_option(args)
+	return {
+		n = G.UIT.R,
+		config = {
+			colour = G.C.CLEAR,
+			align = 'bm',
+			padding = 0.1
+		},
+		nodes = {{
+			n = G.UIT.T,
+			config = {
+				align = 'bm',
+				colour = G.C.JOKER_GREY,
+				scale = 0.4,
+				text = "["..localize(args.label).."] - "..localize(args.options)[args.current_option]
+			}}
+		}
+	}
+end
+
+--update config function
+G.FUNCS.update_ap_config = function(args)
+	args = args or {}
+    if args.cycle_config and args.cycle_config.ref_table and args.cycle_config.ref_value then
+        args.cycle_config.ref_table[args.cycle_config.ref_value] = args.to_key
+		
+		-- update deathlink when connected
+		if args.cycle_config.ref_value == 'deathlink' and isAPProfileLoaded() then
+			local tags = {"Lua-APClientPP"}
+			if (IsDeathlinkOn()) then
+				tags[#tags + 1] = "DeathLink"
+			end
+
+			G.APClient:ConnectUpdate(nil, tags)
+		end
+		
+		-- update the status text
+		if args.cycle_config.ref_value == 'connection_status' and G.AP.status_text then
+			if (G.AP.this_mod.config.connection_status > 1 and not isAPProfileLoaded()) then
+				G.AP.status_text.states.visible = false
+			else
+				G.AP.status_text.states.visible = true
+			end
+			
+			if isAPProfileLoaded() then
+				local status = G.AP.status_text:get_UIE_by_ID('status_text')
+				if (status and G.AP.this_mod.config.connection_status == 4) or 
+					(not status and G.AP.this_mod.config.connection_status ~= 4) then
+						set_ap_text_UI(true)
+				end
+			end
+			
+		end
+    end
+end
+
+
 -- Profile interface
 
 local create_tabsRef = create_tabs
@@ -61,134 +477,201 @@ function G.UIDEF.profile_option(_profile)
                 align = 'cm',
                 colour = G.C.CLEAR
             },
-            nodes = {{
-                n = G.UIT.R,
-                config = {
-                    align = 'cm',
-                    padding = 0.1,
-                    minh = 0.8
-                },
-                nodes = {((_profile == G.SETTINGS.profile) or not profile_data) and {
-                    n = G.UIT.R,
-                    config = {
-                        align = "cm"
-                    },
-                    nodes = {create_text_input({
-                        w = 4,
-                        max_length = 35,
-                        prompt_text = localize('k_ap_IP'),
-                        ref_table = G.AP,
-                        ref_value = 'APAddress',
-                        extended_corpus = true,
-                        keyboard_offset = 1,
-                        callback = function()
-                            -- code for when enter is hit (?)
-                        end
-                    }), create_text_input({
-                        w = 4,
-                        max_length = 35,
-                        prompt_text = localize('k_ap_port'),
-                        ref_table = G.AP,
-                        ref_value = 'APPort',
-                        extended_corpus = false,
-                        keyboard_offset = 1,
-                        callback = function()
-                            -- code for when enter is hit (?)
-                        end
-                    })}
-                }}
-            }, {
-                n = G.UIT.R,
-                config = {
-                    align = 'cm',
-                    padding = 0.1,
-                    minh = 0.8
-                },
-                nodes = {((_profile == G.SETTINGS.profile) or not profile_data) and {
-                    n = G.UIT.R,
-                    config = {
-                        align = "cm"
-                    },
-                    nodes = {create_text_input({
-                        w = 4,
-                        max_length = 35,
-                        prompt_text = localize('k_ap_slot'),
-                        ref_table = G.AP,
-                        ref_value = 'APSlot',
-                        extended_corpus = true,
-                        keyboard_offset = 1,
-                        callback = function()
-                            -- code for when enter is hit (?)
-                        end
-                    }), create_text_input({
-                        w = 4,
-                        max_length = 35,
-                        prompt_text = localize('k_ap_pass'),
-                        ref_table = G.AP,
-                        ref_value = 'APPassword',
-                        extended_corpus = true,
-                        keyboard_offset = 1,
-                        callback = function()
-                            -- code for when enter is hit (?)
-                        end
-                    })}
-                }}
-            }, UIBox_button({
-                button = "APConnect",
-                label = {localize("b_ap_connect")},
-                minw = 3,
-                func = "can_APConnect"
-            }), {
-                n = G.UIT.R,
-                config = {
-                    align = "cm",
-                    padding = 0,
-                    minh = 0.7
-                },
-                nodes = {{
-                    n = G.UIT.R,
-                    config = {
-                        align = "cm",
-                        minw = 3,
-                        maxw = 4,
-                        minh = 0.6,
-                        padding = 0.2,
-                        r = 0.1,
-                        hover = true,
-                        colour = G.C.RED,
-                        func = 'can_delete_AP_profile',
-                        button = "delete_profile",
-                        shadow = true,
-                        focus_args = {
-                            nav = 'wide'
-                        }
-                    },
-                    nodes = {{
-                        n = G.UIT.T,
-                        config = {
-                            text = _profile == G.SETTINGS.profile and localize('b_reset_profile') or
-                                localize('b_delete_profile'),
-                            scale = 0.3,
-                            colour = G.C.UI.TEXT_LIGHT
-                        }
-                    }}
-                }}
-            }, {
-                n = G.UIT.R,
-                config = {
-                    align = "cm",
-                    padding = 0
-                },
-                nodes = {{
-                    n = G.UIT.T,
-                    config = {
-                        id = 'warning_text',
-                        text = localize('ph_click_confirm'),
-                        scale = 0.4,
-                        colour = G.C.CLEAR
-                    }
-                }}
-            }}
+			nodes = {
+				{
+					n = G.UIT.R,
+					config = {
+						align = 'cm',
+						padding = 0.4,
+					},
+					nodes = {
+						{
+							n = G.UIT.C,
+							config = {
+								align = 'cm',
+							},
+							nodes = {
+								{n=G.UIT.R, config = {align = "cm", padding = 0.05}, nodes={
+									{n=G.UIT.T, config={text = localize('k_ap_IP'), scale = 0.45, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
+								}}, {n=G.UIT.R, config = {align = "cm", padding = 0.1}, nodes={create_text_input({
+									w = 4,
+									max_length = 35,
+									prompt_text = localize('k_ap_IP'),
+									ref_table = G.AP,
+									ref_value = 'APAddress',
+									extended_corpus = true,
+									keyboard_offset = 1,
+									callback = function()
+										-- code for when enter is hit (?)
+									end
+								})}}, {n=G.UIT.R, config = {align = "cm", padding = 0.05}, nodes={
+									{n=G.UIT.T, config={text = localize('k_ap_slot'), scale = 0.45, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
+								}}, {n=G.UIT.R, config = {align = "cm", padding = 0.1}, nodes={create_text_input({
+									w = 4,
+									max_length = 35,
+									prompt_text = localize('k_ap_slot'),
+									ref_table = G.AP,
+									ref_value = 'APSlot',
+									extended_corpus = true,
+									keyboard_offset = 1,
+									callback = function()
+									end
+								})}}
+							}
+						}, {
+							n = G.UIT.C,
+							config = {
+								align = 'cm',
+							},
+							nodes = {
+								{n=G.UIT.R, config = {align = "cm", padding = 0.05}, nodes={
+									{n=G.UIT.T, config={text = localize('k_ap_port'), scale = 0.45, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
+								}}, {n=G.UIT.R, config = {align = "cm", padding = 0.1}, nodes={ create_text_input({
+									w = 4,
+									max_length = 35,
+									prompt_text = localize('k_ap_port'),
+									ref_table = G.AP,
+									ref_value = 'APPort',
+									extended_corpus = false,
+									keyboard_offset = 1,
+									callback = function()
+									end
+								})}}, {n=G.UIT.R, config = {align = "cm", padding = 0.05}, nodes={
+									{n=G.UIT.T, config={text = localize('k_ap_pass'), scale = 0.45, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
+								}}, {n=G.UIT.R, config = {align = "cm", padding = 0.1}, nodes={ create_text_input({
+									w = 4,
+									max_length = 35,
+									prompt_text = localize('k_ap_pass'),
+									ref_table = G.AP,
+									ref_value = 'APPassword',
+									extended_corpus = true,
+									keyboard_offset = 1,
+									callback = function()
+									end
+								})}}
+							}
+						},
+					}
+				}, UIBox_button({
+					button = "APConnect",
+					label = {localize("b_ap_connect")},
+					minw = 5,
+					func = "can_APConnect"
+				}),{
+					n = G.UIT.R,
+					config = {
+						align = 'cm',
+						padding = 0,
+					},
+					nodes = {
+						{
+							n = G.UIT.C,
+							config = {
+								align = 'cm',
+							},
+							nodes = {
+								{n=G.UIT.R, config = {align = "cm", padding = 0}, nodes={
+									{
+										n = G.UIT.R,
+										config = {
+											align = "cm",
+											padding = 0,
+											minh = 0.7
+										},
+										nodes = {{
+											n = G.UIT.R,
+											config = {
+												align = "cm",
+												minw = 2.5,
+												maxw = 4,
+												minh = 0.6,
+												padding = 0.2,
+												r = 0.1,
+												hover = true,
+												colour = G.C.RED,
+												func = 'can_delete_AP_profile',
+												button = "delete_profile",
+												shadow = true,
+												focus_args = {
+													nav = 'wide'
+												}
+											},
+											nodes = {{
+												n = G.UIT.T,
+												config = {
+													text = _profile == G.SETTINGS.profile and localize('b_reset_profile') or
+														localize('b_delete_profile'),
+													scale = 0.3,
+													colour = G.C.UI.TEXT_LIGHT
+												}
+											}}
+										}}
+									}
+								}}
+							}
+						}, {
+							n = G.UIT.C,
+							config = {
+								align = 'cm',
+							},
+							nodes = {
+								{n=G.UIT.R, config = {align = "cm", padding = 0}, nodes={
+									{
+										n = G.UIT.R,
+										config = {
+											align = "cm",
+											padding = 0,
+											minh = 0.7
+										},
+										nodes = {{
+											n = G.UIT.R,
+											config = {
+												align = "cm",
+												minw = 2.5,
+												maxw = 4,
+												minh = 0.6,
+												padding = 0.2,
+												r = 0.1,
+												hover = true,
+												colour = G.C.RED,
+												button = "ap_config",
+												shadow = true,
+												func = "can_config_AP_profile",
+												focus_args = {
+													nav = 'wide'
+												}
+											},
+											nodes = {{
+												n = G.UIT.T,
+												config = {
+													text = localize('b_config'),
+													scale = 0.3,
+													colour = G.C.UI.TEXT_LIGHT
+												}
+											}}
+										}}
+									}
+								}}
+							}
+						},
+					}
+				},{
+					n = G.UIT.R,
+					config = {
+						align = "cm",
+						padding = 0
+					},
+					nodes = {{
+						n = G.UIT.T,
+						config = {
+							id = 'warning_text',
+							text = localize('ph_click_confirm'),
+							scale = 0.4,
+							colour = G.C.CLEAR
+						}
+					}}
+				}
+			}
         }
         isInProfileOptionCreation = false
         return t
@@ -202,6 +685,13 @@ function G.UIDEF.profile_option(_profile)
         return profile_option
     end
 
+end
+
+-- config tab in profile select
+G.FUNCS.ap_config = function()
+	G.FUNCS.overlay_menu({
+		definition = G.AP.this_mod.config_tab(true)
+	})
 end
 
 -- AP debuff and locked messages
@@ -229,27 +719,35 @@ function Card:generate_UIBox_ability_table()
                 for k, v in pairs(G.localization.descriptions.Other["ap_locked_" .. self.config.center.set].text_parsed) do
                     G.localization.descriptions.Other.demo_locked.text_parsed[k] = v
                 end
+            end
+            
+            -- modded item locked message
+            if G.AP.this_mod.config.modded == 2 and self.config.center.modded then
+                G.localization.descriptions.Other.demo_locked.text_parsed = {}
+                for k, v in pairs(G.localization.descriptions.Other["ap_locked_Modded"].text_parsed) do
+                    G.localization.descriptions.Other.demo_locked.text_parsed[k] = v
+                end
+            end
 
-                if self.config.center.set ~= "Booster" then
+            if self.config.center.set ~= "Booster" then
+                G.localization.descriptions.Other.demo_locked.text_parsed[#G.localization.descriptions.Other
+                    .demo_locked.text_parsed + 1] = loc_parse_string("{C:inactive,s:0.8}(" ..
+                                                                         G.localization.descriptions[self.config
+                                                                             .center.set][self.config.center.key]
+                                                                             .name .. ")")
+            else
+                local _loc_target = nil
+                for k, v in pairs(G.localization.descriptions.Other) do
+                    if string.find(self.config.center.key, k) then
+                        _loc_target = v
+                        break
+                    end
+                end
+
+                if _loc_target then
                     G.localization.descriptions.Other.demo_locked.text_parsed[#G.localization.descriptions.Other
-                        .demo_locked.text_parsed + 1] = loc_parse_string("{C:inactive,s:0.8}(" ..
-                                                                             G.localization.descriptions[self.config
-                                                                                 .center.set][self.config.center.key]
-                                                                                 .name .. ")")
-                else
-                    local _loc_target = nil
-                    for k, v in pairs(G.localization.descriptions.Other) do
-                        if string.find(self.config.center.key, k) then
-                            _loc_target = v
-                            break
-                        end
-                    end
-
-                    if _loc_target then
-                        G.localization.descriptions.Other.demo_locked.text_parsed[#G.localization.descriptions.Other
-                            .demo_locked.text_parsed + 1] = loc_parse_string(
-                            "{C:inactive,s:0.8}(" .. _loc_target.name .. ")")
-                    end
+                        .demo_locked.text_parsed + 1] = loc_parse_string(
+                        "{C:inactive,s:0.8}(" .. _loc_target.name .. ")")
                 end
             end
         end
@@ -275,6 +773,10 @@ function create_UIBox_notify_alert(_achievement, _type)
                 tableContains({"Back", "BackStake"}, _type) and G.ASSET_ATLAS["centers"] or _type == "location" and
                 G.ASSET_ATLAS["rand_ap_logo"] or G.ASSET_ATLAS["icons"]
 
+        if tableContains({'c_rand_ap_tarot','c_rand_ap_planet','c_rand_ap_spectral'}, _achievement) then
+            _atlas = G.ASSET_ATLAS['rand_ap_item_tarot']
+        end
+	
         -- stake-specific _c
         if _type == 'Stake' then
             _c = {

@@ -19,3 +19,10 @@ SMODS.Atlas {
     px = 66,
     py = 66
 }
+
+SMODS.Atlas {
+	key = 'ap_item_tarot',
+	path = 'consumables.png',
+	px = 71,
+	py = 95
+}
