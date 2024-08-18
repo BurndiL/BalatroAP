@@ -419,28 +419,28 @@ return {
 			k_ap_locked_jokers = 'Gesperrte Joker',
 			k_ap_locked_consums = 'Gesperrte Verbrauchsgegenstände',
 			k_ap_locked_options = {
-				'Debuff',
-				'Follow YAML',
-				'Remove'
+				'Schwächen',
+				'Wie in YAML',
+				'Entfernen'
 			},
 			k_ap_modded_items = 'Gemoddete Items',
 			k_ap_modded_items_options = {
-				'Remove',
-				'Lock',
-				'Unlock'
+				'Entfernen',
+				'Sperren',
+				'Freischalten'
 			},
 			k_ap_deathlink = 'Deathlink',
 			k_ap_deathlink_options = {
-				'Force off',
-				'Follow YAML',
-				'Force on'
+				'Aus',
+				'Wie in YAML',
+				'An'
 			},
-			k_ap_connection_status = 'Connection Status Info',
+			k_ap_connection_status = 'Verbindungsinformationen',
 			k_ap_connection_status_options = {
-				'Full',
-				'Connected Only',
-				'Hide IP',
-				'None'
+				'Immer',
+				'Nur wenn Verbunden',
+				'Verstecke IP',
+				'Nie'
 			},
 			k_ap_cant_change = "These options cannot be changed while connected to Archipelago",
 			ap_goal_text = {
