@@ -1248,7 +1248,7 @@ SMODS.Consumable {
     end,
 	in_pool = function(self)
         if self.unlocked then
-            if get_tarot_location() then
+            if get_tarot_location(1) then
                 return true
             end
         end
@@ -1400,7 +1400,7 @@ SMODS.Consumable {
     end,
     in_pool = function(self)
         if self.unlocked then
-            if get_tarot_location() then
+            if get_tarot_location(1) then
                 return true
             end
         end
@@ -1555,7 +1555,7 @@ SMODS.Consumable {
     end,
     in_pool = function(self)
         if self.unlocked then
-            if get_tarot_location() then
+            if get_tarot_location(1) then
                 return true
             end
         end
