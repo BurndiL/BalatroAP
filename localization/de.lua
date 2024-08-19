@@ -44,19 +44,19 @@ return {
 		},
 		Planet = {
 			c_rand_ap_planet = {
-				name = "Archipelago-gürtel",
+				name = "Archipelago Gürtel",
 				text = {
 					'Schaltet ein {C:dark_edition}AP Item{} frei'
 				}
 			},
 			c_rand_ap_planet_location = {
-				name = "Archipelago-gürtel",
+				name = "Archipelago Gürtel",
 				text = {--item name is handled through code
 					'für {C:dark_edition}#1#{}'
 					}
 			},
 			c_rand_ap_planet_invalid = {
-				name = "Archipelago-gürtel",
+				name = "Archipelago Gürtel",
 				text = {
 					"{C:inactive}Dieser Ort",
 					"{C:inactive}wurde bereits erkundet."
@@ -65,16 +65,16 @@ return {
 		},
 		Spectral = {
 			c_rand_ap_spectral = {
-				name = "Archipelago Spectral",
+				name = "Archipelago Geist",
 				text = {
-					'Unlocks an {C:dark_edition}AP Item{},',
-					'creates a copy of it',
-					"if it's yours",
-					"{C:inactive}(Must have room)"
+					'Schaltet ein {C:dark_edition}AP Item{} frei,',
+					'kopiert es, falls',
+					"es deines ist",
+					"{C:inactive}(Muss Platz haben)"
 				}
 			},
 			c_rand_ap_spectral_invalid = {
-				name = "Archipelago Spectral",
+				name = "Archipelago Geist",
 				text = {
 					"{C:inactive}Dieser Ort",
 					"{C:inactive}wurde bereits erkundet."
@@ -442,7 +442,7 @@ return {
 				'Verstecke IP',
 				'Nie'
 			},
-			k_ap_cant_change = "These options cannot be changed while connected to Archipelago",
+			k_ap_cant_change = "Diese Einstellungen können nicht während einer aktiven Verbindung geändert werden",
 			ap_goal_text = {
 				"Gewinne mit #1# Decks (#2#/#1#)",
 				"Schalte #1# Joker frei (#2#/#1#)",
@@ -451,12 +451,12 @@ return {
 				"Gewinne mit #1# Joker auf zumindest #3# Schwierigkeit (#2#/#1#)",
 				"Gewinne mit #1# unterschiedlichen Kombinationen von Decks und Schwierigkeiten (#2#/#1#)"
 			},
-			k_ap_item_names = 'AP Item Names',
+			k_ap_item_names = 'AP Item Namen',
 			k_ap_item_names_options = {
-				'Show All',
-				'Voucher Only',
-				'Consumables Only',
-				'Hide All'
+				'Alle Zeigen',
+				'Nur Coupons',
+				'Nur Verbrauchsgegenstände',
+				'Alle Verstecken'
 			},
 			k_ap_yeah = 'Jawohl!',
 			k_asteroid_belt = 'Asteroidengürtel'
