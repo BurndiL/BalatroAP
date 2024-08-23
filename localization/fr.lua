@@ -434,7 +434,7 @@ return {
 			},
 			k_ap_deathlink = 'Deathlink',
 			k_ap_deathlink_options = {
-				"Désactivé",
+				"Désactiver",
 				'Utiliser le YAML',
 				"Activer"
 			},
