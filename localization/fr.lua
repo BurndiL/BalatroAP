@@ -423,8 +423,8 @@ return {
 			k_ap_locked_consums = 'Consommable Bloqué',
 			k_ap_locked_options = {
 				'Débuff',
-				'Suivre le YAML',
-				'Supprimer'
+				'Utiliser le YAML',
+				'Bloqué'
 			},
 			k_ap_modded_items = 'Items Moddés',
 			k_ap_modded_items_options = {
@@ -434,13 +434,13 @@ return {
 			},
 			k_ap_deathlink = 'Deathlink',
 			k_ap_deathlink_options = {
-				"Forcer à l'arret",
-				'Suivre le YAML',
-				"Forcer en marche"
+				"Désactivé",
+				'Utiliser le YAML',
+				"Activer"
 			},
 			k_ap_connection_status = "Informations sur l'état de la connexion",
 			k_ap_connection_status_options = {
-				'Complet',
+				'Complète',
 				'Uniquement connecté',
 				'IP Caché',
 				'Aucune'
@@ -451,14 +451,14 @@ return {
 				"Débloquer #1# Jokers (#2#/#1#)",
 				"Battre #1# mises",
 				"Battre #1# Decks avec au moins la difficulté #3# (#2#/#1#)",
-				"Gagne avec #1# Jokers avec au moins la difficulté #3# (#2#/#1#)",
-				"Gagne avec #1# des combinaisons uniques de jeux et de mises (#2#/#1#)"
+				"Gagner avec #1# Jokers avec au moins la difficulté #3# (#2#/#1#)",
+				"Gagner avec #1# des combinaisons uniques de jeux et de mises (#2#/#1#)"
 			},
 			k_ap_item_names = "Nom d'Item AP",
 			k_ap_item_names_options = {
 				'Afficher tout',
-				'Uniquement Coupon',
-				'Uniquement Consommables',
+				'Uniquement Coupons',
+				'Uniqu... Consomables',
 				'Masquer tout'
 			},
 			k_ap_yeah = 'Yeah!',
