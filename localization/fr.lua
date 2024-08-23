@@ -20,7 +20,7 @@ return {
 					"{C:inactive}Cet emplacement a",
 					"{C:inactive}déjà été recupéré."
 				}
-	
+			}
 		},
 		Tarot = {
 			c_rand_ap_tarot = {
@@ -338,7 +338,7 @@ return {
 					"Trouver ce Booster Pack",
 					"en tant qu'{C:dark_edition}Item AP"
 				}
-	 
+			},
 			ap_locked_Modded = {
 				name = "Bloqué",
 				text = {
