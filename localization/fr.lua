@@ -420,7 +420,7 @@ return {
 			k_ap_connecting = "Connexion à Archipelago à #1#:#2#...",
 			k_ap_not_connected = "Non connecté à Archipelago",
 			k_ap_locked_jokers = 'Jokers Bloqués',
-			k_ap_locked_consums = 'Consommable Bloqué',
+			k_ap_locked_consums = 'Consommables Bloqués',
 			k_ap_locked_options = {
 				'Débuff',
 				'Utiliser le YAML',
@@ -458,7 +458,7 @@ return {
 			k_ap_item_names_options = {
 				'Afficher tout',
 				'Uniquement Coupons',
-				'Uniqu... Consomables',
+				'Uniqu. Consommables',
 				'Masquer tout'
 			},
 			k_ap_yeah = 'Yeah!',
