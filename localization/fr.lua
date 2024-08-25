@@ -94,39 +94,39 @@ return {
 		},
 		Trap = { -- Trap names are NOT used
 			t_eternal = {
-				name = "Trap Eternel",
+				name = "Trap Éternel",
 				text = {
 					"{s:0.7}Un Joker aléatoire", 
 					"{s:1}est devenu {C:attention}Éternel{}!"
 					}
 			},
 			t_perishable = {
-				name = "Perishable Trap",
+				name = "Trap Périssable",
 				text = {
 					"{s:0.7}Un Joker aléatoire", 
 					"{s:1}est devenu {C:attention}Périssable{}!"
 				}
 			},
 			t_rental = {
-				name = "Rental Trap",
+				name = "Trap Location",
 				text = {
 					"{s:0.7}Un Joker aléatoire", 
 					"{s:1}est devenu {C:attention}Location{}!"
 					}
 			},
 			t_money = {
-				name = "Bankruptcy Trap",
+				name = "Trap Banqueroute ",
 				text = {"{s:0.7}Perdre tout l'argent"}
 			},
 			t_hand = {
-				name = "Hand Trap",
+				name = "Trap Main",
 				text = {
 					"{C:blue}-1{} Main", 
 					"{s:0.7}cette manche"
 				}
 			},
 			t_discard = {
-				name = "Discard Trap",
+				name = "Trap Défausse",
 				text = {
 					"{C:red}-1{} Défausse",
 					"{s:0.7}cette manche"
@@ -135,76 +135,76 @@ return {
 		},
 		Bonus = { -- Bonus names are NOT used
 			op_discard = {
-				name = "Bonus Discard",
+				name = "Bonus Défausse",
 				text = {
 					"{C:red}+1{} Défausse", 
 					"{s:0.7}à chaque manche"
 				}
 			},
 			op_money = {
-				name = "Bonus Starting Money",
+				name = "Bonus d'argent de départ",
 				text = {
 					"{s:0.7}Commencer avec", 
 					"{s:1}{C:money}$1{} en plus"
 				}
 			},
 			op_hand = {
-				name = "Bonus Hand",
+				name = "Bonus Main",
 				text = {
 					"{C:blue}+1{} main", 
 					"{s:0.7}à chaque manche"
 					}
 			},
 			op_hand_size = { 
-				name = "Bonus Hand Size",
+				name = "Bonus Taille de la Main",
 				text = {"{C:attention}+1{} à la taille de la main"}
 			},
 			op_interest = {
-				name = "Bonus Max Interest",
+				name = "Bonus Intérêts Max",
 				text = {
 					"{s:0.7}Augmente les intérêts", 
 					"{s:1}de {C:money}$5{}"
 					}
 			},
 			op_joker_slot = {
-				name = "Bonus Joker Slot",
+				name = "Bonus Emplacement Joker",
 				text = {"{C:dark_edition}+1{} emplacement de Joker"}
 			},
 			op_consum_slot = {
-				name = "Bonus Consumable Slot",
+				name = "Bonus Emplacement Consommable",
 				text = {"{s:0.6,C:dark_edition}+1{} emplacement de Consommable"}
 			},
 			
 			fill_money = {
-				name = "Bonus Money",
+				name = "Bonus d'argent",
 				text = {
 					"{s:0.7}Vous obtenez", 
 					"{s:1}{C:money}$8{} en plus"
 				}
 			},
 			fill_buffoon = {
-				name = "Receive Buffoon Pack",
+				name = "Recevoir Pack Bouffon",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:attention}Paquet Méga-Bouffon{}"
 				}
 			},
 			fill_tag_charm = {
-				name = "Receive Consumable Pack",
+				name = "Recevoir Pack Consommable",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:tarot}Paquet Méga-Arcana{}"
 				}
 			},
 			fill_tag_meteor = {
-				name = "Receive Consumable Pack",
+				name = "Recevoir Pack Céleste",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:planet}Paquet Méga-Céleste{}"
 				}
 			},
 			fill_tag_ethereal = {
-				name = "Receive Consumable Pack",
+				name = "Recevoir Pack Spectral",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:spectral}Paquet Méga-Spectral{}"
