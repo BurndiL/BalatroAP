@@ -698,17 +698,83 @@ end
 local Cardgenerate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
 function Card:generate_UIBox_ability_table()
     if isAPProfileLoaded() then
+	
+		local _has_hint = false
+		if G.your_collection and tableContains(G.your_collection, self.area) and G.AP.hints then
+			if((self.debuff and self.config.center.ap_unlocked == false) or self.config.center.unlocked == false) then
+				local _hint = {}
+				for i = 1, #G.AP.hints do
+					if G.AP.hints[i].item == self.config.center.ap_id then
+						_hint = G.AP.hints[i]
+						_has_hint = true
+						break
+					end
+				end
+				
+				if _has_hint == true then
+					local target_text = localizeApHint(_hint, self.config.center)
+					
+					if target_text and target_text ~= {} then
+						
+						if self.debuff then 
+							if not G.localization.descriptions.Other.debuffed_default_b or 
+							not G.localization.descriptions.Other.debuffed_default_b.text_parsed then
+								G.localization.descriptions.Other.debuffed_default_b = {}
+								G.localization.descriptions.Other.debuffed_default_b.text_parsed = {}
+								for k, v in pairs(G.localization.descriptions.Other.debuffed_default.text) do
+									G.localization.descriptions.Other.debuffed_default_b.text_parsed[k] = loc_parse_string(v)
+								end
+							end
+							
+							G.localization.descriptions.Other.debuffed_default.text_parsed = target_text
+						else
+							G.localization.descriptions.Other.demo_locked.text_parsed = target_text
+							
+							local _loc_target = nil
+							
+							if self.config.center.set ~= "Booster" then
+								_loc_target = G.localization.descriptions[self.config.center.set][self.config.center.key]
+							else
+								for k, v in pairs(G.localization.descriptions.Other) do
+									if string.find(self.config.center.key, k) then
+										_loc_target = v
+										break
+									end
+								end
+							end
+							
+							if _loc_target then
+								G.localization.descriptions.Other.demo_locked.text_parsed[#G.localization.descriptions.Other
+									.demo_locked.text_parsed + 1] = loc_parse_string(
+									"{C:inactive,s:0.8}(" .. _loc_target.name .. ")")
+							end
+						end
+						
+						return Cardgenerate_UIBox_ability_tableRef(self)
+					end
+					
+				end
+			end
+		end
+		
         if self.debuff then -- debuff
+			if not G.localization.descriptions.Other.debuffed_default_b or 
+			not G.localization.descriptions.Other.debuffed_default_b.text_parsed then
+				G.localization.descriptions.Other.debuffed_default_b = {}
+				G.localization.descriptions.Other.debuffed_default_b.text_parsed = {}
+				for k, v in pairs(G.localization.descriptions.Other.debuffed_default.text) do
+					G.localization.descriptions.Other.debuffed_default_b.text_parsed[k] = loc_parse_string(v)
+				end
+			end
+			
             if self.config.center.ap_unlocked == false then
                 G.localization.descriptions.Other.debuffed_default.text_parsed =
                     G.localization.descriptions.Other.ap_debuffed.text_parsed
             else
-                if G.localization.descriptions.Other.debuffed_default.text_parsed ==
-                    G.localization.descriptions.Other.ap_debuffed.text_parsed then
-                    G.localization.descriptions.Other.debuffed_default.text_parsed = {}
-                    for k, v in pairs(G.localization.descriptions.Other.debuffed_default.text) do
-                        G.localization.descriptions.Other.debuffed_default.text_parsed[k] = loc_parse_string(v)
-                    end
+                if G.localization.descriptions.Other.debuffed_default.text_parsed ~=
+                    G.localization.descriptions.Other.debuffed_default_b.text_parsed then
+					G.localization.descriptions.Other.debuffed_default.text_parsed =
+						G.localization.descriptions.Other.debuffed_default_b.text_parsed
                 end
             end
         end
@@ -753,6 +819,127 @@ function Card:generate_UIBox_ability_table()
         end
     end
     return Cardgenerate_UIBox_ability_tableRef(self)
+end
+
+--transcribe AP hint data into proper localized text
+function localizeApHint(_hint, _center)
+	if not _hint or _hint == {} then return nil end
+	
+	local target_text = {}
+
+	if G.AP.hint_locations[_hint.location] then
+		-- Non-local items
+		if G.AP.hint_locations[_hint.location] == 'nonlocal' then
+			if G.localization.descriptions.Other["ap_locked_" .. self.config.center.set] then
+				for i = 1, #G.localization.descriptions.Other["ap_locked_" .. self.config.center.set].nonlocal do
+					local _string = G.localization.descriptions.Other["ap_locked_" .. self.config.center.set].nonlocal[i]
+					_string = string.gsub(_string, "#1#", G.AP.player_names[_hint.finding_player])
+					target_text[#target_text+1] = loc_parse_string(_string)
+				end
+			end
+		else --Local items
+			-- Beat Ante # with X Deck on Y Stake difficulty 
+			if string.find(G.AP.hint_locations[_hint.location], "Ante") then
+				local _back, _stake = apLocToBackKey(G.AP.hint_locations[_hint.location]),
+					apLocToStakeKey(G.AP.hint_locations[_hint.location])
+				
+				local _ante = ""
+				local _ante_start = string.find(G.AP.hint_locations[_hint.location], "Ante") + 5
+				local _ante_i = 0
+				while _ante_i < 3 do
+					local _new_sym = string.sub(G.AP.hint_locations[_hint.location], _ante_start + _ante_i, _ante_start + _ante_i+1)
+					if string.byte(_new_sym) >= 48 and string.byte(_new_sym) <= 57 then
+						_ante = _ante.._new_sym
+						_ante_i = _ante_i + 1 
+					else
+						_ante_i = _ante_i + 10
+					end
+				end
+				
+				_ante = tonumber(_ante)
+				
+				for i = 1, #G.P_CENTER_POOLS.Stake do
+					if G.P_CENTER_POOLS.Stake[i].key == _stake then
+						loc_colour()
+						G.ARGS.LOC_COLOURS.ap_stake = G.P_CENTER_POOLS.Stake[i].colour
+						break
+					end
+				end
+				
+				local _back_loc = localize{type = 'name_text', set = 'Back', key = _back}
+				local _stake_loc = localize{type = 'name_text', set = 'Stake', key = _stake}
+				
+				for i = 1, #G.localization.descriptions.Other.ap_hint_ante.text do
+					local _string = G.localization.descriptions.Other.ap_hint_ante.text[i]
+					
+					_string = string.gsub(_string, '#1#', _ante)
+					_string = string.gsub(_string, '#2#', _back_loc)
+					_string = string.gsub(_string, '#3#', _stake_loc)
+					
+					target_text[#target_text+1] = loc_parse_string(_string)
+				end
+			-- Find in the Shop as an AP item
+			elseif string.find(G.AP.hint_locations[_hint.location], "Shop Item") then
+				local _stake = apLocToStakeKey(G.AP.hint_locations[_hint.location])
+				
+				for i = 1, #G.P_CENTER_POOLS.Stake do
+					if G.P_CENTER_POOLS.Stake[i].key == _stake then
+						loc_colour()
+						G.ARGS.LOC_COLOURS.ap_stake = G.P_CENTER_POOLS.Stake[i].colour
+						break
+					end
+				end
+				
+				local _stake_loc = localize{type = 'name_text', set = 'Stake', key = _stake}
+				
+				if _center and G.localization.descriptions.Other['ap_locked_'.._center.set] and 
+				G.localization.descriptions.Other['ap_locked_'.._center.set].shop_check then
+					
+					for i = 1, #G.localization.descriptions.Other['ap_locked_'.._center.set].shop_check do
+						local _string = G.localization.descriptions.Other['ap_locked_'.._center.set].shop_check[i]
+						_string = string.gsub(_string, '#1#', _stake_loc)
+						target_text[#target_text+1] = loc_parse_string(_string)
+					end
+					
+				end
+			-- Find as a Consumable Item
+			elseif string.find(G.AP.hint_locations[_hint.location], "Consumable Item") then
+				if _center and G.localization.descriptions.Other['ap_locked_'.._center.set] and 
+				G.localization.descriptions.Other['ap_locked_'.._center.set].card_check then
+					for i = 1, #G.localization.descriptions.Other['ap_locked_'.._center.set].card_check do
+						local _string = G.localization.descriptions.Other['ap_locked_'.._center.set].card_check[i]
+						target_text[#target_text+1] = loc_parse_string(_string)
+					end
+				end
+			end
+		end
+	end
+	
+	if target_text ~= {} then return target_text end
+	
+	return nil
+end
+
+-- get stake key from AP location string
+function apLocToStakeKey(aploc)
+	for k, v in pairs(G.P_CENTER_POOLS.Stake) do
+		if string.find(aploc, v.name) then
+			return v.key
+		end
+	end
+	
+	return nil
+end
+
+-- get deck key from AP location string
+function apLocToBackKey(aploc)
+	for k, v in pairs(G.P_CENTER_POOLS.Back) do
+		if string.find(aploc, v.name) then
+			return v.key
+		end
+	end
+	
+	return nil
 end
 
 local create_unlock_overlayRef = create_unlock_overlay
@@ -1463,6 +1650,8 @@ local create_UIBox_your_collectionRef = create_UIBox_your_collection
 function create_UIBox_your_collection()
 	local _result = nil
     if isAPProfileLoaded() then
+		--refresh hints
+		G.APClient:Get({"_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id)})
     	for k, v in ipairs(G.P_CENTER_POOLS.Back) do
     		if v == G.P_CENTERS['b_challenge'] then
     			G.P_CENTERS['b_challenge'].name = "Challenge Deck"

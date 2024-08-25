@@ -696,6 +696,19 @@ function Game:init_item_prototypes()
 					end
 				end
 			end
+			
+			-- Grab IDs for local vanilla items
+			if IsVanillaItem(k) then
+				local name = v.name
+				-- caino moment
+				if name == 'Caino' then name = 'Canio' end
+				
+				if name then --check if name exists just in case ('soul' doesnt)
+					v.ap_id = G.APClient:get_item_id(name)
+					-- remove id if its invalid
+					if v.ap_id <= 0 then v.ap_id = nil end
+				end
+			end
         end
 
         -- Handle global stake unlock save data
@@ -1183,6 +1196,9 @@ SMODS.Voucher {
 
                 local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
                 local _desc = {}
+				
+				-- Add as hint
+				G.AP.location_seen(card.ability.extra.id)
 
                 if #_item_name <= 24 then -- use short names as the voucher name
                     G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = {loc_parse_string(
@@ -1206,9 +1222,14 @@ SMODS.Voucher {
                 for k, v in pairs(_desc) do
                     G.localization.descriptions.Voucher.v_rand_ap_item_location.text_parsed[k] = loc_parse_string(v)
                 end
+				
+				local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
+				if _player_name == G.AP.APSlot then 
+					_player_name = localize('k_ap_you')
+				end
 
                 return {
-                    vars = {tostring(G.AP.location_id_to_item_name[card.ability.extra.id].player_name)},
+                    vars = {_player_name},
                     key = 'v_rand_ap_item_location'
                 }
             else
@@ -1247,11 +1268,11 @@ SMODS.Consumable {
     	end
     end,
 	in_pool = function(self)
-        if self.unlocked then
-            if get_tarot_location(1) then
-                return true
-            end
-        end
+        -- if self.unlocked then
+            -- if get_tarot_location(1) then
+                -- return true
+            -- end
+        -- end
         return false
 	end,
 	config = {
@@ -1286,6 +1307,9 @@ SMODS.Consumable {
 
                 local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
                 local _desc = {}
+				
+				-- Add as hint
+				G.AP.location_seen(card.ability.extra.id)
 
                 if #_item_name <= 24 then -- use short names as the voucher name
                     G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = {loc_parse_string(
@@ -1310,8 +1334,13 @@ SMODS.Consumable {
                     G.localization.descriptions.Tarot.c_rand_ap_tarot_location.text_parsed[k] = loc_parse_string(v)
                 end
 
+                local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
+				if _player_name == G.AP.APSlot then 
+					_player_name = localize('k_ap_you')
+				end
+
                 return {
-                    vars = {tostring(G.AP.location_id_to_item_name[card.ability.extra.id].player_name)},
+                    vars = {_player_name},
                     key = 'c_rand_ap_tarot_location'
                 }
             else
@@ -1399,11 +1428,11 @@ SMODS.Consumable {
         end
     end,
     in_pool = function(self)
-        if self.unlocked then
-            if get_tarot_location(1) then
-                return true
-            end
-        end
+        -- if self.unlocked then
+            -- if get_tarot_location(1) then
+                -- return true
+            -- end
+        -- end
         return false
 	end,
 	set_card_type_badge = function(self, card, badges)
@@ -1424,6 +1453,9 @@ SMODS.Consumable {
 
                 local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
                 local _desc = {}
+				
+				-- Add as hint
+				G.AP.location_seen(card.ability.extra.id)
 
                 if #_item_name <= 24 then -- use short names as the voucher name
                     G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = {loc_parse_string(
@@ -1448,8 +1480,13 @@ SMODS.Consumable {
                     G.localization.descriptions.Planet.c_rand_ap_planet_location.text_parsed[k] = loc_parse_string(v)
                 end
 
+                local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
+				if _player_name == G.AP.APSlot then 
+					_player_name = localize('k_ap_you')
+				end
+
                 return {
-                    vars = {tostring(G.AP.location_id_to_item_name[card.ability.extra.id].player_name)},
+                    vars = {_player_name},
                     key = 'c_rand_ap_tarot_location'
                 }
             else
@@ -1554,11 +1591,11 @@ SMODS.Consumable {
         end
     end,
     in_pool = function(self)
-        if self.unlocked then
-            if get_tarot_location(1) then
-                return true
-            end
-        end
+        -- if self.unlocked then
+            -- if get_tarot_location(1) then
+                -- return true
+            -- end
+        -- end
         return false
 	end,
 	config = {
@@ -1753,6 +1790,22 @@ SMODS.Consumable {
 	discovered = true,
 	cost = 3,
 }
+
+G.AP.location_seen = function(id)
+	local make_hint = true
+	if G.AP.hints then
+		for i = 1, #G.AP.hints do
+			if G.AP.hints[i].location == id then
+				make_hint = false
+			end
+		end
+	end
+	
+	if make_hint then
+		G.APClient:LocationScouts({id}, 2)
+		G.APClient:Get({"_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id)})
+	end
+end
 
 function get_tarot_location(_pool_length)
 	-- CHANGE THIS!!!!!!!!!!!!!!!!!

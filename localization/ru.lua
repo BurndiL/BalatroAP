@@ -290,18 +290,59 @@ return {
 					"в виде {C:dark_edition}Айтема AP"
                 }
             },
+			ap_hint_ante = {
+				name = "Заблокировано",
+				text = {
+					"Одолейте Анте {C:attention}#1#{}",
+					"на сложности {C:ap_stake}#3#{}",
+					"({C:attention}#2#{})"
+				}
+			},
 			ap_locked_Joker = {
 				name = "Заблокировано",
 				text = {
 					"Найдите этого Джокера",
 					"в виде {C:dark_edition}Айтема AP"
+				},
+				nonlocal = {
+					"{C:inactive}Этот Джокер находится",
+					"в игре, в которую",
+					"играет {C:dark_edition}#1#{C:inactive}..."
+				},
+				shop_check = {
+					"Найдите этого Джокера в виде",
+					"{C:dark_edition}Айтема AP{} в Лавке на",
+					"сложности {C:ap_stake}#1#{}"
+				},
+				card_check = {
+					"Найдите этого Джокера",
+					"на {C:tarot}Таро Archipelago{},",
+					"{C:planet}Поясе Archipelago{}",
+					"или {C:spectral}Спектральном Archipelago"
 				}
+			},
 			},
 			ap_locked_Tarot = {
 				name = "Заблокировано",
 				text = {
 					"Найдите эту карту {C:tarot}Таро{}",
 					"в виде {C:dark_edition}Айтема AP"
+				},
+				nonlocal = {
+					"{C:inactive}Эта карта Таро находится",
+					"в игре, в которую",
+					"играет {C:dark_edition}#1#{C:inactive}..."
+				},
+				shop_check = {
+					"Найдите эту карту {C:tarot}Таро{}",
+					"в виде {C:dark_edition}Айтема AP{} в Лавке на",
+					"сложности {C:ap_stake}#1#{}"
+				},
+				card_check = {
+					"Найдите эту карту {C:tarot}Таро{}",
+					"на {C:tarot}Таро Archipelago{},",
+					"{C:planet}Поясе Archipelago{}",
+					"или {C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Planet = {
@@ -309,6 +350,22 @@ return {
 				text = {
 					"Найдите эту карту {C:planet}планеты{}",
 					"в виде {C:dark_edition}Айтема AP"
+				},
+				nonlocal = {
+					"{C:inactive}Эта карта планеты находится",
+					"в игре, в которую",
+					"играет {C:dark_edition}#1#{C:inactive}..."
+				},
+				shop_check = {
+					"Найдите эту карту {C:planet}планеты{}",
+					"в виде {C:dark_edition}Айтема AP{} в Лавке на",
+					"сложности {C:ap_stake}#1#{}"
+				},
+				card_check = {
+					"Найдите эту карту {C:planet}планеты{}",
+					"на {C:tarot}Таро Archipelago{},",
+					"{C:planet}Поясе Archipelago{}",
+					"или {C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Spectral = {
@@ -316,6 +373,22 @@ return {
 				text = {
 					"Найдите {C:spectral}спектральную{} карту",
 					"в виде {C:dark_edition}Айтема AP"
+				},
+				nonlocal = {
+					"{C:inactive}Эта спектральная карта находится",
+					"в игре, в которую",
+					"играет {C:dark_edition}#1#{C:inactive}..."
+				},
+				shop_check = {
+					"Найдите эту {C:spectral}спектральную{} карту",
+					"в виде {C:dark_edition}Айтема AP{} в Лавке на",
+					"сложности {C:ap_stake}#1#{}"
+				},
+				card_check = {
+					"Найдите эту {C:spectral}спектральную{} карту",
+					"на {C:tarot}Таро Archipelago{},",
+					"{C:planet}Поясе Archipelago{}",
+					"или {C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Back = {
@@ -323,6 +396,22 @@ return {
 				text = {
 					"Найдите эту колоду",
 					"в виде {C:dark_edition}Айтема AP"
+				},
+				nonlocal = {
+					"{C:inactive}Эта колода находится",
+					"в игре, в которую",
+					"играет {C:dark_edition}#1#{C:inactive}..."
+				},
+				shop_check = {
+					"Найдите эту колоду в виде",
+					"{C:dark_edition}Айтема AP{} в Лавке на",
+					"сложности {C:ap_stake}#1#{}"
+				},
+				card_check = {
+					"Найдите эту колоду",
+					"на {C:tarot,T:c_rand_ap_tarot}Таро Archipelago{},",
+					"{C:planet,T:c_rand_ap_planet}Поясе Archipelago{}",
+					"или {C:spectral,T:c_rand_ap_spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Voucher = {
@@ -330,6 +419,22 @@ return {
 				text = {
 					"Найдите этот ваучер",
 					"в виде {C:dark_edition}Айтема AP"
+				},
+				nonlocal = {
+					"{C:inactive}Этот ваучер находится",
+					"в игре, в которую",
+					"играет {C:dark_edition}#1#{C:inactive}..."
+				},
+				shop_check = {
+					"Найдите этот ваучер в виде",
+					"{C:dark_edition}Айтема AP{} в Лавке на",
+					"сложности {C:ap_stake}#1#{}"
+				},
+				card_check = {
+					"Найдите этот ваучер",
+					"на {C:tarot}Таро Archipelago{},",
+					"{C:planet}Поясе Archipelago{}",
+					"или {C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Booster = {
@@ -337,6 +442,22 @@ return {
 				text = {
 					"Найдите этот набор",
 					"в виде {C:dark_edition}Айтема AP"
+				},
+				nonlocal = {
+					"{C:inactive}Этот набор находится",
+					"в игре, в которую",
+					"играет {C:dark_edition}#1#{C:inactive}..."
+				},
+				shop_check = {
+					"Найдите этот набор в виде",
+					"{C:dark_edition}Айтема AP{} в Лавке на",
+					"сложности {C:ap_stake}#1#{}"
+				},
+				card_check = {
+					"Найдите этот набор",
+					"на {C:tarot}Таро Archipelago{},",
+					"{C:planet}Поясе Archipelago{}",
+					"или {C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Modded = {
@@ -392,6 +513,22 @@ return {
 				text = {
 					"Найдите эту Ставку",
 					"в виде {C:dark_edition}Айтема AP"
+				},
+				nonlocal = {
+					"{C:inactive}Эта Ставка находится",
+					"в игре, в которую",
+					"играет {C:dark_edition}#1#{C:inactive}..."
+				},
+				shop_check = {
+					"Найдите эту Ставку в виде",
+					"{C:dark_edition}Айтема AP{} в Лавке на",
+					"сложности {C:ap_stake}#1#{}"
+				},
+				card_check = {
+					"Найдите эту Ставку",
+					"на {C:tarot}Таро Archipelago{},",
+					"{C:planet}Поясе Archipelago{}",
+					"или {C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_StakeLine = {
@@ -449,7 +586,7 @@ return {
 			ap_goal_text = {
 				"Выйграйте с #1# колодами (#2#/#1#)",
 				"Разблокируйте #1# Джокеров (#2#/#1#)",
-				"Победите Босс-блайнд на анте #1#",
+				"Одолейте Анте #1#",
 				"Выйграйте с #1# колодами на сложности #3# и выше (#2#/#1#)",
 				"Выйграйте с #1# Джокерами на сложности #3# и выше (#2#/#1#)",
 				"Выйграте на #1# уникальных комбинациях колод и ставок (#2#/#1#)"
@@ -462,7 +599,8 @@ return {
 				'Спрятать все'
 			},
 			k_ap_yeah = 'Да!',
-			k_asteroid_belt = 'Пояс астероидов'
+			k_asteroid_belt = 'Пояс астероидов',
+			k_ap_you = 'Вас', -- "for you"; this replaces the player's name if they're looking at their own item
 		}
 	}
 }

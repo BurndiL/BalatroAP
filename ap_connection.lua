@@ -302,6 +302,7 @@ G.APSave = {
 
 -- vanilla item whitelist
 function IsVanillaItem(key)
+	if key == nil then return nil end
 	--Jokers
 	if string.find(key, '^j_') then
 		local j_whitelist = { --organized in collection order
@@ -536,6 +537,8 @@ function APConnect()
 
         G.AP.slot_data = slot_data
         G.AP.goal = slot_data.goal
+		G.AP.team_id = G.APClient:get_team_number()
+		G.AP.player_id = G.APClient:get_player_number()
 
         -- G.APClient:Set("empty_array", nil, true, {{"replace", AP.EMPTY_ARRAY}})
 
@@ -1510,7 +1513,14 @@ function APConnect()
         print("Retrieved:")
         -- since lua tables won't contain nil values, we can use keys array
         for _, key in ipairs(keys) do
+			if key == "_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id) then
+				G.AP.hints = map[key]
+				G.AP.update_hints()
+			end
             print("  " .. key .. ": " .. tostring(map[key]))
+			if type(map[key]) == "table" then
+				print(tprint(map[key]))
+			end
         end
         -- extra will include extra fields from Get
         print("Extra:")
@@ -1549,4 +1559,25 @@ function APConnect()
     G.APClient:set_bounced_handler(on_bounced)
     G.APClient:set_retrieved_handler(on_retrieved)
     G.APClient:set_set_reply_handler(on_set_reply)
+end
+
+G.AP.update_hints = function()
+	G.AP.hint_locations = G.AP.hint_locations or {}
+	G.AP.player_names = G.AP.player_names or {}
+	
+	for i = 1, #G.AP.hints do
+		if G.AP.hints[i].found == false and not G.AP.hint_locations[G.AP.hints[i].location] then
+			if G.AP.hints[i].finding_player == G.AP.player_id then
+				G.AP.hint_locations[G.AP.hints[i].location] = G.APClient:get_location_name(G.AP.hints[i].location, 'Balatro')
+			else
+				--non-local items just say they're not here
+				G.AP.hint_locations[G.AP.hints[i].location] = "nonlocal"
+				
+				local finder = G.AP.hints[i].finding_player
+				if not G.AP.player_names[finder] then
+                    G.AP.player_names[finder] = G.APClient:get_player_alias(item.player)
+                end
+			end
+		end
+	end
 end
