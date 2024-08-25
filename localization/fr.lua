@@ -293,7 +293,7 @@ return {
 			ap_hint_ante = {
 				name = "Bloqué",
 				text = {
-					"Battre la mise {C:attention}#1#{} avec",
+					"Battre la Mise {C:attention}#1#{} avec",
 					"{C:attention}#2#{} sur",
 					"la difficutlé {C:ap_stake}#3#{}"
 				}
@@ -577,7 +577,7 @@ return {
 			ap_goal_text = {
 				"Battre #1# Decks (#2#/#1#)",
 				"Débloquer #1# Jokers (#2#/#1#)",
-				"Battre #1# mises",
+				"Battre #1# Mises",
 				"Battre #1# Decks avec au moins la difficulté #3# (#2#/#1#)",
 				"Gagner avec #1# Jokers avec au moins la difficulté #3# (#2#/#1#)",
 				"Gagner avec #1# des combinaisons uniques de jeux et de mises (#2#/#1#)"
