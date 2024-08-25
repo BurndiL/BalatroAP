@@ -183,38 +183,38 @@ return {
 				}
 			},
 			fill_buffoon = {
-				name = "Recevoir Pack Bouffon",
+				name = "Recevoir Paquet Bouffon",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:attention}Paquet Méga-Bouffon{}"
 				}
 			},
 			fill_tag_charm = {
-				name = "Recevoir Pack Consommable",
+				name = "Recevoir Paquet Consommable",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:tarot}Paquet Méga-Arcana{}"
 				}
 			},
 			fill_tag_meteor = {
-				name = "Recevoir Pack Céleste",
+				name = "Recevoir Paquet Céleste",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:planet}Paquet Méga-Céleste{}"
 				}
 			},
 			fill_tag_ethereal = {
-				name = "Recevoir Pack Spectral",
+				name = "Recevoir Paquet Spectral",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:spectral}Paquet Méga-Spectral{}"
 				}
 			},
 			fill_juggle = {
-				name = "Bonus Badge jongleur",
+				name = "Bonus Badge Jongleur",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:attention}Badge jongleur{}"
+					"{s:1,C:attention}Badge Jongleur{}"
 				}
 			},
 			fill_d_six = {
