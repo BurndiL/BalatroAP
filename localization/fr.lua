@@ -24,20 +24,20 @@ return {
 		},
 		Tarot = {
 			c_rand_ap_tarot = {
-				name = "Archipelago Tarot",
+				name = "Tarot d'Archipelago",
 				text = {
 					'Débloque un {C:dark_edition}Item AP {}', 
 					"lors de l'utilisation"
 				}
 			},
 			c_rand_ap_tarot_location = {
-				name = "Archipelago Tarot",
+				name = "Tarot d'Archipelago",
 				text = {--item name is handled through code
 					'pour {C:dark_edition}#1#{}'
 					}
 			},
 			c_rand_ap_tarot_invalid = {
-				name = "Archipelago Tarot",
+				name = "Tarot d'Archipelago",
 				text = {
 					"{C:inactive}Cet emplacement a",
 					"{C:inactive}déjà été recupéré."
@@ -68,7 +68,7 @@ return {
 		},
 		Spectral = {
 			c_rand_ap_spectral = {
-				name = "Archipelago Spectral",
+				name = "Spectral d'Archipelago",
 				text = {
 					'Débloque un {C:dark_edition}Item AP {},', 
 					"Crée une copie de l'objet",
@@ -77,7 +77,7 @@ return {
 				}
 			},
 			c_rand_ap_spectral_invalid = {
-				name = "Archipelago Spectral",
+				name = "Spectral d'Archipelago",
 				text = {
 					"{C:inactive}Cet emplacement a",
 					"{C:inactive}déjà été recupéré."
@@ -94,39 +94,39 @@ return {
 		},
 		Trap = { -- Trap names are NOT used
 			t_eternal = {
-				name = "Trap Eternel",
+				name = "Trap Éternel",
 				text = {
 					"{s:0.7}Un Joker aléatoire", 
 					"{s:1}est devenu {C:attention}Éternel{}!"
 					}
 			},
 			t_perishable = {
-				name = "Perishable Trap",
+				name = "Trap Périssable",
 				text = {
 					"{s:0.7}Un Joker aléatoire", 
 					"{s:1}est devenu {C:attention}Périssable{}!"
 				}
 			},
 			t_rental = {
-				name = "Rental Trap",
+				name = "Trap Location",
 				text = {
 					"{s:0.7}Un Joker aléatoire", 
 					"{s:1}est devenu {C:attention}Location{}!"
 					}
 			},
 			t_money = {
-				name = "Bankruptcy Trap",
+				name = "Trap Banqueroute ",
 				text = {"{s:0.7}Perdre tout l'argent"}
 			},
 			t_hand = {
-				name = "Hand Trap",
+				name = "Trap Main",
 				text = {
 					"{C:blue}-1{} Main", 
 					"{s:0.7}cette manche"
 				}
 			},
 			t_discard = {
-				name = "Discard Trap",
+				name = "Trap Défausse",
 				text = {
 					"{C:red}-1{} Défausse",
 					"{s:0.7}cette manche"
@@ -135,86 +135,86 @@ return {
 		},
 		Bonus = { -- Bonus names are NOT used
 			op_discard = {
-				name = "Bonus Discard",
+				name = "Bonus Défausse",
 				text = {
 					"{C:red}+1{} Défausse", 
 					"{s:0.7}à chaque manche"
 				}
 			},
 			op_money = {
-				name = "Bonus Starting Money",
+				name = "Bonus d'argent de départ",
 				text = {
 					"{s:0.7}Commencer avec", 
 					"{s:1}{C:money}$1{} en plus"
 				}
 			},
 			op_hand = {
-				name = "Bonus Hand",
+				name = "Bonus Main",
 				text = {
 					"{C:blue}+1{} main", 
 					"{s:0.7}à chaque manche"
 					}
 			},
 			op_hand_size = { 
-				name = "Bonus Hand Size",
+				name = "Bonus Taille de la Main",
 				text = {"{C:attention}+1{} à la taille de la main"}
 			},
 			op_interest = {
-				name = "Bonus Max Interest",
+				name = "Bonus Intérêts Max",
 				text = {
 					"{s:0.7}Augmente les intérêts", 
 					"{s:1}de {C:money}$5{}"
 					}
 			},
 			op_joker_slot = {
-				name = "Bonus Joker Slot",
+				name = "Bonus Emplacement Joker",
 				text = {"{C:dark_edition}+1{} emplacement de Joker"}
 			},
 			op_consum_slot = {
-				name = "Bonus Consumable Slot",
+				name = "Bonus Emplacement Consommable",
 				text = {"{s:0.6,C:dark_edition}+1{} emplacement de Consommable"}
 			},
 			
 			fill_money = {
-				name = "Bonus Money",
+				name = "Bonus d'argent",
 				text = {
 					"{s:0.7}Vous obtenez", 
 					"{s:1}{C:money}$8{} en plus"
 				}
 			},
 			fill_buffoon = {
-				name = "Receive Buffoon Pack",
+				name = "Recevoir Paquet Bouffon",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:attention}Paquet Méga-Bouffon{}"
 				}
 			},
 			fill_tag_charm = {
-				name = "Receive Consumable Pack",
+				name = "Recevoir Paquet Consommable",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:tarot}Paquet Méga-Arcana{}"
 				}
 			},
 			fill_tag_meteor = {
-				name = "Receive Consumable Pack",
+				name = "Recevoir Paquet Céleste",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:planet}Paquet Méga-Céleste{}"
 				}
 			},
 			fill_tag_ethereal = {
-				name = "Receive Consumable Pack",
+				name = "Recevoir Paquet Spectral",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:spectral}Paquet Méga-Spectral{}"
 				}
 			},
 			fill_juggle = {
-				name = "Bonus Badge jongleur",
+				name = "Bonus Badge Jongleur",
 				text = {
 					"{s:0.7}Vous obtenez un",
-					"{s:1,C:attention}Badge jongleur{}"
+					"{s:1,C:attention}Badge Jongleur{}"
 				}
 			},
 			fill_d_six = {
@@ -291,33 +291,33 @@ return {
                 }
             },
 			ap_hint_ante = {
-				name = "Locked",
+				name = "Bloqué",
 				text = {
-					"Beat Ante {C:attention}#1#{} with",
-					"{C:attention}#2#{} on",
-					"{C:ap_stake}#3#{} difficulty"
+					"Battre la Mise {C:attention}#1#{} avec",
+					"{C:attention}#2#{} sur",
+					"la difficutlé {C:ap_stake}#3#{}"
 				}
 			},
 			ap_locked_Joker = {
 				name = "Bloqué",
 				text = {
-					"Trouvez ce Joker",
+					"Trouver ce Joker",
 					"en tant qu'{C:dark_edition}Item AP"
 				},
 				nonlocal = {
-					"{C:inactive}This Joker is in",
-					"{C:dark_edition}#1#{C:inactive}'s game..."
+					"{C:inactive}Ce Joker est dans",
+					"le monde {C:dark_edition}#1#{C:inactive}"
 				},
 				shop_check = {
-					"Find this Joker as an",
-					"{C:dark_edition}AP item{} in the Shop on",
-					"{C:ap_stake}#1#{} difficulty"
+					"Trouver ce Joker en tant",
+					"qu'{C:dark_edition}Item AP{} dans la boutique",
+					"en difficulté {C:ap_stake}#1#{}..."
 				},
 				card_check = {
-					"Find this Joker as",
-					"an {C:tarot}Archipelago Tarot{},",
-					"an {C:planet}Archipelago Belt{}",
-					"or an {C:spectral}Archipelago Spectral"
+					"Trouver ce Joker sur",
+					"le {C:tarot}Tarot d'Archipelago{},",
+					"la {C:planet}Ceinture d'Archipelago{}",
+					"ou la carte {C:spectral}Spectral d'Archipelago"
 				}
 			},
 			ap_locked_Tarot = {
@@ -327,41 +327,41 @@ return {
 					"en tant qu'{C:dark_edition}Item AP"
 				},
 				nonlocal = {
-					"{C:inactive}This Tarot card is",
-					"in {C:dark_edition}#1#{C:inactive}'s game..."
+					"{C:inactive}Cette carte de Tarot est dans",
+					"le monde {C:dark_edition}#1#{C:inactive}..."
 				},
 				shop_check = {
-					"Find this {C:tarot}Tarot{} card as",
-					"an {C:dark_edition}AP item{} in the Shop",
-					"on {C:ap_stake}#1#{} difficulty"
+					"Trouver cette carte {C:tarot}Tarot{} en tant",
+					"qu'{C:dark_edition}Item AP{} dans la boutique",
+					"en difficulté {C:ap_stake}#1#{}"
 				},
 				card_check = {
-					"Find this {C:tarot}Tarot{} card as",
-					"an {C:tarot}Archipelago Tarot{},",
-					"an {C:planet}Archipelago Belt{}",
-					"or an {C:spectral}Archipelago Spectral"
+					"Trouver cette carte {C:tarot}Tarot{} sur",
+					"le {C:tarot}Tarot d'Archipelago{},",
+					"la {C:planet}Ceinture d'Archipelago{}",
+					"ou la carte {C:spectral}Spectral d'Archipelago"
 				}
 			},
 			ap_locked_Planet = {
 				name = "Bloqué",
 				text = {
-					"Trouver cette carte {C:planet}Planet{}",
+					"Trouver cette carte {C:planet}Planète{}",
 					"en tant qu'{C:dark_edition}Item AP"
 				},
 				nonlocal = {
-					"{C:inactive}This Planet card is",
-					"in {C:dark_edition}#1#{C:inactive}'s game..."
+					"{C:inactive}Cette carte {C:planet}Planète{} est dans",
+					"le monde {C:dark_edition}#1#{C:inactive}..."
 				},
 				shop_check = {
-					"Find this {C:planet}Planet{} card as",
-					"an {C:dark_edition}AP item{} in the Shop",
-					"on {C:ap_stake}#1#{} difficulty"
+					"Trouver cette carte {C:planet}Planète{} en tant",
+					"qu'{C:dark_edition}Item AP{} dans la boutique",
+					"en difficulté {C:ap_stake}#1#{}"
 				},
 				card_check = {
-					"Find this {C:planet}Planet{} card as",
-					"an {C:tarot}Archipelago Tarot{},",
-					"an {C:planet}Archipelago Belt{}",
-					"or an {C:spectral}Archipelago Spectral"
+					"Trouver cette carte {C:planet}Planète{} sur",
+					"le {C:tarot}Tarot d'Archipelago{},",
+					"la {C:planet}Ceinture d'Archipelago{}",
+					"ou la carte {C:spectral}Spectral d'Archipelago"
 				}
 			},
 			ap_locked_Spectral = {
@@ -371,19 +371,19 @@ return {
 					"en tant qu'{C:dark_edition}Item AP"
 				},
 				nonlocal = {
-					"{C:inactive}This Spectral card is",
-					"in {C:dark_edition}#1#{C:inactive}'s game..."
+					"{C:inactive}Cette carte Spectral est dans",
+					"le monde {C:dark_edition}#1#{C:inactive}..."
 				},
 				shop_check = {
-					"Find this {C:spectral}Spectral{} card as",
-					"an {C:dark_edition}AP item{} in the Shop",
-					"on {C:ap_stake}#1#{} difficulty"
+					"Trouver cette carte {C:spectral}Spectral{} en tant",
+					"qu'{C:dark_edition}Item AP{} dans la boutique",
+					"en difficulté {C:ap_stake}#1#{}"
 				},
 				card_check = {
-					"Find this {C:spectral}Spectral{} card as",
-					"an {C:tarot}Archipelago Tarot{},",
-					"an {C:planet}Archipelago Belt{}",
-					"or an {C:spectral}Archipelago Spectral"
+					"Trouver cette carte {C:spectral}Spectral{} sur",
+					"le {C:tarot}Tarot d'Archipelago{},",
+					"la {C:planet}Ceinture d'Archipelago{}",
+					"ou la carte {C:spectral}Spectral d'Archipelago"
 				}
 			},
 			ap_locked_Back = {
@@ -393,41 +393,41 @@ return {
 					"en tant qu'{C:dark_edition}Item AP"
 				},
 				nonlocal = {
-					"{C:inactive}This Deck is in",
-					"{C:dark_edition}#1#{C:inactive}'s game..."
+					"{C:inactive}Ce Deck est dans",
+					"le monde {C:dark_edition}#1#{C:inactive}..."
 				},
 				shop_check = {
-					"Find this Deck as an",
-					"{C:dark_edition}AP item{} in the Shop on",
-					"{C:ap_stake}#1#{} difficulty"
+					"Trouver ce Deck en tant",
+					"qu'{C:dark_edition}Item AP{} dans la boutique",
+					"en difficulté {C:ap_stake}#1#{}"
 				},
 				card_check = {
-					"Find this Deck as",
-					"an {C:tarot,T:c_rand_ap_tarot}Archipelago Tarot{},",
-					"an {C:planet,T:c_rand_ap_planet}Archipelago Belt{}",
-					"or an {C:spectral,T:c_rand_ap_spectral}Archipelago Spectral"
+					"Trouver ce Deck sur",
+					"le {C:tarot}Tarot d'Archipelago{},",
+					"la {C:planet}Ceinture d'Archipelago{}",
+					"ou la carte {C:spectral}Spectral d'Archipelago"
 				}
 			},
 			ap_locked_Voucher = {
 				name = "Bloqué",
 				text = {
-					"Trouver ce coupon",
+					"Trouver ce Coupon",
 					"en tant qu'{C:dark_edition}Item AP"
 				},
 				nonlocal = {
-					"{C:inactive}This Voucher is in",
-					"{C:dark_edition}#1#{C:inactive}'s game..."
+					"{C:inactive}Ce Coupon est dans",
+					"le monde {C:dark_edition}#1#{C:inactive}..."
 				},
 				shop_check = {
-					"Find this Voucher as an",
-					"{C:dark_edition}AP item{} in the Shop on",
-					"{C:ap_stake}#1#{} difficulty"
+					"Trouver ce Coupon en tant",
+					"qu'{C:dark_edition}Item AP{} dans la boutique",
+					"en difficulté {C:ap_stake}#1#{}"
 				},
 				card_check = {
-					"Find this Voucher as",
-					"an {C:tarot}Archipelago Tarot{},",
-					"an {C:planet}Archipelago Belt{}",
-					"or an {C:spectral}Archipelago Spectral"
+					"Trouver ce Coupon sur",
+					"le {C:tarot}Tarot d'Archipelago{},",
+					"la {C:planet}Ceinture d'Archipelago{}",
+					"ou la carte {C:spectral}Spectral d'Archipelago"
 				}
 			},
 			ap_locked_Booster = {
@@ -437,19 +437,19 @@ return {
 					"en tant qu'{C:dark_edition}Item AP"
 				},
 				nonlocal = {
-					"{C:inactive}This Booster Pack is",
-					"in {C:dark_edition}#1#{C:inactive}'s game..."
+					"{C:inactive}Ce Booster Pack est dans",
+					"le monde {C:dark_edition}#1#{C:inactive}..."
 				},
 				shop_check = {
-					"Find this Booster Pack as",
-					"{C:dark_edition}AP item{} in the Shop on",
-					"{C:ap_stake}#1#{} difficulty"
+					"Trouver ce Booster Pack en tant",
+					"qu'{C:dark_edition}Item AP{} dans la boutique",
+					"en difficulté {C:ap_stake}#1#{}"
 				},
 				card_check = {
-					"Find this Booster Pack as",
-					"an {C:tarot}Archipelago Tarot{},",
-					"an {C:planet}Archipelago Belt{}",
-					"or an {C:spectral}Archipelago Spectral"
+					"Trouver ce Booster Pack sur",
+					"le {C:tarot}Tarot d'Archipelago{},",
+					"la {C:planet}Ceinture d'Archipelago{}",
+					"ou la carte {C:spectral}Spectral d'Archipelago"
 				}
 			},
 			ap_locked_Modded = {
@@ -503,23 +503,23 @@ return {
 			ap_locked_StakeItem = {
 				name = "Bloqué",
 				text = {
-					"Trouver cette mise",
+					"Trouver cette Mise",
                     "en tant qu'{C:dark_edition}item AP",
 				},
 				nonlocal = {
-					"{C:inactive}This Stake is in",
-					"{C:dark_edition}#1#{C:inactive}'s game..."
+					"{C:inactive}Cette Mise est dans",
+					"le monde {C:dark_edition}#1#{C:inactive}..."
 				},
 				shop_check = {
-					"Find this Stake as an",
-					"{C:dark_edition}AP item{} in the Shop on",
-					"{C:ap_stake}#1#{} difficulty"
+					"Trouver cette Mise en tant",
+					"qu'{C:dark_edition}Item AP{} dans la boutique",
+					"en difficulté {C:ap_stake}#1#{}"
 				},
 				card_check = {
-					"Find this Stake as",
-					"an {C:tarot}Archipelago Tarot{},",
-					"an {C:planet}Archipelago Belt{}",
-					"or an {C:spectral}Archipelago Spectral"
+					"Trouver cette Mise sur",
+					"le {C:tarot}Tarot d'Archipelago{},",
+					"la {C:planet}Ceinture d'Archipelago{}",
+					"ou la carte {C:spectral}Spectral d'Archipelago"
 				}
 			},
 			ap_locked_StakeLine = {
@@ -577,7 +577,7 @@ return {
 			ap_goal_text = {
 				"Battre #1# Decks (#2#/#1#)",
 				"Débloquer #1# Jokers (#2#/#1#)",
-				"Battre #1# mises",
+				"Battre #1# Mises",
 				"Battre #1# Decks avec au moins la difficulté #3# (#2#/#1#)",
 				"Gagner avec #1# Jokers avec au moins la difficulté #3# (#2#/#1#)",
 				"Gagner avec #1# des combinaisons uniques de jeux et de mises (#2#/#1#)"
@@ -591,7 +591,7 @@ return {
 			},
 			k_ap_yeah = 'Yeah!',
 			k_asteroid_belt = "La ceinture d'astéroïdes",
-			k_ap_you = 'you', -- "for you"; this replaces the player's name if they're looking at their own item
+			k_ap_you = 'toi', -- "for you"; this replaces the player's name if they're looking at their own item
 		}
 	}
 }
