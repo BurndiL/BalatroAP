@@ -588,7 +588,7 @@ return {
 			},
 			k_ap_yeah = 'Jawohl!',
 			k_asteroid_belt = 'Asteroidengürtel',
-			k_ap_you = 'Du', -- "for you"; this replaces the player's name if they're looking at their own item
+			k_ap_you = 'Dich', -- "for you"; this replaces the player's name if they're looking at their own item
 		}
 	}
 }
