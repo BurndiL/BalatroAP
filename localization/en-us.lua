@@ -528,7 +528,7 @@ return {
 					"Win a run with this deck",
                     "on at least {V:1}#1#{} difficulty",
 				}
-			}
+			},
 		}
 	},
 	misc = {
@@ -592,6 +592,14 @@ return {
 			k_ap_yeah = 'Yeah!',
 			k_asteroid_belt = 'Asteroid Belt',
 			k_ap_you = 'you', -- "for you"; this replaces the player's name if they're looking at their own item
+			b_ap_buffs = 'Bonuses',
+			ap_buff_bonushands = "Hands: ",
+			ap_buff_bonusdiscards = "Discards: ",
+			ap_buff_bonushandsize = "Hand Size: ",
+			ap_buff_bonusstartingmoney = "Starting Money: ",
+			ap_buff_maxinterest = "Max Interest: ",
+			ap_buff_bonusjoker = "Joker slots: ",
+			ap_buff_bonusconsumable = "Consumable slots: ",
 		}
 	}
 }

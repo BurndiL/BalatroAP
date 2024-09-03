@@ -7,7 +7,7 @@
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
 --- VERSION: 0.1.9
---- LOADER_VERSION_GEQ: 1.0.0~ALPHA-0813a-STEAMODDED
+--- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA--0829a]
 ----------------------------------------------
 ------------MOD CODE -------------------------
 _RELEASE_MODE = false
@@ -44,6 +44,7 @@ json = NFS.load(G.AP.this_mod.path .. "json.lua")()
 AP = require('lua-apclientpp')
 
 local isInProfileTabCreation = false
+local isInRunInfoTabCreation = false
 local isInProfileOptionCreation = false
 local unloadAPProfile = false
 local ap_profile_delete = false
@@ -1264,16 +1265,14 @@ SMODS.Consumable {
     name = 'Archipelago Tarot',
 	atlas = 'ap_item_tarot',
 	inject = function(self) -- prevent injection outside of AP
-    	if isAPProfileLoaded() then
+    	if isAPProfileLoaded() and G.AP.slot_data["consumable_pool_locations"] then
     	    SMODS.Center.inject(self)
     	end
     end,
 	in_pool = function(self)
-        -- if self.unlocked then
-            -- if get_tarot_location(1) then
-                -- return true
-            -- end
-        -- end
+		if get_tarot_location(1) then
+			return true
+		end
         return false
 	end,
 	config = {
@@ -1425,16 +1424,14 @@ SMODS.Consumable {
 	atlas = 'ap_item_tarot',
 	pos = {x = 1, y = 0},
 	inject = function(self) -- prevent injection outside of AP
-        if isAPProfileLoaded() then
+        if isAPProfileLoaded() and G.AP.slot_data["consumable_pool_locations"] then
             SMODS.Center.inject(self)
         end
     end,
     in_pool = function(self)
-        -- if self.unlocked then
-            -- if get_tarot_location(1) then
-                -- return true
-            -- end
-        -- end
+		if get_tarot_location(1) then
+			return true
+		end
         return false
 	end,
 	set_card_type_badge = function(self, card, badges)
@@ -1589,16 +1586,14 @@ SMODS.Consumable {
 	atlas = 'ap_item_tarot',
 	pos = {x = 2, y = 0},
 	inject = function(self) -- prevent injection outside of AP
-        if isAPProfileLoaded() then
+        if isAPProfileLoaded() and G.AP.slot_data["consumable_pool_locations"] then
             SMODS.Center.inject(self)
         end
     end,
     in_pool = function(self)
-        -- if self.unlocked then
-            -- if get_tarot_location(1) then
-                -- return true
-            -- end
-        -- end
+		if get_tarot_location(1) then
+			return true
+		end
         return false
 	end,
 	config = {
@@ -1811,7 +1806,6 @@ G.AP.location_seen = function(id)
 end
 
 function get_tarot_location(_pool_length)
-	-- CHANGE THIS!!!!!!!!!!!!!!!!!
 	if G.AP.slot_data["consumable_pool_locations"] then
         local valid_locations = {}
         local all_locations = G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) ..

@@ -427,6 +427,16 @@ function create_tabs(args)
             tab_definition_function_args = G.AP.profile_Id
         }
     end
+	
+	-- buffs in run info
+	if isAPProfileLoaded() then
+		if isInRunInfoTabCreation then
+			args.tabs[#args.tabs+1] = {
+				label = localize('b_ap_buffs'),
+				tab_definition_function = G.UIDEF.ap_buffs
+			}
+		end
+	end
 
     local create_tabs = create_tabsRef(args)
 
@@ -693,6 +703,16 @@ G.FUNCS.ap_config = function()
 		definition = G.AP.this_mod.config_tab(true)
 	})
 end
+
+-- i cant be bothered rn
+-- bonuses in run info
+function G.UIDEF.ap_buffs()
+	local _bonuses = {"bonushands", "bonusdiscards", "bonushandsize",
+		"bonusstartingmoney", "maxinterest", "bonusjoker", "bonusconsumable"}
+	local _colours = {G.C.BLUE, G.C.RED, G.C.FILTER, G.C.MONEY, G.C.MONEY, G.C.DARK_EDITION, G.C.DARK_EDITION}
+	return {}
+end
+
 
 -- AP debuff and locked messages
 local Cardgenerate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
