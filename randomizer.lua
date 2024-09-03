@@ -1261,6 +1261,7 @@ SMODS.Voucher {
 SMODS.Consumable {
 	key = 'ap_tarot',
 	set = 'Tarot',
+    name = 'Archipelago Tarot',
 	atlas = 'ap_item_tarot',
 	inject = function(self) -- prevent injection outside of AP
     	if isAPProfileLoaded() then
@@ -1419,7 +1420,8 @@ SMODS.Consumable {
 
 SMODS.Consumable {
 	key = 'ap_planet',
-	set = 'Planet',
+	set = 'Planet',    
+    name = 'Archipelago Belt',
 	atlas = 'ap_item_tarot',
 	pos = {x = 1, y = 0},
 	inject = function(self) -- prevent injection outside of AP
@@ -1582,6 +1584,7 @@ SMODS.Consumable {
 
 SMODS.Consumable {
 	key = 'ap_spectral',
+    name = 'Archipelago Spectral',
 	set = 'Spectral',
 	atlas = 'ap_item_tarot',
 	pos = {x = 2, y = 0},
@@ -1809,7 +1812,7 @@ end
 
 function get_tarot_location(_pool_length)
 	-- CHANGE THIS!!!!!!!!!!!!!!!!!
-	if G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) .. "_shop_locations"] then
+	if G.AP.slot_data["consumable_pool_locations"] then
         local valid_locations = {}
         local all_locations = G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) ..
                                   "_shop_locations"]
