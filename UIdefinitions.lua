@@ -1,171 +1,171 @@
 -- Config Tab
 SMODS.current_mod.config_tab = function(_from_profile)
 	local innards = {
-				n = G.UIT.C,
+		n = G.UIT.C,
+		nodes = {
+			create_option_cycle({ -- connection status info cycle
+				label = localize('k_ap_connection_status'),
+				current_option = G.AP.this_mod.config.connection_status,
+				options = localize('k_ap_connection_status_options'),
+				ref_table = G.AP.this_mod.config, 
+				ref_value = 'connection_status',
+				colour = G.AP.this_mod.badge_colour,
+				text_scale = 0.4,
+				scale = 0.75,
+				w = 4,
+				opt_callback = 'update_ap_config'
+			}),{ --deathlink and item names
+				n = G.UIT.R,
+				config = {
+					colour = G.C.CLEAR,
+					aling = 'cm'
+				},
 				nodes = {
-					create_option_cycle({ -- connection status info cycle
-						label = localize('k_ap_connection_status'),
-						current_option = G.AP.this_mod.config.connection_status,
-						options = localize('k_ap_connection_status_options'),
-						ref_table = G.AP.this_mod.config, 
-						ref_value = 'connection_status',
-						colour = G.AP.this_mod.badge_colour,
-						text_scale = 0.4,
-						scale = 0.75,
-						w = 4,
-						opt_callback = 'update_ap_config'
-					}),{ --deathlink and item names
-						n = G.UIT.R,
+					{
+						n = G.UIT.C,
 						config = {
 							colour = G.C.CLEAR,
 							aling = 'cm'
 						},
 						nodes = {
-							{
-								n = G.UIT.C,
-								config = {
-									colour = G.C.CLEAR,
-									aling = 'cm'
-								},
-								nodes = {
-									create_option_cycle({
-										label = localize('k_ap_deathlink'),
-										current_option = G.AP.this_mod.config.jokers,
-										options = localize('k_ap_deathlink_options'),
-										ref_table = G.AP.this_mod.config, 
-										ref_value = 'deathlink',
-										colour = G.AP.this_mod.badge_colour,
-										text_scale = 0.4,
-										scale = 0.75,
-										w = 3,
-										opt_callback = 'update_ap_config'
-									})
-								}
-							},
-							{
-								n = G.UIT.C,
-								config = {
-									colour = G.C.CLEAR,
-									aling = 'cm'
-								},
-								nodes = {
-									create_option_cycle({
-										label = localize('k_ap_item_names'),
-										current_option = G.AP.this_mod.config.consumables,
-										options = localize('k_ap_item_names_options'),
-										ref_table = G.AP.this_mod.config, 
-										ref_value = 'item_names',
-										colour = G.AP.this_mod.badge_colour,
-										text_scale = 0.4,
-										scale = 0.75,
-										w = 3,
-										opt_callback = 'update_ap_config'
-									})
-								}
-							},
-							
+							create_option_cycle({
+								label = localize('k_ap_deathlink'),
+								current_option = G.AP.this_mod.config.jokers,
+								options = localize('k_ap_deathlink_options'),
+								ref_table = G.AP.this_mod.config, 
+								ref_value = 'deathlink',
+								colour = G.AP.this_mod.badge_colour,
+								text_scale = 0.4,
+								scale = 0.75,
+								w = 3,
+								opt_callback = 'update_ap_config'
+							})
 						}
 					},
-					-- Notice for unchangable options when connected
-					isAPProfileLoaded() and { 
-						n = G.UIT.R,
-						config = {
-							colour = G.C.CLEAR,
-							align = 'tm',
-							padding = 0.2
-						},
-						nodes = {{
-							n = G.UIT.T,
-							config = {
-								align = 'tm',
-								scale = 0.3,
-								text = localize('k_ap_cant_change')
-							}
-						}}
-					} or nil,
-					-- when connected, create a list of currently chosen options
-					isAPProfileLoaded() and list_ap_option({
-						label = 'k_ap_locked_jokers',
-						options = 'k_ap_locked_options',
-						current_option = G.AP.this_mod.config.jokers
-					}) or nil,
-					isAPProfileLoaded() and list_ap_option({
-						label = 'k_ap_locked_consums',
-						options = 'k_ap_locked_options',
-						current_option = G.AP.this_mod.config.consumables
-					}) or nil,
-					-- when not connected, create cycles
-					not isAPProfileLoaded() and {
-						n = G.UIT.R,
+					{
+						n = G.UIT.C,
 						config = {
 							colour = G.C.CLEAR,
 							aling = 'cm'
 						},
 						nodes = {
-							{
-								n = G.UIT.C,
-								config = {
-									colour = G.C.CLEAR,
-									aling = 'cm'
-								},
-								nodes = {
-									create_option_cycle({
-										label = localize('k_ap_locked_jokers'),
-										current_option = G.AP.this_mod.config.jokers,
-										options = localize('k_ap_locked_options'),
-										ref_table = G.AP.this_mod.config, 
-										ref_value = 'jokers',
-										colour = G.C.DARK_EDITION,
-										text_scale = 0.4,
-										scale = 0.75,
-										w = 3,
-										opt_callback = 'update_ap_config'
-									})
-								}
-							},
-							{
-								n = G.UIT.C,
-								config = {
-									colour = G.C.CLEAR,
-									aling = 'cm'
-								},
-								nodes = {
-									create_option_cycle({
-										label = localize('k_ap_locked_consums'),
-										current_option = G.AP.this_mod.config.consumables,
-										options = localize('k_ap_locked_options'),
-										ref_table = G.AP.this_mod.config, 
-										ref_value = 'consumables',
-										colour = G.C.DARK_EDITION,
-										text_scale = 0.4,
-										scale = 0.75,
-										w = 3,
-										opt_callback = 'update_ap_config'
-									})
-								}
-							},
-							
+							create_option_cycle({
+								label = localize('k_ap_item_names'),
+								current_option = G.AP.this_mod.config.consumables,
+								options = localize('k_ap_item_names_options'),
+								ref_table = G.AP.this_mod.config, 
+								ref_value = 'item_names',
+								colour = G.AP.this_mod.badge_colour,
+								text_scale = 0.4,
+								scale = 0.75,
+								w = 3,
+								opt_callback = 'update_ap_config'
+							})
 						}
-					} or nil, --Modded item notice and cycle
-					isAPProfileLoaded() and list_ap_option({
-						label = 'k_ap_modded_items',
-						options = 'k_ap_modded_items_options',
-						current_option = G.AP.this_mod.config.modded
-					}) or
-					create_option_cycle({
-						label = localize('k_ap_modded_items'),
-						current_option = G.AP.this_mod.config.modded,
-						options = localize('k_ap_modded_items_options'),
-						ref_table = G.AP.this_mod.config, 
-						ref_value = 'modded',
-						colour = G.AP.this_mod.badge_colour,
-						text_scale = 0.4,
-						scale = 0.75,
-						w = 4,
-						opt_callback = 'update_ap_config'
-					}),
+					},
+					
 				}
-			}
+			},
+			-- Notice for unchangable options when connected
+			isAPProfileLoaded() and { 
+				n = G.UIT.R,
+				config = {
+					colour = G.C.CLEAR,
+					align = 'tm',
+					padding = 0.2
+				},
+				nodes = {{
+					n = G.UIT.T,
+					config = {
+						align = 'tm',
+						scale = 0.3,
+						text = localize('k_ap_cant_change')
+					}
+				}}
+			} or nil,
+			-- when connected, create a list of currently chosen options
+			isAPProfileLoaded() and list_ap_option({
+				label = 'k_ap_locked_jokers',
+				options = 'k_ap_locked_options',
+				current_option = G.AP.this_mod.config.jokers
+			}) or nil,
+			isAPProfileLoaded() and list_ap_option({
+				label = 'k_ap_locked_consums',
+				options = 'k_ap_locked_options',
+				current_option = G.AP.this_mod.config.consumables
+			}) or nil,
+			-- when not connected, create cycles
+			not isAPProfileLoaded() and {
+				n = G.UIT.R,
+				config = {
+					colour = G.C.CLEAR,
+					aling = 'cm'
+				},
+				nodes = {
+					{
+						n = G.UIT.C,
+						config = {
+							colour = G.C.CLEAR,
+							aling = 'cm'
+						},
+						nodes = {
+							create_option_cycle({
+								label = localize('k_ap_locked_jokers'),
+								current_option = G.AP.this_mod.config.jokers,
+								options = localize('k_ap_locked_options'),
+								ref_table = G.AP.this_mod.config, 
+								ref_value = 'jokers',
+								colour = G.C.DARK_EDITION,
+								text_scale = 0.4,
+								scale = 0.75,
+								w = 3,
+								opt_callback = 'update_ap_config'
+							})
+						}
+					},
+					{
+						n = G.UIT.C,
+						config = {
+							colour = G.C.CLEAR,
+							aling = 'cm'
+						},
+						nodes = {
+							create_option_cycle({
+								label = localize('k_ap_locked_consums'),
+								current_option = G.AP.this_mod.config.consumables,
+								options = localize('k_ap_locked_options'),
+								ref_table = G.AP.this_mod.config, 
+								ref_value = 'consumables',
+								colour = G.C.DARK_EDITION,
+								text_scale = 0.4,
+								scale = 0.75,
+								w = 3,
+								opt_callback = 'update_ap_config'
+							})
+						}
+					},
+					
+				}
+			} or nil, --Modded item notice and cycle
+			isAPProfileLoaded() and list_ap_option({
+				label = 'k_ap_modded_items',
+				options = 'k_ap_modded_items_options',
+				current_option = G.AP.this_mod.config.modded
+			}) or
+			create_option_cycle({
+				label = localize('k_ap_modded_items'),
+				current_option = G.AP.this_mod.config.modded,
+				options = localize('k_ap_modded_items_options'),
+				ref_table = G.AP.this_mod.config, 
+				ref_value = 'modded',
+				colour = G.AP.this_mod.badge_colour,
+				text_scale = 0.4,
+				scale = 0.75,
+				w = 4,
+				opt_callback = 'update_ap_config'
+			}),
+		}
+	}
 	
 	local root = not _from_profile and {
 		n = G.UIT.ROOT, 
@@ -427,6 +427,17 @@ function create_tabs(args)
             tab_definition_function_args = G.AP.profile_Id
         }
     end
+	
+	-- buffs in run info
+	-- currently disabled bcos i need to code the actual ui part of it
+	if false then --if isAPProfileLoaded() then
+		if isInRunInfoTabCreation then
+			args.tabs[#args.tabs+1] = {
+				label = localize('b_ap_buffs'),
+				tab_definition_function = G.UIDEF.ap_buffs
+			}
+		end
+	end
 
     local create_tabs = create_tabsRef(args)
 
@@ -694,13 +705,23 @@ G.FUNCS.ap_config = function()
 	})
 end
 
+-- i cant be bothered rn
+-- bonuses in run info
+function G.UIDEF.ap_buffs()
+	local _bonuses = {"bonushands", "bonusdiscards", "bonushandsize",
+		"bonusstartingmoney", "maxinterest", "bonusjoker", "bonusconsumable"}
+	local _colours = {G.C.BLUE, G.C.RED, G.C.FILTER, G.C.MONEY, G.C.MONEY, G.C.DARK_EDITION, G.C.DARK_EDITION}
+	return {}
+end
+
+
 -- AP debuff and locked messages
 local Cardgenerate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
 function Card:generate_UIBox_ability_table()
     if isAPProfileLoaded() then
 	
 		local _has_hint = false
-		if G.your_collection and tableContains(G.your_collection, self.area) and G.AP.hints then
+		if ((G.your_collection and tableContains(G.your_collection, self.area)) or self.area == G.title_top) and G.AP.hints then
 			if((self.debuff and self.config.center.ap_unlocked == false) or self.config.center.unlocked == false) then
 				local _hint = {}
 				for i = 1, #G.AP.hints do
@@ -1139,8 +1160,8 @@ function create_UIBox_notify_alert(_achievement, _type)
                     y = 2
                 },
                 fill_double = {
-                    x = 0,
-                    y = 3
+                    x = 3,
+                    y = 0
                 },
                 fill_d_six = {
                     x = 1,

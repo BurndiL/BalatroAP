@@ -622,8 +622,21 @@ function G.UIDEF.run_info()
     if isAPProfileLoaded() then
         local _stake_slot = G.GAME.stake
         G.GAME.stake = G.P_CENTER_POOLS.Stake[_stake_slot].stake_level
+		-- ap buffs in run info
+		local _bonuses = {"bonushands", "bonusdiscards", "bonusstartingmoney",
+		"bonushandsize", "maxinterest", "bonusjoker", "bonusconsumable"}
+		
+		for i = 1, #_bonuses do
+			if G.PROFILES[G.AP.profile_Id][_bonuses[i]] and G.PROFILES[G.AP.profile_Id][_bonuses[i]] ~= 0 then
+				isInRunInfoTabCreation = true
+				break
+			end
+		end
+		
         _run_info = GUIDEFrun_infoRef()
+		
         G.GAME.stake = _stake_slot
+		isInRunInfoTabCreation = false
     end
 
     if _run_info == nil then
@@ -780,6 +793,14 @@ function set_deck_win()
     else
         return set_deck_winRef()
     end
+end
+
+-- disable smods coverter for balatroAP
+local convert_save_dataRef = convert_save_data
+function convert_save_data()
+	if not isAPProfileLoaded() then
+		convert_save_dataRef()
+	end
 end
 
 -- =============

@@ -2,302 +2,352 @@ NFS.load(G.AP.this_mod.path .. "utils.lua")()
 
 G.APItems = {
     -- Backs (=decks but referred to as backs)
-    [G.AP.id_offset + 1] = "Red Deck",
-    [G.AP.id_offset + 2] = "Blue Deck",
-    [G.AP.id_offset + 3] = "Yellow Deck",
-    [G.AP.id_offset + 4] = "Green Deck",
-    [G.AP.id_offset + 5] = "Black Deck",
-    [G.AP.id_offset + 6] = "Magic Deck",
-    [G.AP.id_offset + 7] = "Nebula Deck",
-    [G.AP.id_offset + 8] = "Ghost Deck",
-    [G.AP.id_offset + 9] = "Abandoned Deck",
-    [G.AP.id_offset + 10] = "Checkered Deck",
-    [G.AP.id_offset + 11] = "Zodiac Deck",
-    [G.AP.id_offset + 12] = "Painted Deck",
-    [G.AP.id_offset + 13] = "Anaglyph Deck",
-    [G.AP.id_offset + 14] = "Plasma Deck",
-    [G.AP.id_offset + 15] = "Erratic Deck",
+    [G.AP.id_offset + 1] = "b_red",        [G.AP.id_offset + 2] = "b_blue",
+    [G.AP.id_offset + 3] = "b_yellow",     [G.AP.id_offset + 4] = "b_green",
+    [G.AP.id_offset + 5] = "b_black",      [G.AP.id_offset + 6] = "b_magic",
+    [G.AP.id_offset + 7] = "b_nebula",     [G.AP.id_offset + 8] = "b_ghost",
+    [G.AP.id_offset + 9] = "b_abandoned",  [G.AP.id_offset + 10] = "b_checkered",
+    [G.AP.id_offset + 11] = "b_zodiac",    [G.AP.id_offset + 12] = "b_painted",
+    [G.AP.id_offset + 13] = "b_anaglyph",  [G.AP.id_offset + 14] = "b_plasma",
+    [G.AP.id_offset + 15] = "b_erratic",
 
     -- Jokers
-    [G.AP.id_offset + 16] = "Joker",
-    [G.AP.id_offset + 17] = "Greedy Joker",
-    [G.AP.id_offset + 18] = "Lusty Joker",
-    [G.AP.id_offset + 19] = "Wrathful Joker",
-    [G.AP.id_offset + 20] = "Gluttonous Joker",
-    [G.AP.id_offset + 21] = "Jolly Joker",
-    [G.AP.id_offset + 22] = "Zany Joker",
-    [G.AP.id_offset + 23] = "Mad Joker",
-    [G.AP.id_offset + 24] = "Crazy Joker",
-    [G.AP.id_offset + 25] = "Droll Joker",
-    [G.AP.id_offset + 26] = "Sly Joker",
-    [G.AP.id_offset + 27] = "Wily Joker",
-    [G.AP.id_offset + 28] = "Clever Joker",
-    [G.AP.id_offset + 29] = "Devious Joker",
-    [G.AP.id_offset + 30] = "Crafty Joker",
-    [G.AP.id_offset + 31] = "Half Joker",
-    [G.AP.id_offset + 32] = "Joker Stencil",
-    [G.AP.id_offset + 33] = "Four Fingers",
-    [G.AP.id_offset + 34] = "Mime",
-    [G.AP.id_offset + 35] = "Credit Card",
-    [G.AP.id_offset + 36] = "Ceremonial Dagger",
-    [G.AP.id_offset + 37] = "Banner",
-    [G.AP.id_offset + 38] = "Mystic Summit",
-    [G.AP.id_offset + 39] = "Marble Joker",
-    [G.AP.id_offset + 40] = "Loyalty Card",
-    [G.AP.id_offset + 41] = "8 Ball",
-    [G.AP.id_offset + 42] = "Misprint",
-    [G.AP.id_offset + 43] = "Dusk",
-    [G.AP.id_offset + 44] = "Raised Fist",
-    [G.AP.id_offset + 45] = "Chaos the Clown",
-    [G.AP.id_offset + 46] = "Fibonacci",
-    [G.AP.id_offset + 47] = "Steel Joker",
-    [G.AP.id_offset + 48] = "Scary Face",
-    [G.AP.id_offset + 49] = "Abstract Joker",
-    [G.AP.id_offset + 50] = "Delayed Gratification",
-    [G.AP.id_offset + 51] = "Hack",
-    [G.AP.id_offset + 52] = "Pareidolia",
-    [G.AP.id_offset + 53] = "Gros Michel",
-    [G.AP.id_offset + 54] = "Even Steven",
-    [G.AP.id_offset + 55] = "Odd Todd",
-    [G.AP.id_offset + 56] = "Scholar",
-    [G.AP.id_offset + 57] = "Business Card",
-    [G.AP.id_offset + 58] = "Supernova",
-    [G.AP.id_offset + 59] = "Ride the Bus",
-    [G.AP.id_offset + 60] = "Space Joker",
-    [G.AP.id_offset + 61] = 'Egg',
-    [G.AP.id_offset + 62] = 'Burglar',
-    [G.AP.id_offset + 63] = 'Blackboard',
-    [G.AP.id_offset + 64] = 'Runner',
-    [G.AP.id_offset + 65] = 'Ice Cream',
-    [G.AP.id_offset + 66] = 'DNA',
-    [G.AP.id_offset + 67] = 'Splash',
-    [G.AP.id_offset + 68] = 'Blue Joker',
-    [G.AP.id_offset + 69] = 'Sixth Sense',
-    [G.AP.id_offset + 70] = 'Constellation',
-    [G.AP.id_offset + 71] = 'Hiker',
-    [G.AP.id_offset + 72] = 'Faceless Joker',
-    [G.AP.id_offset + 73] = 'Green Joker',
-    [G.AP.id_offset + 74] = 'Superposition',
-    [G.AP.id_offset + 75] = 'To Do List',
-    [G.AP.id_offset + 76] = "Cavendish",
-    [G.AP.id_offset + 77] = "Card Sharp",
-    [G.AP.id_offset + 78] = "Red Card",
-    [G.AP.id_offset + 79] = "Madness",
-    [G.AP.id_offset + 80] = "Square Joker",
-    [G.AP.id_offset + 81] = "Seance",
-    [G.AP.id_offset + 82] = "Riff-raff",
-    [G.AP.id_offset + 83] = "Vampire",
-    [G.AP.id_offset + 84] = "Shortcut",
-    [G.AP.id_offset + 85] = "Hologram",
-    [G.AP.id_offset + 86] = "Vagabond",
-    [G.AP.id_offset + 87] = "Baron",
-    [G.AP.id_offset + 88] = "Cloud 9",
-    [G.AP.id_offset + 89] = "Rocket",
-    [G.AP.id_offset + 90] = "Obelisk",
-    [G.AP.id_offset + 91] = "Midas Mask",
-    [G.AP.id_offset + 92] = "Luchador",
-    [G.AP.id_offset + 93] = "Photograph",
-    [G.AP.id_offset + 94] = "Gift Card",
-    [G.AP.id_offset + 95] = "Turtle Bean",
-    [G.AP.id_offset + 96] = "Erosion",
-    [G.AP.id_offset + 97] = "Reserved Parking",
-    [G.AP.id_offset + 98] = "Mail-In Rebate",
-    [G.AP.id_offset + 99] = "To the Moon",
-    [G.AP.id_offset + 100] = "Hallucination",
-    [G.AP.id_offset + 101] = "Fortune Teller",
-    [G.AP.id_offset + 102] = "Juggler",
-    [G.AP.id_offset + 103] = "Drunkard",
-    [G.AP.id_offset + 104] = "Stone Joker",
-    [G.AP.id_offset + 105] = "Golden Joker",
-    [G.AP.id_offset + 106] = "Lucky Cat",
-    [G.AP.id_offset + 107] = "Baseball Card",
-    [G.AP.id_offset + 108] = "Bull",
-    [G.AP.id_offset + 109] = "Diet Cola",
-    [G.AP.id_offset + 110] = "Trading Card",
-    [G.AP.id_offset + 111] = "Flash Card",
-    [G.AP.id_offset + 112] = "Popcorn",
-    [G.AP.id_offset + 113] = "Spare Trousers",
-    [G.AP.id_offset + 114] = "Ancient Joker",
-    [G.AP.id_offset + 115] = "Ramen",
-    [G.AP.id_offset + 116] = "Walkie Talkie",
-    [G.AP.id_offset + 117] = "Seltzer",
-    [G.AP.id_offset + 118] = "Castle",
-    [G.AP.id_offset + 119] = "Smiley Face",
-    [G.AP.id_offset + 120] = "Campfire",
-    [G.AP.id_offset + 121] = "Golden Ticket",
-    [G.AP.id_offset + 122] = "Mr. Bones",
-    [G.AP.id_offset + 123] = "Acrobat",
-    [G.AP.id_offset + 124] = "Sock and Buskin",
-    [G.AP.id_offset + 125] = "Swashbuckler",
-    [G.AP.id_offset + 126] = "Troubadour",
-    [G.AP.id_offset + 127] = "Certificate",
-    [G.AP.id_offset + 128] = "Smeared Joker",
-    [G.AP.id_offset + 129] = "Throwback",
-    [G.AP.id_offset + 130] = "Hanging Chad",
-    [G.AP.id_offset + 131] = "Rough Gem",
-    [G.AP.id_offset + 132] = "Bloodstone",
-    [G.AP.id_offset + 133] = "Arrowhead",
-    [G.AP.id_offset + 134] = "Onyx Agate",
-    [G.AP.id_offset + 135] = "Glass Joker",
-    [G.AP.id_offset + 136] = "Showman",
-    [G.AP.id_offset + 137] = "Flower Pot",
-    [G.AP.id_offset + 138] = "Blueprint",
-    [G.AP.id_offset + 139] = "Wee Joker",
-    [G.AP.id_offset + 140] = "Merry Andy",
-    [G.AP.id_offset + 141] = "Oops! All 6s",
-    [G.AP.id_offset + 142] = "The Idol",
-    [G.AP.id_offset + 143] = "Seeing Double",
-    [G.AP.id_offset + 144] = "Matador",
-    [G.AP.id_offset + 145] = "Hit the Road",
-    [G.AP.id_offset + 146] = "The Duo",
-    [G.AP.id_offset + 147] = "The Trio",
-    [G.AP.id_offset + 148] = "The Family",
-    [G.AP.id_offset + 149] = "The Order",
-    [G.AP.id_offset + 150] = "The Tribe",
-    [G.AP.id_offset + 151] = "Stuntman",
-    [G.AP.id_offset + 152] = "Invisible Joker",
-    [G.AP.id_offset + 153] = "Brainstorm",
-    [G.AP.id_offset + 154] = "Satellite",
-    [G.AP.id_offset + 155] = "Shoot the Moon",
-    [G.AP.id_offset + 156] = "Driver's License",
-    [G.AP.id_offset + 157] = "Cartomancer",
-    [G.AP.id_offset + 158] = "Astronomer",
-    [G.AP.id_offset + 159] = "Burnt Joker",
-    [G.AP.id_offset + 160] = "Bootstraps",
-    [G.AP.id_offset + 161] = "Caino",
-    [G.AP.id_offset + 162] = "Triboulet",
-    [G.AP.id_offset + 163] = "Yorick",
-    [G.AP.id_offset + 164] = "Chicot",
-    [G.AP.id_offset + 165] = "Perkeo",
+    [G.AP.id_offset + 16] = "j_joker",
+    [G.AP.id_offset + 17] = "j_greedy_joker",
+    [G.AP.id_offset + 18] = "j_lusty_joker",
+    [G.AP.id_offset + 19] = "j_wrathful_joker",
+    [G.AP.id_offset + 20] = "j_gluttenous_joker",
+    [G.AP.id_offset + 21] = "j_jolly",
+    [G.AP.id_offset + 22] = "j_zany",
+    [G.AP.id_offset + 23] = "j_mad",
+    [G.AP.id_offset + 24] = "j_crazy",
+    [G.AP.id_offset + 25] = "j_droll",
+    [G.AP.id_offset + 26] = "j_sly",
+    [G.AP.id_offset + 27] = "j_wily",
+    [G.AP.id_offset + 28] = "j_clever",
+    [G.AP.id_offset + 29] = "j_devious",
+    [G.AP.id_offset + 30] = "j_crafty",
+    [G.AP.id_offset + 31] = "j_half",
+    [G.AP.id_offset + 32] = "j_stencil",
+    [G.AP.id_offset + 33] = "j_four_fingers",
+    [G.AP.id_offset + 34] = "j_mime",
+    [G.AP.id_offset + 35] = "j_credit_card",
+    [G.AP.id_offset + 36] = "j_ceremonial",
+    [G.AP.id_offset + 37] = "j_banner",
+    [G.AP.id_offset + 38] = "j_mystic_summit",
+    [G.AP.id_offset + 39] = "j_marble",
+    [G.AP.id_offset + 40] = "j_loyalty_card",
+    [G.AP.id_offset + 41] = "j_8_ball",
+    [G.AP.id_offset + 42] = "j_misprint",
+    [G.AP.id_offset + 43] = "j_dusk",
+    [G.AP.id_offset + 44] = "j_raised_fist",
+    [G.AP.id_offset + 45] = "j_chaos",
+    [G.AP.id_offset + 46] = "j_fibonacci",
+    [G.AP.id_offset + 47] = "j_steel_joker",
+    [G.AP.id_offset + 48] = "j_scary_face",
+    [G.AP.id_offset + 49] = "j_abstract",
+    [G.AP.id_offset + 50] = "j_delayed_grat",
+    [G.AP.id_offset + 51] = "j_hack",
+    [G.AP.id_offset + 52] = "j_pareidolia",
+    [G.AP.id_offset + 53] = "j_gros_michel",
+    [G.AP.id_offset + 54] = "j_even_steven",
+    [G.AP.id_offset + 55] = "j_odd_todd",
+    [G.AP.id_offset + 56] = "j_scholar",
+    [G.AP.id_offset + 57] = "j_business",
+    [G.AP.id_offset + 58] = "j_supernova",
+    [G.AP.id_offset + 59] = "j_ride_the_bus",
+    [G.AP.id_offset + 60] = "j_space",
+    [G.AP.id_offset + 61] = 'j_egg',
+    [G.AP.id_offset + 62] = 'j_burglar',
+    [G.AP.id_offset + 63] = 'j_blackboard',
+    [G.AP.id_offset + 64] = 'j_runner',
+    [G.AP.id_offset + 65] = 'j_ice_cream',
+    [G.AP.id_offset + 66] = 'j_dna',
+    [G.AP.id_offset + 67] = 'j_splash',
+    [G.AP.id_offset + 68] = 'j_blue_joker',
+    [G.AP.id_offset + 69] = 'j_sixth_sense',
+    [G.AP.id_offset + 70] = 'j_constellation',
+    [G.AP.id_offset + 71] = 'j_hiker',
+    [G.AP.id_offset + 72] = 'j_faceless',
+    [G.AP.id_offset + 73] = 'j_green_joker',
+    [G.AP.id_offset + 74] = 'j_superposition',
+    [G.AP.id_offset + 75] = 'j_todo_list',
+    [G.AP.id_offset + 76] = "j_cavendish",
+    [G.AP.id_offset + 77] = "j_card_sharp",
+    [G.AP.id_offset + 78] = "j_red_card",
+    [G.AP.id_offset + 79] = "j_madness",
+    [G.AP.id_offset + 80] = "j_square",
+    [G.AP.id_offset + 81] = "j_seance",
+    [G.AP.id_offset + 82] = "j_riff_raff",
+    [G.AP.id_offset + 83] = "j_vampire",
+    [G.AP.id_offset + 84] = "j_shortcut",
+    [G.AP.id_offset + 85] = "j_hologram",
+    [G.AP.id_offset + 86] = "j_vagabond",
+    [G.AP.id_offset + 87] = "j_baron",
+    [G.AP.id_offset + 88] = "j_cloud_9",
+    [G.AP.id_offset + 89] = "j_rocket",
+    [G.AP.id_offset + 90] = "j_obelisk",
+    [G.AP.id_offset + 91] = "j_midas_mask",
+    [G.AP.id_offset + 92] = "j_luchador",
+    [G.AP.id_offset + 93] = "j_photograph",
+    [G.AP.id_offset + 94] = "j_gift",
+    [G.AP.id_offset + 95] = "j_turtle_bean",
+    [G.AP.id_offset + 96] = "j_erosion",
+    [G.AP.id_offset + 97] = "j_reserved_parking",
+    [G.AP.id_offset + 98] = "j_mail",
+    [G.AP.id_offset + 99] = "j_to_the_moon",
+    [G.AP.id_offset + 100] = "j_hallucination",
+    [G.AP.id_offset + 101] = "j_fortune_teller",
+    [G.AP.id_offset + 102] = "j_juggler",
+    [G.AP.id_offset + 103] = "j_drunkard",
+    [G.AP.id_offset + 104] = "j_stone",
+    [G.AP.id_offset + 105] = "j_golden",
+    [G.AP.id_offset + 106] = "j_lucky_cat",
+    [G.AP.id_offset + 107] = "j_baseball",
+    [G.AP.id_offset + 108] = "j_bull",
+    [G.AP.id_offset + 109] = "j_diet_cola",
+    [G.AP.id_offset + 110] = "j_trading",
+    [G.AP.id_offset + 111] = "j_flash",
+    [G.AP.id_offset + 112] = "j_popcorn",
+    [G.AP.id_offset + 113] = "j_trousers",
+    [G.AP.id_offset + 114] = "j_ancient",
+    [G.AP.id_offset + 115] = "j_ramen",
+    [G.AP.id_offset + 116] = "j_walkie_talkie",
+    [G.AP.id_offset + 117] = "j_selzer",
+    [G.AP.id_offset + 118] = "j_castle",
+    [G.AP.id_offset + 119] = "j_smiley",
+    [G.AP.id_offset + 120] = "j_campfire",
+    [G.AP.id_offset + 121] = "j_ticket",
+    [G.AP.id_offset + 122] = "j_mr_bones",
+    [G.AP.id_offset + 123] = "j_acrobat",
+    [G.AP.id_offset + 124] = "j_sock_and_buskin",
+    [G.AP.id_offset + 125] = "j_swashbuckler",
+    [G.AP.id_offset + 126] = "j_troubadour",
+    [G.AP.id_offset + 127] = "j_certificate",
+    [G.AP.id_offset + 128] = "j_smeared",
+    [G.AP.id_offset + 129] = "j_throwback",
+    [G.AP.id_offset + 130] = "j_hanging_chad",
+    [G.AP.id_offset + 131] = "j_rough_gem",
+    [G.AP.id_offset + 132] = "j_bloodstone",
+    [G.AP.id_offset + 133] = "j_arrowhead",
+    [G.AP.id_offset + 134] = "j_onyx_agate",
+    [G.AP.id_offset + 135] = "j_glass",
+    [G.AP.id_offset + 136] = "j_ring_master",
+    [G.AP.id_offset + 137] = "j_flower_pot",
+    [G.AP.id_offset + 138] = "j_blueprint",
+    [G.AP.id_offset + 139] = "j_wee",
+    [G.AP.id_offset + 140] = "j_merry_andy",
+    [G.AP.id_offset + 141] = "j_oops",
+    [G.AP.id_offset + 142] = "j_idol",
+    [G.AP.id_offset + 143] = "j_seeing_double",
+    [G.AP.id_offset + 144] = "j_matador",
+    [G.AP.id_offset + 145] = "j_hit_the_road",
+    [G.AP.id_offset + 146] = "j_duo",
+    [G.AP.id_offset + 147] = "j_trio",
+    [G.AP.id_offset + 148] = "j_family",
+    [G.AP.id_offset + 149] = "j_order",
+    [G.AP.id_offset + 150] = "j_tribe",
+    [G.AP.id_offset + 151] = "j_stuntman",
+    [G.AP.id_offset + 152] = "j_invisible",
+    [G.AP.id_offset + 153] = "j_brainstorm",
+    [G.AP.id_offset + 154] = "j_satellite",
+    [G.AP.id_offset + 155] = "j_shoot_the_moon",
+    [G.AP.id_offset + 156] = "j_drivers_license",
+    [G.AP.id_offset + 157] = "j_cartomancer",
+    [G.AP.id_offset + 158] = "j_astronomer",
+    [G.AP.id_offset + 159] = "j_burnt",
+    [G.AP.id_offset + 160] = "j_bootstraps",
+    [G.AP.id_offset + 161] = "j_caino",
+    [G.AP.id_offset + 162] = "j_triboulet",
+    [G.AP.id_offset + 163] = "j_yorick",
+    [G.AP.id_offset + 164] = "j_chicot",
+    [G.AP.id_offset + 165] = "j_perkeo",
 
     -- Vouchers
-    [G.AP.id_offset + 166] = "Overstock",
-    [G.AP.id_offset + 167] = "Clearance Sale",
-    [G.AP.id_offset + 168] = "Hone",
-    [G.AP.id_offset + 169] = "Reroll Surplus",
-    [G.AP.id_offset + 170] = "Crystal Ball",
-    [G.AP.id_offset + 171] = "Telescope",
-    [G.AP.id_offset + 172] = "Grabber",
-    [G.AP.id_offset + 173] = "Wasteful",
-    [G.AP.id_offset + 174] = "Tarot Merchant",
-    [G.AP.id_offset + 175] = "Planet Merchant",
-    [G.AP.id_offset + 176] = "Seed Money",
-    [G.AP.id_offset + 177] = "Blank",
-    [G.AP.id_offset + 178] = "Magic Trick",
-    [G.AP.id_offset + 179] = "Hieroglyph",
-    [G.AP.id_offset + 180] = "Director's Cut",
-    [G.AP.id_offset + 181] = "Paint Brush",
-    [G.AP.id_offset + 182] = "Overstock Plus",
-    [G.AP.id_offset + 183] = "Liquidation",
-    [G.AP.id_offset + 184] = "Glow Up",
-    [G.AP.id_offset + 185] = "Reroll Glut",
-    [G.AP.id_offset + 186] = "Omen Globe",
-    [G.AP.id_offset + 187] = "Observatory",
-    [G.AP.id_offset + 188] = "Nacho Tong",
-    [G.AP.id_offset + 189] = "Recyclomancy",
-    [G.AP.id_offset + 190] = "Tarot Tycoon",
-    [G.AP.id_offset + 191] = "Planet Tycoon",
-    [G.AP.id_offset + 192] = "Money Tree",
-    [G.AP.id_offset + 193] = "Antimatter",
-    [G.AP.id_offset + 194] = "Illusion",
-    [G.AP.id_offset + 195] = "Petroglyph",
-    [G.AP.id_offset + 196] = "Retcon",
-    [G.AP.id_offset + 197] = "Palette",
+    [G.AP.id_offset + 166] = "v_overstock_norm",
+    [G.AP.id_offset + 167] = "v_clearance_sale",
+    [G.AP.id_offset + 168] = "v_hone",
+    [G.AP.id_offset + 169] = "v_reroll_surplus",
+    [G.AP.id_offset + 170] = "v_crystal_ball",
+    [G.AP.id_offset + 171] = "v_telescope",
+    [G.AP.id_offset + 172] = "v_grabber",
+    [G.AP.id_offset + 173] = "v_wasteful",
+    [G.AP.id_offset + 174] = "v_tarot_merchant",
+    [G.AP.id_offset + 175] = "v_planet_merchant",
+    [G.AP.id_offset + 176] = "v_seed_money",
+    [G.AP.id_offset + 177] = "v_blank",
+    [G.AP.id_offset + 178] = "v_magic_trick",
+    [G.AP.id_offset + 179] = "v_hieroglyph",
+    [G.AP.id_offset + 180] = "v_directors_cut",
+    [G.AP.id_offset + 181] = "v_paint_brush",
+    [G.AP.id_offset + 182] = "v_overstock_plus",
+    [G.AP.id_offset + 183] = "v_liquidation",
+    [G.AP.id_offset + 184] = "v_glow_up",
+    [G.AP.id_offset + 185] = "v_reroll_glut",
+    [G.AP.id_offset + 186] = "v_omen_globe",
+    [G.AP.id_offset + 187] = "v_observatory",
+    [G.AP.id_offset + 188] = "v_nacho_tong",
+    [G.AP.id_offset + 189] = "v_recyclomancy",
+    [G.AP.id_offset + 190] = "v_tarot_tycoon",
+    [G.AP.id_offset + 191] = "v_planet_tycoon",
+    [G.AP.id_offset + 192] = "v_money_tree",
+    [G.AP.id_offset + 193] = "v_antimatter",
+    [G.AP.id_offset + 194] = "v_illusion",
+    [G.AP.id_offset + 195] = "v_petroglyph",
+    [G.AP.id_offset + 196] = "v_retcon",
+    [G.AP.id_offset + 197] = "v_palette",
 
     -- Packs 
 
-    [G.AP.id_offset + 198] = "Arcana Pack",
-    [G.AP.id_offset + 199] = "Jumbo Arcana Pack",
-    [G.AP.id_offset + 200] = "Mega Arcana Pack",
-    [G.AP.id_offset + 201] = "Celestial Pack",
-    [G.AP.id_offset + 202] = "Jumbo Celestial Pack",
-    [G.AP.id_offset + 203] = "Mega Celestial Pack",
-    [G.AP.id_offset + 204] = "Spectral Pack",
-    [G.AP.id_offset + 205] = "Jumbo Spectral Pack",
-    [G.AP.id_offset + 206] = "Mega Spectral Pack",
-    [G.AP.id_offset + 207] = "Standard Pack",
-    [G.AP.id_offset + 208] = "Jumbo Standard Pack",
-    [G.AP.id_offset + 209] = "Mega Standard Pack",
-    [G.AP.id_offset + 210] = "Buffoon Pack",
-    [G.AP.id_offset + 211] = "Jumbo Buffoon Pack",
-    [G.AP.id_offset + 212] = "Mega Buffoon Pack",
+    [G.AP.id_offset + 198] = "p_arcana_normal",
+    [G.AP.id_offset + 199] = "p_arcana_jumbo",
+    [G.AP.id_offset + 200] = "p_arcana_mega",
+    [G.AP.id_offset + 201] = "p_celestial_normal",
+    [G.AP.id_offset + 202] = "p_celestial_jumbo",
+    [G.AP.id_offset + 203] = "p_celestial_mega",
+    [G.AP.id_offset + 204] = "p_spectral_normal",
+    [G.AP.id_offset + 205] = "p_spectral_jumbo",
+    [G.AP.id_offset + 206] = "p_spectral_mega",
+    [G.AP.id_offset + 207] = "p_standard_normal",
+    [G.AP.id_offset + 208] = "p_standard_jumbo",
+    [G.AP.id_offset + 209] = "p_standard_mega",
+    [G.AP.id_offset + 210] = "p_buffoon_normal",
+    [G.AP.id_offset + 211] = "p_buffoon_jumbo",
+    [G.AP.id_offset + 212] = "p_buffoon_mega",
 
     -- Tarot Cards 
 
-    [G.AP.id_offset + 213] = "The Fool",
-    [G.AP.id_offset + 214] = "The Magician",
-    [G.AP.id_offset + 215] = "The High Priestess",
-    [G.AP.id_offset + 216] = "The Empress",
-    [G.AP.id_offset + 217] = "The Emperor",
-    [G.AP.id_offset + 218] = "The Hierophant",
-    [G.AP.id_offset + 219] = "The Lovers",
-    [G.AP.id_offset + 220] = "The Chariot",
-    [G.AP.id_offset + 221] = "Justice",
-    [G.AP.id_offset + 222] = "The Hermit",
-    [G.AP.id_offset + 223] = "The Wheel of Fortune",
-    [G.AP.id_offset + 224] = "Strength",
-    [G.AP.id_offset + 225] = "The Hanged Man",
-    [G.AP.id_offset + 226] = "Death",
-    [G.AP.id_offset + 227] = "Temperance",
-    [G.AP.id_offset + 228] = "The Devil",
-    [G.AP.id_offset + 229] = "The Tower",
-    [G.AP.id_offset + 230] = "The Star",
-    [G.AP.id_offset + 231] = "The Moon",
-    [G.AP.id_offset + 232] = "The Sun",
-    [G.AP.id_offset + 233] = "Judgement",
-    [G.AP.id_offset + 234] = "The World",
-    [G.AP.id_offset + 235] = "Archipelago Tarot",
+    [G.AP.id_offset + 213] = "c_fool",
+    [G.AP.id_offset + 214] = "c_magician",
+    [G.AP.id_offset + 215] = "c_high_priestess",
+    [G.AP.id_offset + 216] = "c_empress",
+    [G.AP.id_offset + 217] = "c_emperor",
+    [G.AP.id_offset + 218] = "c_heirophant",
+    [G.AP.id_offset + 219] = "c_lovers",
+    [G.AP.id_offset + 220] = "c_chariot",
+    [G.AP.id_offset + 221] = "c_justice",
+    [G.AP.id_offset + 222] = "c_hermit",
+    [G.AP.id_offset + 223] = "c_wheel_of_fortune",
+    [G.AP.id_offset + 224] = "c_strength",
+    [G.AP.id_offset + 225] = "c_hanged_man",
+    [G.AP.id_offset + 226] = "c_death",
+    [G.AP.id_offset + 227] = "c_temperance",
+    [G.AP.id_offset + 228] = "c_devil",
+    [G.AP.id_offset + 229] = "c_tower",
+    [G.AP.id_offset + 230] = "c_star",
+    [G.AP.id_offset + 231] = "c_moon",
+    [G.AP.id_offset + 232] = "c_sun",
+    [G.AP.id_offset + 233] = "c_judgement",
+    [G.AP.id_offset + 234] = "c_world",
+    [G.AP.id_offset + 235] = "c_rand_ap_tarot",
 
     -- Planet Cards
 
-    [G.AP.id_offset + 236] = "Mercury",
-    [G.AP.id_offset + 237] = "Venus",
-    [G.AP.id_offset + 238] = "Earth",
-    [G.AP.id_offset + 239] = "Mars",
-    [G.AP.id_offset + 240] = "Jupiter",
-    [G.AP.id_offset + 241] = "Saturn",
-    [G.AP.id_offset + 242] = "Uranus",
-    [G.AP.id_offset + 243] = "Neptune",
-    [G.AP.id_offset + 244] = "Pluto",
-    [G.AP.id_offset + 245] = "Planet X",
-    [G.AP.id_offset + 246] = "Ceres",
-    [G.AP.id_offset + 247] = "Eris",
-    [G.AP.id_offset + 248] = "Archipelago Belt",
+    [G.AP.id_offset + 236] = "c_mercury",
+    [G.AP.id_offset + 237] = "c_venus",
+    [G.AP.id_offset + 238] = "c_earth",
+    [G.AP.id_offset + 239] = "c_mars",
+    [G.AP.id_offset + 240] = "c_jupiter",
+    [G.AP.id_offset + 241] = "c_saturn",
+    [G.AP.id_offset + 242] = "c_uranus",
+    [G.AP.id_offset + 243] = "c_neptune",
+    [G.AP.id_offset + 244] = "c_pluto",
+    [G.AP.id_offset + 245] = "c_planet_x",
+    [G.AP.id_offset + 246] = "c_ceres",
+    [G.AP.id_offset + 247] = "c_eris",
+    [G.AP.id_offset + 248] = "c_rand_ap_planet",
 
     -- Spectral Cards
 
-    [G.AP.id_offset + 249] = "Familiar",
-    [G.AP.id_offset + 250] = "Grim",
-    [G.AP.id_offset + 251] = "Incantation",
-    [G.AP.id_offset + 252] = "Talisman",
-    [G.AP.id_offset + 253] = "Aura",
-    [G.AP.id_offset + 254] = "Wraith",
-    [G.AP.id_offset + 255] = "Sigil",
-    [G.AP.id_offset + 256] = "Ouija",
-    [G.AP.id_offset + 257] = "Ectoplasm",
-    [G.AP.id_offset + 258] = "Immolate",
-    [G.AP.id_offset + 259] = "Ankh",
-    [G.AP.id_offset + 260] = "Deja Vu",
-    [G.AP.id_offset + 261] = "Hex",
-    [G.AP.id_offset + 262] = "Trance",
-    [G.AP.id_offset + 263] = "Medium",
-    [G.AP.id_offset + 264] = "Cryptid",
-    [G.AP.id_offset + 265] = "The Soul",
-    [G.AP.id_offset + 266] = "Black Hole",
-    [G.AP.id_offset + 267] = "Archipelago Spectral",
+    [G.AP.id_offset + 249] = "c_familiar",
+    [G.AP.id_offset + 250] = "c_grim",
+    [G.AP.id_offset + 251] = "c_incantation",
+    [G.AP.id_offset + 252] = "c_talisman",
+    [G.AP.id_offset + 253] = "c_aura",
+    [G.AP.id_offset + 254] = "c_wraith",
+    [G.AP.id_offset + 255] = "c_sigil",
+    [G.AP.id_offset + 256] = "c_ouija",
+    [G.AP.id_offset + 257] = "c_ectoplasm",
+    [G.AP.id_offset + 258] = "c_immolate",
+    [G.AP.id_offset + 259] = "c_ankh",
+    [G.AP.id_offset + 260] = "c_deja_vu",
+    [G.AP.id_offset + 261] = "c_hex",
+    [G.AP.id_offset + 262] = "c_trance",
+    [G.AP.id_offset + 263] = "c_medium",
+    [G.AP.id_offset + 264] = "c_cryptid",
+    [G.AP.id_offset + 265] = "c_soul",
+    [G.AP.id_offset + 266] = "c_black_hole",
+    [G.AP.id_offset + 267] = "c_rand_ap_spectral",
 
-    -- Bonus Items
-    [G.AP.id_offset + 300] = "Bonus Discards",
-    [G.AP.id_offset + 301] = "Bonus Money",
-    [G.AP.id_offset + 302] = "Bonus Starting Money",
-    [G.AP.id_offset + 303] = "Bonus Hands",
-    [G.AP.id_offset + 304] = "Bonus Hand Size",
-
+    -- OP Bonus Items
+    [G.AP.id_offset + 301] = "op_discard",
+    [G.AP.id_offset + 302] = "op_money",
+    [G.AP.id_offset + 303] = "op_hand",
+    [G.AP.id_offset + 304] = "op_hand_size",
+    [G.AP.id_offset + 305] = "op_interest",
+	[G.AP.id_offset + 306] = "op_joker_slot",
+	[G.AP.id_offset + 307] = "op_consum_slot",
+	
+	-- Filler Bonus Items
+	[G.AP.id_offset + 310] = "fill_money",
+	[G.AP.id_offset + 311] = "fill_buffoon",
+	[G.AP.id_offset + 312] = "fill_tag_charm", -- technically has 3 keys, but they all have the same name so its irrelevant here
+	[G.AP.id_offset + 313] = "fill_juggle",
+	[G.AP.id_offset + 314] = "fill_d_six",
+	[G.AP.id_offset + 315] = "fill_uncommon",
+	[G.AP.id_offset + 316] = "fill_rare",
+	[G.AP.id_offset + 317] = "fill_negative",
+	[G.AP.id_offset + 318] = "fill_foil",
+	[G.AP.id_offset + 319] = "fill_holo",
+	[G.AP.id_offset + 320] = "fill_poly",
+	[G.AP.id_offset + 321] = "fill_double",
+	
     -- Trap Items
-    [G.AP.id_offset + 320] = "Lose All Money",
-    [G.AP.id_offset + 321] = "Lose Discard",
-    [G.AP.id_offset + 322] = "Lose Hand"
+    [G.AP.id_offset + 330] = "t_money",
+    [G.AP.id_offset + 331] = "t_discard",
+    [G.AP.id_offset + 332] = "t_hand",
+	[G.AP.id_offset + 333] = "t_perishable",
+    [G.AP.id_offset + 334] = "t_eternal",
+    [G.AP.id_offset + 335] = "t_rental",
+	
+	-- Stakes
+	[G.AP.id_offset + 390] = "stake_white",
+	[G.AP.id_offset + 391] = "stake_red",
+	[G.AP.id_offset + 392] = "stake_green",
+	[G.AP.id_offset + 393] = "stake_black",
+	[G.AP.id_offset + 394] = "stake_blue",
+	[G.AP.id_offset + 395] = "stake_purple",
+	[G.AP.id_offset + 396] = "stake_orange",
+	[G.AP.id_offset + 397] = "stake_gold",
+	
+	-- bundles
+	[G.AP.id_offset + 371] = "bundle_tarot",
+	[G.AP.id_offset + 372] = "bundle_planet",
+	[G.AP.id_offset + 373] = "bundle_spectral",
+	
+	[G.AP.id_offset + 374] = "bundle_tarot",
+	[G.AP.id_offset + 375] = "bundle_tarot",
+	[G.AP.id_offset + 376] = "bundle_tarot",
+	[G.AP.id_offset + 377] = "bundle_tarot",
+	[G.AP.id_offset + 378] = "bundle_tarot",
+	
+	[G.AP.id_offset + 379] = "bundle_planet",
+	[G.AP.id_offset + 380] = "bundle_planet",
+	[G.AP.id_offset + 381] = "bundle_planet",
+	[G.AP.id_offset + 382] = "bundle_planet",
+	[G.AP.id_offset + 383] = "bundle_planet",
+	
+	[G.AP.id_offset + 384] = "bundle_spectral",
+	[G.AP.id_offset + 385] = "bundle_spectral",
+	[G.AP.id_offset + 386] = "bundle_spectral",
+	[G.AP.id_offset + 387] = "bundle_spectral",
+	[G.AP.id_offset + 388] = "bundle_spectral",
 }
+
+-- joker bundle
+for bundle = 521, 550 do
+	G.APItems[G.AP.id_offset + bundle] = 'bundle_joker'
+end
 
 G.APSave = {
     ShopLocations = 0
@@ -536,101 +586,100 @@ function APConnect()
         print("Items received:")
         for _, item in ipairs(items) do
             local item_id = item.item - G.AP.id_offset
-            local item_name = G.APItems[item.item]
-
+            local item_key = G.APItems[item.item]
+			
             -- if item was already received, ignore it 
             if G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                 item_id = 0
             end
 
-            function unlock(item_name)
-                local i = 1
-                while i <= #G.P_LOCKED do
-                    local wasLocked = false
-                    local item = G.P_LOCKED[i]
-                    if item_name == item.name then
+            function unlock(item_key)
+				
+				local unlock_targets = {}
+				
+				if string.find(item_key, '^p_') then
+					for __, v in pairs(G.P_CENTER_POOLS.Booster) do
+						if string.find(v.key, item_key) then
+							unlock_targets[#unlock_targets+1] = v
+						end
+					end
+				elseif G.P_CENTERS[item_key] then
+					unlock_targets[#unlock_targets+1] = G.P_CENTERS[item_key]
+				end
+				
+				for i, item in pairs(unlock_targets) do
+					
+					-- progressive vouchers
+					if item.requires then
+						if (not G.P_CENTERS[item.requires[1]].unlocked) then
+							G.P_CENTERS[item.requires[1]].nextVoucher = item
+							item = G.P_CENTERS[item.requires[1]]
+						end
 
-                        -- progressive vouchers
-                        if item.requires then
-                            if (not G.P_CENTERS[item.requires[1]].unlocked) then
-                                G.P_CENTERS[item.requires[1]].nextVoucher = item
-                                item = G.P_CENTERS[item.requires[1]]
-                            end
+					elseif item.nextVoucher then
+						item = item.nextVoucher
+					end
+					
+					if (not AreJokersRemoved() and item.set == "Joker") or (not AreConsumablesRemoved() and
+						(item.set == "Tarot" or item.set == "Planet" or item.set == "Spectral")) then
 
-                        elseif item.nextVoucher then
-                            item = item.nextVoucher
-                        end
+					item.ap_unlocked = true
 
-                        if (not AreJokersRemoved() and item.set == "Joker") or
-                            (not AreConsumablesRemoved() and
-                                (item.set == "Tarot" or item.set == "Planet" or item.set == "Spectral")) then
+					if G.jokers and G.jokers.cards then
+						for k, v in pairs(G.jokers.cards) do
+							if v and type(v) == 'table' and v.config.center.name == item.name then
+								v:set_debuff(false)
+							end
+						end
+					end
 
-                            item.ap_unlocked = true
+					if G.consumeables and G.consumeables.cards then
+						for k, v in pairs(G.consumeables.cards) do
+							if v and type(v) == 'table' and v.config.center.name == item.name then
+								v:set_debuff(false)
+							end
+						end
+					end
 
-                            if G.jokers and G.jokers.cards then
-                                for k, v in pairs(G.jokers.cards) do
-                                    if v and type(v) == 'table' and v.config.center.name == item.name then
-                                        v:set_debuff(false)
-                                    end
-                                end
-                            end
+					if G.STATES then
+						if G.STATE == G.STATES.SHOP and G.shop_jokers and G.shop_jokers.cards then
+							for k, v in pairs(G.shop_jokers.cards) do
+								if v and type(v) == 'table' and v.config.center.name == item.name then
+									v:set_debuff(false)
+								end
+							end
+						end
+						if G.STATE == G.STATES.BUFFOON_PACK and G.pack_cards and G.pack_cards.cards then
+							for k, v in pairs(G.pack_cards.cards) do
+								if v and type(v) == 'table' and v.config.center.name == item.name then
+									v:set_debuff(false)
+								end
+							end
+						end
+					end
+				end
 
-                            if G.consumeables and G.consumeables.cards then
-                                for k, v in pairs(G.consumeables.cards) do
-                                    if v and type(v) == 'table' and v.config.center.name == item.name then
-                                        v:set_debuff(false)
-                                    end
-                                end
-                            end
+				item.unlocked = true
+				item.discovered = true
+				item.hidden = false
+				item.demo = nil
 
-                            if G.STATES then
-                                if G.STATE == G.STATES.SHOP and G.shop_jokers and G.shop_jokers.cards then
-                                    for k, v in pairs(G.shop_jokers.cards) do
-                                        if v and type(v) == 'table' and v.config.center.name == item.name then
-                                            v:set_debuff(false)
-                                        end
-                                    end
-                                end
-                                if G.STATE == G.STATES.BUFFOON_PACK and G.pack_cards and G.pack_cards.cards then
-                                    for k, v in pairs(G.pack_cards.cards) do
-                                        if v and type(v) == 'table' and v.config.center.name == item.name then
-                                            v:set_debuff(false)
-                                        end
-                                    end
-                                end
-                            end
-                        end
+				-- spectral gimmick
+				if G.AP.Spectral.active == true and not G.AP.Spectral.item then
+					G.AP.Spectral.item = {
+						type = 'center',
+						center = item
+					}
+				end
 
-                        item.unlocked = true
-                        item.discovered = true
-                        item.hidden = false
-                        wasLocked = true
-                        item.demo = nil
+				G.FUNCS.AP_unlock_item(item)
+			end
+			end
 
-                        -- spectral gimmick
-                        if G.AP.Spectral.active == true and not G.AP.Spectral.item then
-                            G.AP.Spectral.item = {
-                                type = 'center',
-                                center = item
-                            }
-                        end
+            sendDebugMessage("received Item id " .. tostring(item_id))
+            sendDebugMessage("received Item key " .. tostring(item_key))
 
-                        G.FUNCS.AP_unlock_item(item)
-                    end
-
-                    if wasLocked == true then
-                        table.remove(G.P_LOCKED, i)
-                    else
-                        i = i + 1
-                    end
-                end
-
-            end
-
-            sendDebugMessage("received Item id" .. tostring(item_id))
-            sendDebugMessage("received Item name" .. tostring(item_name))
-
-            -- failsave, because if item_name is unknown or was already received, item_id will be 0
+            -- failsave, because if item_key is unknown or was already received, item_id will be 0
             if item_id ~= 0 then
                 -- unlock decks by adding their name to the list of backs (this backs list is only there in AP to keep track of unlocks):
                 -- same with jokers/vouchers
@@ -641,50 +690,50 @@ function APConnect()
                     -- or if it's during gameplay (display immediately)
                     if G.AP.GameObjectInit then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
-                        G.PROFILES[G.AP.profile_Id]["backs"][item_name] = true
-                        unlock(item_name)
+                        G.PROFILES[G.AP.profile_Id]["backs"][item_key] = true
+                        unlock(item_key)
                     else
-                        G.AP.BackQueue[item_name] = item.index
+                        G.AP.BackQueue[item_key] = item.index
                     end
 
                 elseif item_id >= 16 and item_id <= 165 then
                     sendDebugMessage("received Joker")
                     if G.AP.GameObjectInit then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
-                        G.PROFILES[G.AP.profile_Id]["jokers"][item_name] = true
-                        unlock(item_name)
+                        G.PROFILES[G.AP.profile_Id]["jokers"][item_key] = true
+                        unlock(item_key)
                     else
-                        G.AP.JokerQueue[item_name] = item.index
+                        G.AP.JokerQueue[item_key] = item.index
                     end
                     -- Vouchers
                 elseif item_id >= 166 and item_id <= 197 then
                     sendDebugMessage("received Voucher")
                     if G.AP.GameObjectInit then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
-                        G.PROFILES[G.AP.profile_Id]["vouchers"][item_name] = true
-                        unlock(item_name)
+                        G.PROFILES[G.AP.profile_Id]["vouchers"][item_key] = true
+                        unlock(item_key)
                     else
-                        G.AP.VoucherQueue[item_name] = item.index
+                        G.AP.VoucherQueue[item_key] = item.index
                     end
                     -- Packs
                 elseif item_id >= 198 and item_id <= 212 then
                     sendDebugMessage("received Pack")
                     if G.AP.GameObjectInit then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
-                        G.PROFILES[G.AP.profile_Id]["packs"][item_name] = true
-                        unlock(item_name)
+                        G.PROFILES[G.AP.profile_Id]["packs"][item_key] = true
+                        unlock(item_key)
                     else
-                        G.AP.PackQueue[item_name] = item.index
+                        G.AP.PackQueue[item_key] = item.index
                     end
                     -- Consumables
                 elseif item_id >= 213 and item_id <= 267 then
                     sendDebugMessage("received Consumable")
                     if G.AP.GameObjectInit then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
-                        G.PROFILES[G.AP.profile_Id]["consumables"][item_name] = true
-                        unlock(item_name)
+                        G.PROFILES[G.AP.profile_Id]["consumables"][item_key] = true
+                        unlock(item_key)
                     else
-                        G.AP.ConsumableQueue[item_name] = item.index
+                        G.AP.ConsumableQueue[item_key] = item.index
                     end
 
                     -- Bonus Items
@@ -1438,7 +1487,7 @@ function APConnect()
 
             end
         end
-
+		
     end
 
     local player_to_game = {}
@@ -1462,7 +1511,9 @@ function APConnect()
                 local game = player_to_game[player]
                 G.AP.location_id_to_item_name[item.location] = {
                     item_name = G.APClient:get_item_name(item.item, game),
-                    player_name = player_alias
+                    player_name = player_alias,
+					game = game,
+					item_id = item.item,
                 }
 
             end
@@ -1519,7 +1570,7 @@ function APConnect()
             end
             print("  " .. key .. ": " .. tostring(map[key]))
             if type(map[key]) == "table" then
-                print(tprint(map[key]))
+                --print(tprint(map[key]))
             end
         end
         -- extra will include extra fields from Get
