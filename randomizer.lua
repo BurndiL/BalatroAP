@@ -7,7 +7,7 @@
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
 --- VERSION: 0.1.9
---- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA--0829a]
+--- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-0829a]
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
