@@ -183,28 +183,28 @@ return {
 				}
 			},
 			fill_buffoon = {
-				name = "Recevoir Paquet Bouffon", -- Rename into "Free Buffoon Pack"
+				name = "Pack de Bouffon gratuit",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:attention}Paquet Méga-Bouffon{}"
 				}
 			},
 			fill_tag_charm = {
-				name = "Recevoir Paquet Consommable", -- Rename into "Free Consumable Pack"
+				name = "Pack de consommables gratuit",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:tarot}Paquet Méga-Arcana{}"
 				}
 			},
 			fill_tag_meteor = {
-				name = "Recevoir Paquet Céleste", -- Rename into "Free Consumable Pack"
+				name = "Pack de consommables gratuit",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:planet}Paquet Méga-Céleste{}"
 				}
 			},
 			fill_tag_ethereal = {
-				name = "Recevoir Paquet Spectral", -- Rename into "Free Consumable Pack"
+				name = "Pack de consommables gratuit",
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:spectral}Paquet Méga-Spectral{}"
@@ -591,24 +591,23 @@ return {
 			},
 			k_ap_yeah = 'Yeah!',
 			k_asteroid_belt = "La ceinture d'astéroïdes",
-			k_ap_you = 'toi', -- "for you"; this replaces the player's name if they're looking at their own item
-			k_ap_or = 'or', -- used when constructing non-local voucher names (ex: "Hone or Glow Up for Player1")
-			-- the entries below are for
+			k_ap_you = 'toi',
+			k_ap_or = 'ou', 
 			-- upcoming features
 			-- (currently unused)
-			ap_ante_left = 'Ante Checks left:', -- remaining checks for beating antes
-			ap_next_ante = 'Next Check: Ante ###', -- next ante with an unchecked location
-			ap_shops_left = 'Shop Checks left:', -- remaining shop checks
+			ap_ante_left = 'Chèques de Mise restante:',
+			ap_next_ante = 'Chèques suivante: Mise ###',
+			ap_shops_left = 'Chèques de la boutique restants:',
 			
-			b_ap_buffs = 'Bonuses', -- Run info tab displaying OP bonuses (currently unused)
-			ap_buff_text = "Permanent Archipelago Bonuses",
-			ap_buff_bonushands = "Hands: ",
-			ap_buff_bonusdiscards = "Discards: ",
-			ap_buff_bonushandsize = "Hand Size: ",
-			ap_buff_bonusstartingmoney = "Starting Money: ",
-			ap_buff_maxinterest = "Max Interest: ",
-			ap_buff_bonusjoker = "Joker slots: ",
-			ap_buff_bonusconsumable = "Consumable slots: ",
+			b_ap_buffs = 'Bonus', -- Run info tab displaying OP bonuses (currently unused)
+			ap_buff_text = "Bonus permanent d'Archipelago",
+			ap_buff_bonushands = "Main: ",
+			ap_buff_bonusdiscards = "Défausse: ",
+			ap_buff_bonushandsize = "Taille de la Main: ",
+			ap_buff_bonusstartingmoney = "L'argent de départ: ",
+			ap_buff_maxinterest = "Intérêt maximum: ",
+			ap_buff_bonusjoker = "Emplacement Joker: ",
+			ap_buff_bonusconsumable = "Emplacement consommable: ",
 		}
 	}
 }
