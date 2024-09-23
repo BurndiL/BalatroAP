@@ -595,7 +595,7 @@ return {
 			-- (currently unused)
 			ap_ante_left = 'Ante Checks verbleibend:', -- remaining checks for beating antes
 			ap_next_ante = 'Nächster Check: Ante ###', -- next ante with an unchecked location
-			ap_shops_left = 'Shop Checks left:', -- remaining shop checks
+			ap_shops_left = 'Shop Checks verbleibend:', -- remaining shop checks
 			
 			b_ap_buffs = 'Boni',
 			ap_buff_text = "Permanente Archipelago Boni",
