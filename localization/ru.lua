@@ -87,12 +87,12 @@ return {
 		Back = {
 			b_challenge = {
 				text = {
-					"Применяет {C:attention}Особые правила{}",
+					"Использует {C:attention}Особые правила{}",
 					"и ограничения"
 				}
 			}
 		},
-		Trap = { -- Trap names are NOT used
+		Trap = { 
 			t_eternal = {
 				name = "Вечная Ловушка",
 				text = {
@@ -133,7 +133,7 @@ return {
 				}
 			}
 		},
-		Bonus = { -- Bonus names are NOT used
+		Bonus = {
 			op_discard = {
 				name = "Бонусный Сброс",
 				text = {
@@ -142,7 +142,7 @@ return {
 				}
 			},
 			op_money = {
-				name = "Бонусные подъемные",
+				name = "Бонусный начальный капитал",
 				text = {
 					"{s:0.7}Начинайте с", 
 					"{s:1}дополнительным {C:money}$1{}"
@@ -183,28 +183,28 @@ return {
 				}
 			},
 			fill_buffoon = {
-				name = "Получите набор шута",
+				name = "Бесплатный набор шута",
 				text = {
 					"{s:0.7}Получите",
 					"{s:1,C:attention}Меганабор шута{}"
 				}
 			},
 			fill_tag_charm = {
-				name = "Получите набор расходуемого",
+				name = "Бесплатный набор расходуемого",
 				text = {
 					"{s:0.7}Получите",
 					"{s:1,C:tarot}Набор мегааркана{}"
 				}
 			},
 			fill_tag_meteor = {
-				name = "Получите набор расходуемого",
+				name = "Бесплатный набор расходуемого",
 				text = {
 					"{s:0.7}Получите", 
 					"{s:1,C:planet}Меганебесный набор{}"
 				}
 			},
 			fill_tag_ethereal = {
-				name = "Получите набор расходуемого",
+				name = "Бесплатный набор расходуемого",
 				text = {
 					"{s:0.7}Получите", 
 					"{s:1,C:spectral}Мегаспектральный набор{}"
@@ -317,10 +317,9 @@ return {
 				card_check = {
 					"Найдите этого Джокера",
 					"на {C:tarot}Таро Archipelago{},",
-					"{C:planet}Поясе Archipelago{}",
-					"или {C:spectral}Спектральном Archipelago"
+					"{C:planet}Поясе Archipelago{} или",
+					"{C:spectral}Спектральном Archipelago"
 				}
-			},
 			},
 			ap_locked_Tarot = {
 				name = "Заблокировано",
@@ -341,8 +340,8 @@ return {
 				card_check = {
 					"Найдите эту карту {C:tarot}Таро{}",
 					"на {C:tarot}Таро Archipelago{},",
-					"{C:planet}Поясе Archipelago{}",
-					"или {C:spectral}Спектральном Archipelago"
+					"{C:planet}Поясе Archipelago{} или",
+					"{C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Planet = {
@@ -364,8 +363,8 @@ return {
 				card_check = {
 					"Найдите эту карту {C:planet}планеты{}",
 					"на {C:tarot}Таро Archipelago{},",
-					"{C:planet}Поясе Archipelago{}",
-					"или {C:spectral}Спектральном Archipelago"
+					"{C:planet}Поясе Archipelago{} или",
+					"{C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Spectral = {
@@ -387,8 +386,8 @@ return {
 				card_check = {
 					"Найдите эту {C:spectral}спектральную{} карту",
 					"на {C:tarot}Таро Archipelago{},",
-					"{C:planet}Поясе Archipelago{}",
-					"или {C:spectral}Спектральном Archipelago"
+					"{C:planet}Поясе Archipelago{} или",
+					"{C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Back = {
@@ -410,8 +409,8 @@ return {
 				card_check = {
 					"Найдите эту колоду",
 					"на {C:tarot,T:c_rand_ap_tarot}Таро Archipelago{},",
-					"{C:planet,T:c_rand_ap_planet}Поясе Archipelago{}",
-					"или {C:spectral,T:c_rand_ap_spectral}Спектральном Archipelago"
+					"{C:planet,T:c_rand_ap_planet}Поясе Archipelago{} или",
+					"{C:spectral,T:c_rand_ap_spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Voucher = {
@@ -433,8 +432,8 @@ return {
 				card_check = {
 					"Найдите этот ваучер",
 					"на {C:tarot}Таро Archipelago{},",
-					"{C:planet}Поясе Archipelago{}",
-					"или {C:spectral}Спектральном Archipelago"
+					"{C:planet}Поясе Archipelago{} или",
+					"{C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Booster = {
@@ -456,8 +455,8 @@ return {
 				card_check = {
 					"Найдите этот набор",
 					"на {C:tarot}Таро Archipelago{},",
-					"{C:planet}Поясе Archipelago{}",
-					"или {C:spectral}Спектральном Archipelago"
+					"{C:planet}Поясе Archipelago{} или",
+					"{C:spectral}Спектральном Archipelago"
 				}
 			},
 			ap_locked_Modded = {
@@ -601,6 +600,23 @@ return {
 			k_ap_yeah = 'Да!',
 			k_asteroid_belt = 'Пояс астероидов',
 			k_ap_you = 'Вас', -- "for you"; this replaces the player's name if they're looking at their own item
+			k_ap_or = 'или', -- used when constructing non-local voucher names (ex: "Hone or Glow Up for Player1")
+			-- the entries below are for
+			-- upcoming features
+			-- (currently unused)
+			ap_ante_left = 'Осталось чеков Анте:', -- remaining checks for beating antes
+			ap_next_ante = 'Следующий чек: Анте ###', -- next ante with an unchecked location
+			ap_shops_left = 'Осталось чеков в Лавке:', -- remaining shop checks
+			
+			b_ap_buffs = 'Бонусы',
+			ap_buff_text = "Постоянные бонусы Archipelago",
+			ap_buff_bonushands = "Руки: ",
+			ap_buff_bonusdiscards = "Сбросы: ",
+			ap_buff_bonushandsize = "Размер руки: ",
+			ap_buff_bonusstartingmoney = "Начальный капитал: ",
+			ap_buff_maxinterest = "Лимит процентов: ",
+			ap_buff_bonusjoker = "Слоты Джокера: ",
+			ap_buff_bonusconsumable = "Слоты расходуемого: ",
 		}
 	}
 }

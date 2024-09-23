@@ -92,7 +92,7 @@ return {
 				}
 			}
 		},
-		Trap = { -- Trap names are NOT used
+		Trap = { 
 			t_eternal = {
 				name = "Eternal Trap",
 				text = {
@@ -133,7 +133,7 @@ return {
 				}
 			}
 		},
-		Bonus = { -- Bonus names are NOT used
+		Bonus = { 
 			op_discard = {
 				name = "Bonus Discard",
 				text = {
@@ -183,28 +183,28 @@ return {
 				}
 			},
 			fill_buffoon = {
-				name = "Receive Buffoon Pack",
+				name = "Free Buffoon Pack",
 				text = {
 					"{s:0.7}Receive a",
 					"{s:1,C:attention}Mega Buffoon Pack{}"
 				}
 			},
 			fill_tag_charm = {
-				name = "Receive Consumable Pack",
+				name = "Free Consumable Pack",
 				text = {
 					"{s:0.7}Receive a",
 					"{s:1,C:tarot}Mega Arcana Pack{}"
 				}
 			},
 			fill_tag_meteor = {
-				name = "Receive Consumable Pack",
+				name = "Free Consumable Pack",
 				text = {
 					"{s:0.7}Receive a", 
 					"{s:1,C:planet}Mega Celestial Pack{}"
 				}
 			},
 			fill_tag_ethereal = {
-				name = "Receive Consumable Pack",
+				name = "Free Consumable Pack",
 				text = {
 					"{s:0.7}Receive a", 
 					"{s:1,C:spectral}Mega Spectral Pack{}"
@@ -279,6 +279,20 @@ return {
 				text = { --the placeholder "Location reached" is misc/dictionary/k_ap_location
 					"{s:0.6}for {C:dark_edition,s:0.6}#1#"
 				} -- (the lines for the item name are done through code)
+			}
+		},
+		Bundle = {
+			bundle_joker = {
+				name = 'Joker Bundle'
+			},
+			bundle_tarot = {
+				name = 'Tarot Bundle'
+			},
+			bundle_planet = {
+				name = 'Planet Bundle'
+			},
+			bundle_spectral = {
+				name = 'Spectral Bundle'
 			}
 		},
 		Other = {
@@ -592,7 +606,16 @@ return {
 			k_ap_yeah = 'Yeah!',
 			k_asteroid_belt = 'Asteroid Belt',
 			k_ap_you = 'you', -- "for you"; this replaces the player's name if they're looking at their own item
+			k_ap_or = 'or', -- used when constructing non-local voucher names (ex: "Hone or Glow Up for Player1")
+			-- the entries below are for
+			-- upcoming features
+			-- (currently unused)
+			ap_ante_left = 'Ante Checks left:', -- remaining checks for beating antes
+			ap_next_ante = 'Next Check: Ante ###', -- next ante with an unchecked location
+			ap_shops_left = 'Shop Checks left:', -- remaining shop checks
+			
 			b_ap_buffs = 'Bonuses',
+			ap_buff_text = "Permanent Archipelago Bonuses",
 			ap_buff_bonushands = "Hands: ",
 			ap_buff_bonusdiscards = "Discards: ",
 			ap_buff_bonushandsize = "Hand Size: ",

@@ -89,7 +89,7 @@ return {
 				}
 			}
 		},
-		Trap = { -- Trap names are NOT used
+		Trap = {
 			t_eternal = {
 				name = "Ewig-Falle",
 				text = {
@@ -130,7 +130,7 @@ return {
 				}
 			}
 		},
-		Bonus = { -- Bonus names are NOT used
+		Bonus = {
 			op_discard = {
 				name = "Bonus Abwurf",
 				text = {
@@ -180,28 +180,28 @@ return {
 				}
 			},
 			fill_buffoon = {
-				name = "Erhalte Mega-Clownspaket",
+				name = "Kostenloses Mega-Clownspaket",
 				text = {
-					"{s:0.7}Erhalte ",
+					"{s:0.7}Erhalte ein",
 					"{s:1,C:attention}Mega-Clownspaket{}"
 				}
 			},
 			fill_tag_charm = {
-				name = "Erhalte ein Verbrauchsgegenstand-Paket",
+				name = "Kostenloses Verbrauchsgegenstand-Paket",
 				text = {
 					"{s:0.7}Erhalte ein",
 					"{s:1,C:tarot}Mega Arkana-Paket{}"
 				}
 			},
 			fill_tag_meteor = {
-				name = "Erhalte ein Verbrauchsgegenstand-Paket",
+				name = "Kostenloses Verbrauchsgegenstand-Paket",
 				text = {
 					"{s:0.7}Erhalte ein", 
 					"{s:1,C:planet}Mega Himmelspaket{}"
 				}
 			},
 			fill_tag_ethereal = {
-				name = "Erhalte ein Verbrauchsgegenstand-Paket",
+				name = "Kostenloses Verbrauchsgegenstand-Paket",
 				text = {
 					"{s:0.7}Erhalte ein", 
 					"{s:1,C:spectral}Mega Geisterpaket{}"
@@ -589,6 +589,23 @@ return {
 			k_ap_yeah = 'Jawohl!',
 			k_asteroid_belt = 'Asteroidengürtel',
 			k_ap_you = 'Dich', -- "for you"; this replaces the player's name if they're looking at their own item
+			k_ap_or = 'oder', -- used when constructing non-local voucher names (ex: "Hone or Glow Up for Player1")
+			-- the entries below are for
+			-- upcoming features
+			-- (currently unused)
+			ap_ante_left = 'Ante Checks left:', -- remaining checks for beating antes
+			ap_next_ante = 'Next Check: Ante ###', -- next ante with an unchecked location
+			ap_shops_left = 'Shop Checks left:', -- remaining shop checks
+			
+			b_ap_buffs = 'Bonuses',
+			ap_buff_text = "Permanent Archipelago Bonuses",
+			ap_buff_bonushands = "Hands: ",
+			ap_buff_bonusdiscards = "Discards: ",
+			ap_buff_bonushandsize = "Hand Size: ",
+			ap_buff_bonusstartingmoney = "Starting Money: ",
+			ap_buff_maxinterest = "Max Interest: ",
+			ap_buff_bonusjoker = "Joker slots: ",
+			ap_buff_bonusconsumable = "Consumable slots: ",
 		}
 	}
 }

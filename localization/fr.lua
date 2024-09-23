@@ -92,7 +92,7 @@ return {
 				}
 			}
 		},
-		Trap = { -- Trap names are NOT used
+		Trap = {
 			t_eternal = {
 				name = "Trap Éternel",
 				text = {
@@ -133,7 +133,7 @@ return {
 				}
 			}
 		},
-		Bonus = { -- Bonus names are NOT used
+		Bonus = {
 			op_discard = {
 				name = "Bonus Défausse",
 				text = {
@@ -183,28 +183,28 @@ return {
 				}
 			},
 			fill_buffoon = {
-				name = "Recevoir Paquet Bouffon",
+				name = "Recevoir Paquet Bouffon", -- Rename into "Free Buffoon Pack"
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:attention}Paquet Méga-Bouffon{}"
 				}
 			},
 			fill_tag_charm = {
-				name = "Recevoir Paquet Consommable",
+				name = "Recevoir Paquet Consommable", -- Rename into "Free Consumable Pack"
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:tarot}Paquet Méga-Arcana{}"
 				}
 			},
 			fill_tag_meteor = {
-				name = "Recevoir Paquet Céleste",
+				name = "Recevoir Paquet Céleste", -- Rename into "Free Consumable Pack"
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:planet}Paquet Méga-Céleste{}"
 				}
 			},
 			fill_tag_ethereal = {
-				name = "Recevoir Paquet Spectral",
+				name = "Recevoir Paquet Spectral", -- Rename into "Free Consumable Pack"
 				text = {
 					"{s:0.7}Vous obtenez un",
 					"{s:1,C:spectral}Paquet Méga-Spectral{}"
@@ -306,7 +306,7 @@ return {
 				},
 				nonlocal = {
 					"{C:inactive}Ce Joker est dans",
-					"le monde {C:dark_edition}#1#{C:inactive}"
+					"le monde {C:dark_edition}#1#{C:inactive}..."
 				},
 				shop_check = {
 					"Trouver ce Joker en tant",
@@ -403,9 +403,9 @@ return {
 				},
 				card_check = {
 					"Trouver ce Deck sur",
-					"le {C:tarot}Tarot d'Archipelago{},",
-					"la {C:planet}Ceinture d'Archipelago{}",
-					"ou la carte {C:spectral}Spectral d'Archipelago"
+					"le {C:tarot,T:c_rand_ap_tarot}Tarot d'Archipelago{},",
+					"la {C:planet,T:c_rand_ap_planet}Ceinture d'Archipelago{}",
+					"ou la carte {C:spectral,T:c_rand_ap_spectral}Spectral d'Archipelago"
 				}
 			},
 			ap_locked_Voucher = {
@@ -592,6 +592,23 @@ return {
 			k_ap_yeah = 'Yeah!',
 			k_asteroid_belt = "La ceinture d'astéroïdes",
 			k_ap_you = 'toi', -- "for you"; this replaces the player's name if they're looking at their own item
+			k_ap_or = 'or', -- used when constructing non-local voucher names (ex: "Hone or Glow Up for Player1")
+			-- the entries below are for
+			-- upcoming features
+			-- (currently unused)
+			ap_ante_left = 'Ante Checks left:', -- remaining checks for beating antes
+			ap_next_ante = 'Next Check: Ante ###', -- next ante with an unchecked location
+			ap_shops_left = 'Shop Checks left:', -- remaining shop checks
+			
+			b_ap_buffs = 'Bonuses', -- Run info tab displaying OP bonuses (currently unused)
+			ap_buff_text = "Permanent Archipelago Bonuses",
+			ap_buff_bonushands = "Hands: ",
+			ap_buff_bonusdiscards = "Discards: ",
+			ap_buff_bonushandsize = "Hand Size: ",
+			ap_buff_bonusstartingmoney = "Starting Money: ",
+			ap_buff_maxinterest = "Max Interest: ",
+			ap_buff_bonusjoker = "Joker slots: ",
+			ap_buff_bonusconsumable = "Consumable slots: ",
 		}
 	}
 }
