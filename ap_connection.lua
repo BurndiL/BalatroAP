@@ -744,6 +744,7 @@ function APConnect()
                             G.PROFILES[G.AP.profile_Id]["bonusdiscards"] =
                                 (G.PROFILES[G.AP.profile_Id]["bonusdiscards"] or 0) + 1
                             if G.STAGE == G.STAGES.RUN then
+                                G.GAME.round_resets.discards = G.GAME.round_resets.discards + 1
                                 ease_discard(1)
                             end
 
@@ -777,6 +778,8 @@ function APConnect()
                             G.PROFILES[G.AP.profile_Id]["bonushands"] =
                                 (G.PROFILES[G.AP.profile_Id]["bonushands"] or 0) + 1
                             if G.STAGE == G.STAGES.RUN then
+                                
+                                G.GAME.round_resets.hands = G.GAME.round_resets.hands + 1
                                 ease_hands_played(1)
                             end
 

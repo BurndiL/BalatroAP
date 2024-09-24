@@ -2593,6 +2593,24 @@ G.AP.localize_name = function(item_id, to_self)
 			end
 		end
 		
+		-- Boosters
+		if string.find(G.APItems[item_id], "^p_") then
+			
+			_name = localize({type = 'name_text', set = 'Other', key = G.APItems[item_id]})
+			
+			local target_center = nil
+			for i = 1, #G.P_CENTER_POOLS.Booster do
+				if string.find(G.P_CENTER_POOLS.Booster[i].key, G.APItems[item_id]) then
+					target_center = G.P_CENTER_POOLS.Booster[i]
+					break
+				end
+			end
+			
+			if target_center then 
+				_info_queue[#_info_queue + 1] = target_center
+			end
+		end
+		
 		-- Bonuses
 		if string.find(G.APItems[item_id], "^op_") or string.find(G.APItems[item_id], "^fill_") then
 			_name = localize({type = 'name_text', set = 'Bonus', key = G.APItems[item_id]})
@@ -2610,7 +2628,7 @@ G.AP.localize_name = function(item_id, to_self)
 		end
 		
 		-- Bundles
-		if string.find(G.APItems[item_id], "^stake_") then
+		if string.find(G.APItems[item_id], "^bundle_") then
 			_name = localize({type = 'name_text', set = 'Bundle', key = G.APItems[item_id]})
 		end
 	else
