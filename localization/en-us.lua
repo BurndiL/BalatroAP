@@ -163,7 +163,7 @@ return {
 				name = "Bonus Max Interest",
 				text = {
 					"{s:0.7}Raise the interest cap", 
-					"{s:1}by {C:money}$1{}"
+					"{s:1}by {C:money}$5{}"
 					}
 			},
 			op_joker_slot = {
