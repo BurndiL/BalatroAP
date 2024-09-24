@@ -163,7 +163,7 @@ return {
 				name = "Bonus Intérêts Max",
 				text = {
 					"{s:0.7}Augmente les intérêts", 
-					"{s:1}de {C:money}$1{}"
+					"{s:1}de {C:money}$5{}"
 					}
 			},
 			op_joker_slot = {
