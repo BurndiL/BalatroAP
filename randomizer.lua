@@ -1903,8 +1903,7 @@ end
 function get_tarot_location(_pool_length)
 	if G.AP.slot_data["consumable_pool_locations"] then
         local valid_locations = {}
-        local all_locations = G.AP.slot_data["stake" .. tostring(G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level) ..
-                                  "_shop_locations"]
+        local all_locations = G.AP.slot_data["consumable_pool_locations"]
         -- optional argument in case we want to make
         -- the selection of possible locations limited to a smaller pool
         _pool_length = _pool_length or #all_locations
