@@ -1889,19 +1889,19 @@ SMODS.Consumable {
 }
 
 G.AP.location_seen = function(id)
-	local make_hint = true
-	if G.AP.hints then
-		for i = 1, #G.AP.hints do
-			if G.AP.hints[i].location == id then
-				make_hint = false
-			end
-		end
-	end
+	-- local make_hint = true
+	--if G.AP.hints then
+		--for i = 1, #G.AP.hints do
+			--if G.AP.hints[i].location == id then
+				--make_hint = false
+			--end
+		--end
+	--end
 	
-	if make_hint then
+	--if make_hint then
 		G.APClient:LocationScouts({id}, 2)
-		G.APClient:Get({"_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id)})
-	end
+		--G.APClient:Get({"_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id)})
+	--end
 end
 
 function get_tarot_location(_pool_length)
