@@ -29,7 +29,7 @@
 --      [ ] challenges and challenge deck as items
 --      [ ] separate item pools for challenges (mostly for shop checks, as challenge deck using white stake pool would be odd)
 --      [ ] challenge unlock mode options 
---  [ ] system to let cards bypass AP's removal on clientside
+--  [X] system to let cards bypass AP's removal on clientside
 --  [ ] clientside config for default stake on challenges
 
 _RELEASE_MODE = false
@@ -316,6 +316,24 @@ function Game:update(dt)
     return game_update
 end
 
+-- hook to make bypass_lock consumables usable
+G.FUNCS.can_use_consumeableRef = G.FUNCS.can_use_consumeable
+G.FUNCS.can_use_consumeable = function(e)
+	local unlocked = nil
+	if isAPProfileLoaded() and e.config.ref_table.bypass_lock then
+		unlocked = e.config.ref_table.config.center.unlocked
+		e.config.ref_table.config.center.unlocked = true
+	end
+
+	local ret = G.FUNCS.can_use_consumeableRef(e)
+	
+	if isAPProfileLoaded() and e.config.ref_table.bypass_lock then
+		e.config.ref_table.config.center.unlocked = unlocked
+	end
+	
+	return ret
+end
+
 local game_drawRef = Game.draw
 function Game:draw()
     local game_draw = game_drawRef(self)
@@ -507,7 +525,7 @@ function Game:init_item_prototypes()
         end
 
         -- Locked text | Decks require description setup similar to the old system here
-        -- everything else uses "Other.demo_locked" and overwrites it with their text (not here)
+        -- everything else uses "Other.wip_locked" and overwrites it with their text (not here)
         for k, v in pairs(G.localization.descriptions.Back) do
             v.unlock_parsed = {}
             local loc_target = k == 'b_challenge' and G.localization.descriptions.Other.ap_locked_Deck_c.text_parsed or
@@ -549,7 +567,7 @@ function Game:init_item_prototypes()
             if string.find(k, '^j_') then
 
                 if AreJokersRemoved() then
-                    v.demo = true
+                    v.wip = true
                     v.unlocked = false
                     v.discovered = false
                     v.hidden = true
@@ -563,7 +581,7 @@ function Game:init_item_prototypes()
                 if G.PROFILES[G.AP.profile_Id]["jokers"][v.key] ~= nil then
 
                     if AreJokersRemoved() then
-                        v.demo = nil
+                        v.wip = nil
                         v.unlocked = true
                         v.discovered = true
                         v.hidden = false
@@ -626,7 +644,7 @@ function Game:init_item_prototypes()
 
                 -- for vouchers
             elseif string.find(k, '^v_') and not string.find(k, '^v_rand_ap_item') then
-                v.demo = true
+                v.wip = true
                 v.unlocked = false
                 if G.PROFILES[G.AP.profile_Id]["vouchers"][v.key] ~= nil then
                     -- progressive vouchers
@@ -638,7 +656,7 @@ function Game:init_item_prototypes()
                     elseif v.nextVoucher then
                         v = v.nextVoucher
                     end
-                    v.demo = nil
+                    v.wip = nil
                     v.unlocked = true
                     v.discovered = true
                     v.hidden = false
@@ -649,11 +667,11 @@ function Game:init_item_prototypes()
                 -- for packs
             elseif string.find(k, '^p_') then
                 v.unlocked = false
-                v.demo = true
+                v.wip = true
 				for pack_key, pack_center in pairs(G.PROFILES[G.AP.profile_Id]["packs"]) do
 					if string.find(k, pack_key) and pack_center ~= nil then
 					--if G.PROFILES[G.AP.profile_Id]["packs"][v.key] ~= nil then
-						v.demo = nil
+						v.wip = nil
 						v.unlocked = true
 						v.discovered = true
 						v.hidden = false
@@ -669,7 +687,7 @@ function Game:init_item_prototypes()
 				--not tableContains({'c_rand_ap_tarot', 'c_rand_ap_planet', 'c_rand_ap_spectral'}, k) then
 
                 if AreConsumablesRemoved() then
-                    v.demo = true
+                    v.wip = true
                     v.unlocked = false
                 else
                     v.unlocked = true
@@ -678,7 +696,7 @@ function Game:init_item_prototypes()
 
                 if G.PROFILES[G.AP.profile_Id]["consumables"][v.key] ~= nil then
                     if AreConsumablesRemoved() then
-                        v.demo = nil
+                        v.wip = nil
                         v.unlocked = true
                         v.discovered = true
                         v.hidden = false
@@ -711,13 +729,13 @@ function Game:init_item_prototypes()
                     v.modded = true
 				    if G.AP.this_mod.config.modded == 2 then
 						v.ap_unlocked = false
-						v.demo = true
+						v.wip = true
 						v.unlocked = false
 						v.discovered = false
 						v.hidden = true
 					else
 						v.ap_unlocked = true
-						v.demo = nil
+						v.wip = nil
 						v.unlocked = true
 						v.discovered = true
 						v.hidden = false
@@ -846,10 +864,10 @@ function Game:init_item_prototypes()
 
         G.AP.UnlockConsCache = {}
 
-        -- remove demo tag
+        -- remove wip tag
         for k, v in pairs(self.P_CENTERS) do
-            if v.demo then
-                self.P_CENTERS[k].demo = nil
+            if v.wip then
+                self.P_CENTERS[k].wip = nil
             end
         end
 
@@ -957,24 +975,28 @@ function CardArea:emplace(card, location, stay_flipped)
         self:remove_card(card, false)
         card:start_dissolve({G.C.RED}, true, 0)
     end
-
-    if isAPProfileLoaded() and self.cards and ((card.config.center.unlocked == false and
+	
+	local fallbacks = {'j_joker', 'c_pluto', 'c_strength', 'c_incantation'}
+	local center = card.config.center
+	
+	if isAPProfileLoaded() and G.AP.bypass_lock then
+		card.bypass_lock = true
+	end
+	
+    if isAPProfileLoaded() and self.cards and (((center.unlocked == false and not card.bypass_lock) and
         (G.STATE == G.STATES.SHOP or self == G.shop_jokers or self == G.jokers or self == G.consumeables or self ==
-            G.pack_cards)) or (card.config.center_key == "j_joker" and card.config.center.unlocked == true) or
-        (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) or
-        (card.config.center_key == "c_strength" and card.config.center.unlocked == true) or
-        (card.config.center_key == "c_incantation" and card.config.center.unlocked == true)) and
+            G.pack_cards)) or (tableContains(fallbacks, center.key) and (center.unlocked or card.bypass_lock))) and
         ((G.your_collection ~= nil and tableContains(G.your_collection, self) == false) or G.your_collection == nil) then
-
+		
+		
         -- following blocks handle standard cards appearing in packs/shop
-        if not next(find_joker("Showman")) and card.config.center.unlocked == true then
-            if (card.config.center_key == "j_joker" and card.config.center.unlocked == true) and self == G.pack_cards then
+        if not next(SMODS.find_card('j_ring_master')) and (center.unlocked or card.bypass_lock) then
+            if (card.config.center_key == "j_joker" and (center.unlocked and not card.bypass_lock)) and self == G.pack_cards then
                 local found_self = false
                 -- if you already have the Joker and don't have showman, delete
-                if next(find_joker("Joker")) and not next(find_joker("Showman")) then
-
+                if next(SMODS.find_card('j_joker')) and not next(SMODS.find_card('j_ring_master')) then
                     self:remove_card(card, false)
-                    card:start_dissolve({G.C.RED}, true, 0)
+					card:remove()
 
                     return cardAreaemplace
                 end
@@ -985,20 +1007,20 @@ function CardArea:emplace(card, location, stay_flipped)
                             found_self = true
                         else
                             self:remove_card(card, false)
-                            card:start_dissolve({G.C.RED}, true, 0)
+							card:remove()
 
                             return cardAreaemplace
                         end
 
                     end
                 end
-                if isAPProfileLoaded() and card.config.center.ap_unlocked == false then
+                if isAPProfileLoaded() and (center.ap_unlocked == false and not card.bypass_lock) then
                     card:set_debuff(true)
                 end
                 return cardAreaemplace
             end
 
-            if (card.config.center_key == "c_pluto" and card.config.center.unlocked == true) and
+            if (card.config.center_key == "c_pluto" and (center.unlocked and not card.bypass_lock)) and
                 (G.STATE == G.STATES.PLANET_PACK or G.STATE == G.STATES.SHOP) then
                 local found_self = false
 
@@ -1009,19 +1031,19 @@ function CardArea:emplace(card, location, stay_flipped)
                             found_self = true
                         else
                             self:remove_card(card, false)
-                            card:start_dissolve({G.C.RED}, true, 0)
+							card:remove()
 
                             return cardAreaemplace
                         end
                     end
                 end
-                if isAPProfileLoaded() and card.config.center.ap_unlocked == false then
+                if isAPProfileLoaded() and (center.ap_unlocked == false and not card.bypass_lock) then
                     card:set_debuff(true)
                 end
                 return cardAreaemplace
             end
 
-            if (card.config.center_key == "c_strength" and card.config.center.unlocked == true) and
+            if (card.config.center_key == "c_strength" and (center.unlocked and not card.bypass_lock)) and
                 (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SHOP) then
                 local found_self = false
 
@@ -1032,19 +1054,19 @@ function CardArea:emplace(card, location, stay_flipped)
                             found_self = true
                         else
                             self:remove_card(card, false)
-                            card:start_dissolve({G.C.RED}, true, 0)
+							card:remove()
 
                             return cardAreaemplace
                         end
                     end
                 end
-                if isAPProfileLoaded() and card.config.center.ap_unlocked == false then
+                if isAPProfileLoaded() and (card.config.center.ap_unlocked == false and not card.bypass_lock)  then
                     card:set_debuff(true)
                 end
                 return cardAreaemplace
             end
 
-            if (card.config.center_key == "c_incantation" and card.config.center.unlocked == true) and
+            if (card.config.center_key == "c_incantation" and (center.unlocked and not card.bypass_lock)) and
                 (G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.SHOP) then
                 local found_self = false
 
@@ -1055,13 +1077,13 @@ function CardArea:emplace(card, location, stay_flipped)
                             found_self = true
                         else
                             self:remove_card(card, false)
-                            card:start_dissolve({G.C.RED}, true, 0)
+							card:remove()
 
                             return cardAreaemplace
                         end
                     end
                 end
-                if isAPProfileLoaded() and card.config.center.ap_unlocked == false then
+                if isAPProfileLoaded() and (center.ap_unlocked == false and not card.bypass_lock) then
                     card:set_debuff(true)
                 end
                 return cardAreaemplace
@@ -1069,13 +1091,13 @@ function CardArea:emplace(card, location, stay_flipped)
 
         end
 
-        if card.config.center.unlocked == false then
+        if (center.unlocked == false and not card.bypass_lock) then
             self:remove_card(card, false)
-            card:start_dissolve({G.C.RED}, true, 0)
+			card:remove()
         end
 
     end
-    if isAPProfileLoaded() and card.config.center.ap_unlocked == false then
+    if isAPProfileLoaded() and (center.ap_unlocked == false and not card.bypass_lock and not AreJokersRemoved()) then
         card:set_debuff(true)
     end
 
@@ -1086,7 +1108,7 @@ local card_set_debuffRef = Card.set_debuff
 
 function Card:set_debuff(should_debuff)
 
-    if isAPProfileLoaded() and (self.config.center.ap_unlocked == false) and should_debuff == false and
+    if isAPProfileLoaded() and (self.config.center.ap_unlocked == false and not self.bypass_lock) and should_debuff == false and
 		(((not AreJokersRemoved()) and self.config.center.set == 'Joker') or (not AreConsumablesRemoved())) then
 			should_debuff = true
     end
@@ -1889,19 +1911,7 @@ SMODS.Consumable {
 }
 
 G.AP.location_seen = function(id)
-	-- local make_hint = true
-	--if G.AP.hints then
-		--for i = 1, #G.AP.hints do
-			--if G.AP.hints[i].location == id then
-				--make_hint = false
-			--end
-		--end
-	--end
-	
-	--if make_hint then
-		G.APClient:LocationScouts({id}, 2)
-		--G.APClient:Get({"_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id)})
-	--end
+	G.APClient:LocationScouts({id}, 2)
 end
 
 function get_tarot_location(_pool_length)
@@ -2096,9 +2106,20 @@ end
 
 local start_runRef = Game.start_run
 function Game:start_run(args)
+	if isAPProfileLoaded() and not args.savetext then
+		-- enable bypass_lock for challenges/decks
+		G.AP.bypass_lock = true
+	end
+	
 	start_runRef(self, args)
 	
 	if isAPProfileLoaded() then
+		-- disable bypass_lock
+		G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0,
+		func = function()
+			G.AP.bypass_lock = false
+		return true; end}))
+		
         -- scout upcoming locations semi regularly
         G.GAME.current_shop_check = get_shop_location()
         local deck_name = G.GAME.selected_back.name

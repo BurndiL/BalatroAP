@@ -749,7 +749,7 @@ function Card:generate_UIBox_ability_table()
 							
 							G.localization.descriptions.Other.debuffed_default.text_parsed = target_text
 						else
-							G.localization.descriptions.Other.demo_locked.text_parsed = target_text
+							G.localization.descriptions.Other.wip_locked.text_parsed = target_text
 							
 							local _loc_target = nil
 							
@@ -765,8 +765,8 @@ function Card:generate_UIBox_ability_table()
 							end
 							
 							if _loc_target then
-								G.localization.descriptions.Other.demo_locked.text_parsed[#G.localization.descriptions.Other
-									.demo_locked.text_parsed + 1] = loc_parse_string(
+								G.localization.descriptions.Other.wip_locked.text_parsed[#G.localization.descriptions.Other
+									.wip_locked.text_parsed + 1] = loc_parse_string(
 									"{C:inactive,s:0.8}(" .. _loc_target.name .. ")")
 							end
 						end
@@ -802,23 +802,23 @@ function Card:generate_UIBox_ability_table()
 
         if self.config.center.unlocked == false then -- locked message
             if G.localization.descriptions.Other["ap_locked_" .. self.config.center.set] then
-                G.localization.descriptions.Other.demo_locked.text_parsed = {}
+                G.localization.descriptions.Other.wip_locked.text_parsed = {}
                 for k, v in pairs(G.localization.descriptions.Other["ap_locked_" .. self.config.center.set].text_parsed) do
-                    G.localization.descriptions.Other.demo_locked.text_parsed[k] = v
+                    G.localization.descriptions.Other.wip_locked.text_parsed[k] = v
                 end
             end
             
             -- modded item locked message
             if G.AP.this_mod.config.modded == 2 and self.config.center.modded then
-                G.localization.descriptions.Other.demo_locked.text_parsed = {}
+                G.localization.descriptions.Other.wip_locked.text_parsed = {}
                 for k, v in pairs(G.localization.descriptions.Other["ap_locked_Modded"].text_parsed) do
-                    G.localization.descriptions.Other.demo_locked.text_parsed[k] = v
+                    G.localization.descriptions.Other.wip_locked.text_parsed[k] = v
                 end
             end
 
             if self.config.center.set ~= "Booster" then
-                G.localization.descriptions.Other.demo_locked.text_parsed[#G.localization.descriptions.Other
-                    .demo_locked.text_parsed + 1] = loc_parse_string("{C:inactive,s:0.8}(" ..
+                G.localization.descriptions.Other.wip_locked.text_parsed[#G.localization.descriptions.Other
+                    .wip_locked.text_parsed + 1] = loc_parse_string("{C:inactive,s:0.8}(" ..
                                                                          G.localization.descriptions[self.config
                                                                              .center.set][self.config.center.key]
                                                                              .name .. ")")
@@ -832,8 +832,8 @@ function Card:generate_UIBox_ability_table()
                 end
 
                 if _loc_target then
-                    G.localization.descriptions.Other.demo_locked.text_parsed[#G.localization.descriptions.Other
-                        .demo_locked.text_parsed + 1] = loc_parse_string(
+                    G.localization.descriptions.Other.wip_locked.text_parsed[#G.localization.descriptions.Other
+                        .wip_locked.text_parsed + 1] = loc_parse_string(
                         "{C:inactive,s:0.8}(" .. _loc_target.name .. ")")
                 end
             end

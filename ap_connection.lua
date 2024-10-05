@@ -627,7 +627,7 @@ function APConnect()
 
 					if G.jokers and G.jokers.cards then
 						for k, v in pairs(G.jokers.cards) do
-							if v and type(v) == 'table' and v.config.center.name == item.name then
+							if v and type(v) == 'table' and v.config.center.key == item.key then
 								v:set_debuff(false)
 							end
 						end
@@ -635,7 +635,7 @@ function APConnect()
 
 					if G.consumeables and G.consumeables.cards then
 						for k, v in pairs(G.consumeables.cards) do
-							if v and type(v) == 'table' and v.config.center.name == item.name then
+							if v and type(v) == 'table' and v.config.center.key == item.key then
 								v:set_debuff(false)
 							end
 						end
@@ -644,14 +644,14 @@ function APConnect()
 					if G.STATES then
 						if G.STATE == G.STATES.SHOP and G.shop_jokers and G.shop_jokers.cards then
 							for k, v in pairs(G.shop_jokers.cards) do
-								if v and type(v) == 'table' and v.config.center.name == item.name then
+								if v and type(v) == 'table' and v.config.center.key == item.key then
 									v:set_debuff(false)
 								end
 							end
 						end
 						if G.STATE == G.STATES.BUFFOON_PACK and G.pack_cards and G.pack_cards.cards then
 							for k, v in pairs(G.pack_cards.cards) do
-								if v and type(v) == 'table' and v.config.center.name == item.name then
+								if v and type(v) == 'table' and v.config.center.key == item.key then
 									v:set_debuff(false)
 								end
 							end
@@ -662,7 +662,7 @@ function APConnect()
 				item.unlocked = true
 				item.discovered = true
 				item.hidden = false
-				item.demo = nil
+				item.wip = nil
 
 				-- spectral gimmick
 				if G.AP.Spectral.active == true and not G.AP.Spectral.item then
