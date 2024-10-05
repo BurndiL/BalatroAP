@@ -6,7 +6,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9
+--- VERSION: 0.1.9b
 --- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-0829a]
 ----------------------------------------------
 ------------MOD CODE -------------------------
@@ -1212,6 +1212,7 @@ SMODS.Voucher {
         end
     end,
     loc_vars = function(self, info_queue, card)
+		if not card then return nil end -- sanity check
         if card.ability.extra.id == 0 then
             return {} -- no location = default description
         elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
@@ -1346,6 +1347,7 @@ SMODS.Consumable {
 		return true
 	end,
 	loc_vars = function(self, info_queue, card)
+		if not card then return nil end -- sanity check
         if card.ability.extra.id == 0 then
             return {} -- no location = default description
         elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
@@ -1515,6 +1517,7 @@ SMODS.Consumable {
 		return true
 	end,
 	loc_vars = function(self, info_queue, card)
+		if not card then return nil end -- sanity check
         if card.ability.extra.id == 0 then
             return {} -- no location = default description
         elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
@@ -1698,6 +1701,7 @@ SMODS.Consumable {
 		return true
 	end,
 	loc_vars = function(self, info_queue, card)
+		if not card then return nil end -- sanity check
         if card.ability.extra.id == 0 then
             return {} -- no location = default description
         elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
