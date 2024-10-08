@@ -1569,7 +1569,7 @@ function APConnect()
         for _, key in ipairs(keys) do
             if key == "_read_hints_" .. tostring(G.AP.team_id) .. "_" .. tostring(G.AP.player_id) then
                 G.AP.hints = map[key]
-                G.AP.update_hints()
+                -- G.AP.update_hints()
             end
             print("  " .. key .. ": " .. tostring(map[key]))
             if type(map[key]) == "table" then
