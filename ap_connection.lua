@@ -1569,7 +1569,7 @@ function APConnect()
         for _, key in ipairs(keys) do
             if key == "_read_hints_" .. tostring(G.AP.team_id) .. "_" .. tostring(G.AP.player_id) then
                 G.AP.hints = map[key]
-                -- G.AP.update_hints()
+                G.AP.update_hints()
             end
             print("  " .. key .. ": " .. tostring(map[key]))
             if type(map[key]) == "table" then
@@ -1618,12 +1618,21 @@ end
 G.AP.update_hints = function()
     G.AP.hint_locations = G.AP.hint_locations or {}
     G.AP.player_names = G.AP.player_names or {}
+	local offset = 0
 
     for i = 1, #G.AP.hints do
         if G.AP.hints[i].found == false and not G.AP.hint_locations[G.AP.hints[i].location] then
             if G.AP.hints[i].finding_player == G.AP.player_id then
-                G.AP.hint_locations[G.AP.hints[i].location] =
-                    G.APClient:get_location_name(G.AP.hints[i].location, 'Balatro')
+				G.E_MANAGER:add_event(Event({
+					trigger = 'after', 
+					delay = 0.25*offset,
+					blocking = false,
+					blockable = false,
+					func = function()
+                		G.AP.hint_locations[G.AP.hints[i].location] =
+                    		G.APClient:get_location_name(G.AP.hints[i].location, 'Balatro')
+					return true end }))
+				offset = offset + 1
             else
                 -- non-local items just say they're not here
                 G.AP.hint_locations[G.AP.hints[i].location] = "nonlocal"
