@@ -1569,7 +1569,7 @@ function APConnect()
         for _, key in ipairs(keys) do
             if key == "_read_hints_" .. tostring(G.AP.team_id) .. "_" .. tostring(G.AP.player_id) then
                 G.AP.hints = map[key]
-                -- G.AP.update_hints()
+                G.AP.update_hints()
             end
             print("  " .. key .. ": " .. tostring(map[key]))
             if type(map[key]) == "table" then
@@ -1615,26 +1615,112 @@ function APConnect()
     G.APClient:set_set_reply_handler(on_set_reply)
 end
 
--- TODO: rethink the approach - perhaps cards should scout themselves?
 G.AP.update_hints = function()
+	if not G.AP.hints then return nil end
     G.AP.hint_locations = G.AP.hint_locations or {}
     G.AP.player_names = G.AP.player_names or {}
-	local offset = 0
+	G.AP.hint_priotiy = G.AP.hint_priotiy or {}
+	if not G.E_MANAGER.queues.ap_hints then G.E_MANAGER.queues.ap_hints = {} end
+	if G.AP.hint_priotiy == 0 then
+		G.E_MANAGER:clear_queue('ap_hints')
+		G.AP.make_hint_step(1)
+	end
+end
 
-    for i = 1, #G.AP.hints do
-        if G.AP.hints[i].found == false and not G.AP.hint_locations[G.AP.hints[i].location] then
-            if G.AP.hints[i].finding_player == G.AP.player_id then
-				G.AP.hint_locations[G.AP.hints[i].location] =
-					G.APClient:get_location_name(G.AP.hints[i].location, 'Balatro')
-            else
-                -- non-local items just say they're not here
-                G.AP.hint_locations[G.AP.hints[i].location] = "nonlocal"
-
-                local finder = G.AP.hints[i].finding_player
-                if not G.AP.player_names[finder] then
-                    G.AP.player_names[finder] = G.APClient:get_player_alias(item.player)
-                end
-            end
-        end
-    end
+local G.AP.make_hint_step = function(i, hint)
+	local temp_pause = G.SETTINGS.paused
+	G.SETTINGS.paused = false
+	
+	if i then
+		while i < #G.AP.hints do
+			if not G.AP.hint_locations[G.AP.hints[i].location] and G.AP.hints[i].found == false then
+				-- local items
+				if G.AP.hints[i].finding_player == G.AP.player_id then
+					G.AP.hint_locations[G.AP.hints[i].location] = 
+						G.APClient:get_location_name(G.AP.hints[i].location, 'Balatro')
+					
+					G.E_MANAGER:add_event(
+						Event {
+							blocking = true,
+							pause_force = true,
+							func = function()
+								return G.AP.hint_locations[G.AP.hints[i].location]
+							end
+						}, 'ap_hints')
+					
+					G.E_MANAGER:add_event(
+						Event {
+							blockable = true,
+							pause_force = true,
+							func = function()
+								if #G.AP.hint_priotiy == 0 then
+									G.AP.make_hint_step(i+1)
+								end
+								return true
+							end
+						}, 'ap_hints')
+					break
+				else --nonlocal items
+					G.AP.hint_locations[G.AP.hints[i].location] = "nonlocal"
+					local finder = G.AP.hints[i].finding_player
+					if not G.AP.player_names[finder] then
+						
+						G.AP.player_names[finder] = G.APClient:get_player_alias(finder)
+						
+						G.E_MANAGER:add_event(
+							Event {
+								blocking = true,
+								pause_force = true,
+								func = function()
+									return G.AP.player_names[finder]
+								end
+							}, 'ap_hints')
+						
+						G.E_MANAGER:add_event(
+							Event {
+								blockable = true,
+								pause_force = true,
+								func = function()
+									if #G.AP.hint_priotiy == 0 then
+										G.AP.make_hint_step(i+1)
+									end
+									return true
+								end
+							}, 'ap_hints')
+						break
+					end
+				end
+			end
+			i = i + 1
+		end
+	end
+	
+	if hint then
+		if not hint.found and not G.AP.hint_locations[hint.location] then
+			G.AP.hint_locations[hint.location] = G.APClient:get_location_name(hint.location, 'Balatro')
+			
+			G.E_MANAGER:add_event(
+				Event {
+					blocking = true,
+					pause_force = true,
+					func = function()
+						return G.AP.hint_locations[hint.location]
+					end
+				}, 'ap_hints')
+			
+			G.E_MANAGER:add_event(
+				Event {
+					blockable = true,
+					pause_force = true,
+					func = function()
+						G.AP.hint_priotiy[hint.location] = nil
+						return true
+					end
+				}, 'ap_hints')
+		else
+			G.AP.hint_priotiy[hint.location] = nil
+		end
+	end
+	
+	G.SETTINGS.paused = temp_pause
 end

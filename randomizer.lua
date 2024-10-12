@@ -646,6 +646,7 @@ function Game:init_item_prototypes()
             elseif string.find(k, '^v_') and not string.find(k, '^v_rand_ap_item') then
                 v.wip = true
                 v.unlocked = false
+				
                 if G.PROFILES[G.AP.profile_Id]["vouchers"][v.key] ~= nil then
                     -- progressive vouchers
                     if v.requires then
@@ -746,8 +747,9 @@ function Game:init_item_prototypes()
 			-- Grab IDs for local vanilla items
 			if not v.modded then
 				for _id, _key in pairs(G.APItems) do
-					if _key == v.key then
+					if _key == v.key or (string.find(v.key, _key)) then
 						v.ap_id = _id
+						break
 					end
 				end
 			end
@@ -853,6 +855,9 @@ function Game:init_item_prototypes()
         end
 
         init_AP_stakes()
+		G.AP.team_id = G.APClient:get_team_number()
+        G.AP.player_id = G.APClient:get_player_number()
+		G.APClient:Get({"_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id)})
         G:save_progress()
     else
         -- restore unlock conditions
@@ -1159,6 +1164,34 @@ function Card:can_use_consumeable(any_state, skip_check)
     end
 
     return card_can_use_consumeableRef(self, any_state, skip_check)
+end
+
+-- scout hints where relevant
+local set_abilityRef = Card.set_ability
+function Card:set_ability(center, initial, delay_sprites)
+	set_abilityRef(self, center, initial, delay_sprites)
+	
+	if isAPProfileLoaded() then
+		if ((self.debuff and self.config.center.ap_unlocked == false) or self.config.center.unlocked == false) and center.ap_id and G.AP.hints then
+			
+			local _hint
+			for i = 1, #G.AP.hints do
+				if G.AP.hints[i].item == center.ap_id then
+					_hint = G.AP.hints[i]
+					break
+				end
+			end
+			
+			if _hint then
+				if not G.AP.hint_locations[G.AP.hints[i].location] then
+					G.AP.hint_priotiy = G.AP.hint_priotiy or {}
+					G.AP.hint_priotiy[G.AP.hints[i].location] = _hint
+					G.AP.make_hint_step(nil, _hint)
+				end
+			end
+			
+		end
+	end
 end
 
 -- AP Items in shop
