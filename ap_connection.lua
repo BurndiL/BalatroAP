@@ -1627,7 +1627,7 @@ G.AP.update_hints = function()
 	end
 end
 
-local G.AP.make_hint_step = function(i, hint)
+function G.AP.make_hint_step(i, hint)
 	local temp_pause = G.SETTINGS.paused
 	G.SETTINGS.paused = false
 	
