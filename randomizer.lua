@@ -1183,10 +1183,10 @@ function Card:set_ability(center, initial, delay_sprites)
 			end
 			
 			if _hint then
-				if not G.AP.hint_locations[G.AP.hints[i].location] then
+				if not G.AP.hint_locations[_hint.location] then
 					if not G.E_MANAGER.queues.ap_hints then G.E_MANAGER.queues.ap_hints = {} end
 					G.AP.hint_priotiy = G.AP.hint_priotiy or {}
-					G.AP.hint_priotiy[G.AP.hints[i].location] = _hint
+					G.AP.hint_priotiy[_hint.location] = _hint
 					G.AP.make_hint_step(nil, _hint)
 				end
 			end
