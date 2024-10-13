@@ -627,7 +627,7 @@ function APConnect()
 
 					if G.jokers and G.jokers.cards then
 						for k, v in pairs(G.jokers.cards) do
-							if v and type(v) == 'table' and v.config.center.name == item.name then
+							if v and type(v) == 'table' and v.config.center.key == item.key then
 								v:set_debuff(false)
 							end
 						end
@@ -635,7 +635,7 @@ function APConnect()
 
 					if G.consumeables and G.consumeables.cards then
 						for k, v in pairs(G.consumeables.cards) do
-							if v and type(v) == 'table' and v.config.center.name == item.name then
+							if v and type(v) == 'table' and v.config.center.key == item.key then
 								v:set_debuff(false)
 							end
 						end
@@ -644,14 +644,14 @@ function APConnect()
 					if G.STATES then
 						if G.STATE == G.STATES.SHOP and G.shop_jokers and G.shop_jokers.cards then
 							for k, v in pairs(G.shop_jokers.cards) do
-								if v and type(v) == 'table' and v.config.center.name == item.name then
+								if v and type(v) == 'table' and v.config.center.key == item.key then
 									v:set_debuff(false)
 								end
 							end
 						end
 						if G.STATE == G.STATES.BUFFOON_PACK and G.pack_cards and G.pack_cards.cards then
 							for k, v in pairs(G.pack_cards.cards) do
-								if v and type(v) == 'table' and v.config.center.name == item.name then
+								if v and type(v) == 'table' and v.config.center.key == item.key then
 									v:set_debuff(false)
 								end
 							end
@@ -662,7 +662,7 @@ function APConnect()
 				item.unlocked = true
 				item.discovered = true
 				item.hidden = false
-				item.demo = nil
+				item.wip = nil
 
 				-- spectral gimmick
 				if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1616,23 +1616,111 @@ function APConnect()
 end
 
 G.AP.update_hints = function()
+	if not G.AP.hints then return nil end
     G.AP.hint_locations = G.AP.hint_locations or {}
     G.AP.player_names = G.AP.player_names or {}
+	G.AP.hint_priotiy = G.AP.hint_priotiy or {}
+	if not G.E_MANAGER.queues.ap_hints then G.E_MANAGER.queues.ap_hints = {} end
+	if #G.E_MANAGER.queues.ap_hints ~= 0 then G.E_MANAGER.clear_queue('ap_hints') end
+	G.AP.make_hint_step(1)
+end
 
-    for i = 1, #G.AP.hints do
-        if G.AP.hints[i].found == false and not G.AP.hint_locations[G.AP.hints[i].location] then
-            if G.AP.hints[i].finding_player == G.AP.player_id then
-                G.AP.hint_locations[G.AP.hints[i].location] =
-                    G.APClient:get_location_name(G.AP.hints[i].location, 'Balatro')
-            else
-                -- non-local items just say they're not here
-                G.AP.hint_locations[G.AP.hints[i].location] = "nonlocal"
-
-                local finder = G.AP.hints[i].finding_player
-                if not G.AP.player_names[finder] then
-                    G.AP.player_names[finder] = G.APClient:get_player_alias(item.player)
-                end
-            end
-        end
-    end
+function G.AP.make_hint_step(i, hint)
+	local temp_pause = G.SETTINGS.paused
+	G.SETTINGS.paused = false
+	
+	if i then
+		while i < #G.AP.hints do
+			if not G.AP.hint_locations[G.AP.hints[i].location] and G.AP.hints[i].found == false then
+				-- local items
+				if G.AP.hints[i].finding_player == G.AP.player_id then
+					G.AP.hint_locations[G.AP.hints[i].location] = 
+						G.APClient:get_location_name(G.AP.hints[i].location, 'Balatro')
+					
+					G.E_MANAGER:add_event(
+						Event {
+							blocking = true,
+							pause_force = true,
+							func = function()
+								print("waiting on hint #"..tostring(i))
+								return G.AP.hint_locations[G.AP.hints[i].location]
+							end
+						}, 'ap_hints')
+					
+					G.E_MANAGER:add_event(
+						Event {
+							blockable = true,
+							pause_force = true,
+							func = function()
+								G.AP.make_hint_step(i+1)
+								print("queued hint #"..tostring(i+1))
+								return true
+							end
+						}, 'ap_hints')
+					break
+				else --nonlocal items
+					G.AP.hint_locations[G.AP.hints[i].location] = "nonlocal"
+					local finder = G.AP.hints[i].finding_player
+					if not G.AP.player_names[finder] then
+						
+						G.AP.player_names[finder] = G.APClient:get_player_alias(finder)
+						
+						G.E_MANAGER:add_event(
+							Event {
+								blocking = true,
+								pause_force = true,
+								func = function()
+									print("waiting on name for player "..tostring(finder))
+									return G.AP.player_names[finder]
+								end
+							}, 'ap_hints')
+						
+						G.E_MANAGER:add_event(
+							Event {
+								blockable = true,
+								pause_force = true,
+								func = function()
+									G.AP.make_hint_step(i+1)
+									print("queued hint #"..tostring(i+1))
+									return true
+								end
+							}, 'ap_hints')
+						break
+					end
+				end
+			end
+			i = i + 1
+		end
+	end
+	
+	if hint then
+		if not hint.found and not G.AP.hint_locations[hint.location] then
+			G.AP.hint_locations[hint.location] = G.APClient:get_location_name(hint.location, 'Balatro')
+			
+			G.E_MANAGER:add_event(
+				Event {
+					blocking = true,
+					pause_force = true,
+					func = function()
+						print("waiting on priority hint")
+						return G.AP.hint_locations[hint.location]
+					end
+				}, 'ap_hints')
+			
+			G.E_MANAGER:add_event(
+				Event {
+					blockable = true,
+					pause_force = true,
+					func = function()
+						print("priority hint received")
+						G.AP.hint_priotiy[hint.location] = nil
+						return true
+					end
+				}, 'ap_hints')
+		else
+			G.AP.hint_priotiy[hint.location] = nil
+		end
+	end
+	
+	G.SETTINGS.paused = temp_pause
 end
