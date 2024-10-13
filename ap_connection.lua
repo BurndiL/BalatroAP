@@ -1621,10 +1621,8 @@ G.AP.update_hints = function()
     G.AP.player_names = G.AP.player_names or {}
 	G.AP.hint_priotiy = G.AP.hint_priotiy or {}
 	if not G.E_MANAGER.queues.ap_hints then G.E_MANAGER.queues.ap_hints = {} end
-	if G.AP.hint_priotiy == 0 then
-		G.E_MANAGER:clear_queue('ap_hints')
-		G.AP.make_hint_step(1)
-	end
+	if #G.E_MANAGER.queues.ap_hints ~= 0 then G.E_MANAGER.clear_queue('ap_hints') end
+	G.AP.make_hint_step(1)
 end
 
 function G.AP.make_hint_step(i, hint)
@@ -1644,6 +1642,7 @@ function G.AP.make_hint_step(i, hint)
 							blocking = true,
 							pause_force = true,
 							func = function()
+								print("waiting on hint #"..tostring(i))
 								return G.AP.hint_locations[G.AP.hints[i].location]
 							end
 						}, 'ap_hints')
@@ -1653,9 +1652,8 @@ function G.AP.make_hint_step(i, hint)
 							blockable = true,
 							pause_force = true,
 							func = function()
-								if #G.AP.hint_priotiy == 0 then
-									G.AP.make_hint_step(i+1)
-								end
+								G.AP.make_hint_step(i+1)
+								print("queued hint #"..tostring(i+1))
 								return true
 							end
 						}, 'ap_hints')
@@ -1672,6 +1670,7 @@ function G.AP.make_hint_step(i, hint)
 								blocking = true,
 								pause_force = true,
 								func = function()
+									print("waiting on name for player "..tostring(finder))
 									return G.AP.player_names[finder]
 								end
 							}, 'ap_hints')
@@ -1681,9 +1680,8 @@ function G.AP.make_hint_step(i, hint)
 								blockable = true,
 								pause_force = true,
 								func = function()
-									if #G.AP.hint_priotiy == 0 then
-										G.AP.make_hint_step(i+1)
-									end
+									G.AP.make_hint_step(i+1)
+									print("queued hint #"..tostring(i+1))
 									return true
 								end
 							}, 'ap_hints')
@@ -1704,6 +1702,7 @@ function G.AP.make_hint_step(i, hint)
 					blocking = true,
 					pause_force = true,
 					func = function()
+						print("waiting on priority hint")
 						return G.AP.hint_locations[hint.location]
 					end
 				}, 'ap_hints')
@@ -1713,6 +1712,7 @@ function G.AP.make_hint_step(i, hint)
 					blockable = true,
 					pause_force = true,
 					func = function()
+						print("priority hint received")
 						G.AP.hint_priotiy[hint.location] = nil
 						return true
 					end

@@ -858,6 +858,29 @@ function Game:init_item_prototypes()
 		G.AP.team_id = G.APClient:get_team_number()
         G.AP.player_id = G.APClient:get_player_number()
 		G.APClient:Get({"_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id)})
+		
+		if not G.AP.hint_event then
+			G.AP.hint_event = Event {
+				blockable = false,
+				blocking = false,
+				pause_force = true,
+				no_delete = true,
+				trigger = 'after',
+				delay = 10,
+				func = function()
+					if isAPProfileLoaded() then
+						G.AP.hint_event.start_timer = false
+						print("autoscout hints")
+						G.APClient:Get({"_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id)})
+					else G.AP.hint_event = nil end
+					return not isAPProfileLoaded()
+				end
+			}
+			
+			G.E_MANAGER:add_event(G.AP.hint_event, 'other')
+		end
+		
+		
         G:save_progress()
     else
         -- restore unlock conditions
@@ -1195,6 +1218,44 @@ function Card:set_ability(center, initial, delay_sprites)
 	end
 end
 
+-- hints in main menu
+local main_menuRef = Game.main_menu
+function Game:main_menu(change_context)
+
+	if isAPProfileLoaded() then
+		if self.AP.hints then
+			self.P_LOCKED = {}
+			
+			for i = 1, #self.AP.hints do
+				local hint = self.AP.hints[i]
+				if not hint.found then
+					if self.P_CENTERS[self.APItems[hint.item]] then
+						local center = self.P_CENTERS[self.APItems[hint.item]]
+						self.P_LOCKED[#self.P_LOCKED+1] = center
+						
+						if center.set == 'Tarot' or center.set == 'Planet' or center.set == 'Spectral' then
+							if not center.ap_og_set then center.ap_og_set = center.set end
+							center.set = 'Joker'
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	main_menuRef(self, change_context)
+	
+	if isAPProfileLoaded() then
+		for i = 1, #self.P_LOCKED do
+			if self.P_LOCKED[i].ap_og_set then
+				self.P_LOCKED[i].set = self.P_LOCKED[i].ap_og_set
+			end
+		end
+		
+	end
+end
+
+
 -- AP Items in shop
 
 local min_cost = 1
@@ -1404,6 +1465,7 @@ SMODS.Consumable {
 	end,
 	loc_vars = function(self, info_queue, card)
 		if not card then return nil end -- sanity check
+		if card.debuff then return nil end
         if card.ability.extra.id == 0 then
             return {} -- no location = default description
         elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
@@ -1574,6 +1636,7 @@ SMODS.Consumable {
 	end,
 	loc_vars = function(self, info_queue, card)
 		if not card then return nil end -- sanity check
+		if card.debuff then return nil end
         if card.ability.extra.id == 0 then
             return {} -- no location = default description
         elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
