@@ -907,6 +907,9 @@ function localizeApHint(_hint, _center)
 					if G.P_CENTER_POOLS.Stake[i].key == _stake then
 						loc_colour()
 						G.ARGS.LOC_COLOURS.ap_stake = G.P_CENTER_POOLS.Stake[i].colour
+						if G.P_CENTER_POOLS.Stake[i].key == 'stake_white' then
+							G.ARGS.LOC_COLOURS.ap_stake = G.C.FILTER
+						end
 						break
 					end
 				end
