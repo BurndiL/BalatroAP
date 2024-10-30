@@ -1136,7 +1136,7 @@ local card_set_debuffRef = Card.set_debuff
 
 function Card:set_debuff(should_debuff)
 
-    if isAPProfileLoaded() and (self.config.center.ap_unlocked == false and not self.bypass_lock) and should_debuff == false and
+    if isAPProfileLoaded() and (self.config.center.ap_unlocked == false) and should_debuff == false and
 		(((not AreJokersRemoved()) and self.config.center.set == 'Joker') or (not AreConsumablesRemoved())) then
 			should_debuff = true
     end

@@ -655,7 +655,7 @@ function G.UIDEF.current_stake()
         if G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level < 3 then
             _current_stake.nodes[2] = nil
         else
-            other_col = nil
+            local other_col = nil
 
             local stake_desc_rows = {{
                 n = G.UIT.R,
@@ -673,19 +673,11 @@ function G.UIDEF.current_stake()
                 }}
             }}
 
-            local _applied_stakes = {}
-            for i = G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level - 1, 1, -1 do
-                for k, v in pairs(G.P_CENTER_POOLS.Stake) do
-                    if v.stake_level == i then
-                        _applied_stakes[i] = k
-                        break
-                    end
-                end
-            end
-
+            local _applied_stakes = G.AP.build_stake_chain(G.P_CENTER_POOLS.Stake[G.GAME.stake])
+			
             for i = #_applied_stakes, 2, -1 do
                 local _stake_desc = {}
-                local _stake_center = G.P_CENTER_POOLS.Stake[_applied_stakes[i]]
+                local _stake_center = _applied_stakes[i]
 
                 localize {
                     type = 'descriptions',
@@ -718,7 +710,7 @@ function G.UIDEF.current_stake()
                             n = G.UIT.C,
                             config = {
                                 align = "cm",
-                                colour = get_stake_col(_applied_stakes[i]),
+                                colour = get_stake_col(i),
                                 r = 0.1,
                                 minh = 0.35,
                                 minw = 0.35,
@@ -801,6 +793,41 @@ function convert_save_data()
 	if not isAPProfileLoaded() then
 		convert_save_dataRef()
 	end
+end
+
+-- custom stake application cus yay
+-- all that old "redundant" code 
+-- wasnt that reduntant after all
+local setup_stakeRef = SMODS.setup_stake
+function SMODS.setup_stake(i)
+	if not isAPProfileLoaded() then
+		SMODS.setup_stake(i)
+	else
+		G.AP.setup_stake(i)
+	end
+end
+
+function G.AP.setup_stake(i)
+	local chain = G.AP.build_stake_chain(G.P_CENTER_POOLS.Stake[i])
+	for _, s in pairs(chain) do
+		if s.modifiers then
+			s.modifiers()
+		end
+	end
+end
+
+function G.AP.build_stake_chain(stake, chain)
+	if not chain then chain = {} end
+	if not stake then return end
+	
+	table.insert(chain, 1, stake)
+	if stake.applied_stakes then
+		for _, k in pairs(stake.applied_stakes) do
+			G.AP.build_stake_chain(G.P_STAKES["stake_"..k], chain)
+		end
+	end
+	
+	return chain
 end
 
 -- =============
