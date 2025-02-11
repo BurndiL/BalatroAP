@@ -366,7 +366,7 @@ function G.UIDEF.deck_stake_column(_deck_key)
 
         for i = num_stakes, 1, -1 do
             valid_option = false
-            local _wins = deck_usage and deck_usage.wins[i] or 0
+            local _wins = deck_usage and deck_usage.wins and deck_usage.wins[i] or 0
             if check_stake_unlock(i, _deck_key) == true then
                 valid_option = true
             end
@@ -674,6 +674,7 @@ function G.UIDEF.current_stake()
             }}
 
             local _applied_stakes = G.AP.build_stake_chain(G.P_CENTER_POOLS.Stake[G.GAME.stake])
+			_applied_stakes[#_applied_stakes] = nil
 			
             for i = #_applied_stakes, 2, -1 do
                 local _stake_desc = {}
@@ -710,7 +711,7 @@ function G.UIDEF.current_stake()
                             n = G.UIT.C,
                             config = {
                                 align = "cm",
-                                colour = get_stake_col(i),
+                                colour = _applied_stakes[i].colour,
                                 r = 0.1,
                                 minh = 0.35,
                                 minw = 0.35,
@@ -756,6 +757,14 @@ function G.UIDEF.current_stake()
     return _current_stake
 end
 
+-- hook to disable smods custom stake info screen
+local applied_stakes_UIRef = SMODS.applied_stakes_UI
+function SMODS.applied_stakes_UI(i, stake_desc_rows, num_added)
+	if not isAPProfileLoaded() then
+		return applied_stakes_UIRef(i, stake_desc_rows, num_added)
+	end
+end
+
 -- set deck win (prevent higher stake wins from counting as a win for previous stakes)
 local set_deck_winRef = set_deck_win
 function set_deck_win()
@@ -769,30 +778,19 @@ function set_deck_win()
                     order = G.GAME.selected_back.effect.center.order,
                     wins = {},
                     losses = {},
-					wins_by_key = {},
-					losses_by_key = {}
                 }
             end
             if G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key] then
                 G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[G.GAME.stake] =
                     (G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[G.GAME.stake] or 0) + 1
-				G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins_by_key[SMODS.stake_from_index(G.GAME.stake)] =
-					(G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins_by_key[SMODS.stake_from_index(G.GAME.stake)] or 0) + 1
             end
             set_challenge_unlock()
             G:save_settings()
+			G.AP.server_save_decks()
         end
     else
         return set_deck_winRef()
     end
-end
-
--- disable smods coverter for balatroAP
-local convert_save_dataRef = convert_save_data
-function convert_save_data()
-	if not isAPProfileLoaded() then
-		convert_save_dataRef()
-	end
 end
 
 -- custom stake application cus yay
@@ -801,7 +799,7 @@ end
 local setup_stakeRef = SMODS.setup_stake
 function SMODS.setup_stake(i)
 	if not isAPProfileLoaded() then
-		SMODS.setup_stake(i)
+		setup_stakeRef(i)
 	else
 		G.AP.setup_stake(i)
 	end
@@ -823,7 +821,7 @@ function G.AP.build_stake_chain(stake, chain)
 	table.insert(chain, 1, stake)
 	if stake.applied_stakes then
 		for _, k in pairs(stake.applied_stakes) do
-			G.AP.build_stake_chain(G.P_STAKES["stake_"..k], chain)
+			G.AP.build_stake_chain(G.P_STAKES[string.find(k, '^stake_') and k or "stake_"..k], chain)
 		end
 	end
 	
