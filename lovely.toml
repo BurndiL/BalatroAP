@@ -1,0 +1,14 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 0
+
+
+# disable SMODS save conversion for AP files
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/utils.lua"]'
+pattern = '''function convert_save_data()'''
+position = "after"
+payload = '''if G.PROFILES[G.SETTINGS.profile].ap_seed then return nil end'''
+match_indent=true
