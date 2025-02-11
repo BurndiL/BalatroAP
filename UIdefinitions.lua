@@ -851,9 +851,9 @@ function localizeApHint(_hint, _center)
 	if G.AP.hint_locations[_hint.location] then
 		-- Non-local items
 		if G.AP.hint_locations[_hint.location] == 'nonlocal' then
-			if G.localization.descriptions.Other["ap_locked_" .. self.config.center.set] then
-				for i = 1, #G.localization.descriptions.Other["ap_locked_" .. self.config.center.set].nonlocal do
-					local _string = G.localization.descriptions.Other["ap_locked_" .. self.config.center.set].nonlocal[i]
+			if G.localization.descriptions.Other["ap_locked_" .. _center.set] then
+				for i = 1, #G.localization.descriptions.Other["ap_locked_" .. _center.set].nonlocal do
+					local _string = G.localization.descriptions.Other["ap_locked_" .. _center.set].nonlocal[i]
 					_string = string.gsub(_string, "#1#", G.AP.player_names[_hint.finding_player])
 					target_text[#target_text+1] = loc_parse_string(_string)
 				end
