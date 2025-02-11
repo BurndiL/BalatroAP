@@ -6,8 +6,8 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9b
---- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-0829a]
+--- VERSION: 0.1.9c
+--- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-1326a]
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -18,11 +18,11 @@
 --  [ ] Location progress text (Locations left, next location, etc)
 --  [ ] Clean up the AP status/goal UI (update text when necessary instead of every frame)
 --  [ ] finish AP buffs menu
---  [ ] hook G.main_menu() to show cards with hints
+--  [x] hook G.main_menu() to show cards with hints
 --  [ ] finish AP item tooltips
 --
 -- serverside:
---  [ ] store progress on server (deck wins/joker stickers)
+--  [x] store progress on server (deck wins/joker stickers)
 --
 -- challenge update:
 --  [ ] implement challenges serverside
@@ -454,7 +454,7 @@ local game_load_profileRef = Game.load_profile
 function Game:load_profile(_profile)
 
     if unloadAPProfile then
-        _profile = 1
+        _profile = _profile == G.AP.profile_Id and 1 or _profile
         unloadAPProfile = false
     end
     ap_profile_delete = false
@@ -520,6 +520,9 @@ function Game:init_item_prototypes()
     local game_init_item_prototypes = game_init_item_prototypesRef(self)
 	
     if isAPProfileLoaded() then
+		-- load serverside data
+		G.AP.server_load()
+		
         if tableContains(G.AP.slot_data.included_decks, 'b_red') then
             standard_deck = 'b_red'
         end
@@ -614,7 +617,7 @@ function Game:init_item_prototypes()
                 end
 
                 -- create (or fix) deck_usage (for stake unlocks)
-                if not G.PROFILES[G.AP.profile_Id].deck_usage then
+                if not G.PROFILES[G.AP.profile_Id].deck_usage or type(G.PROFILES[G.AP.profile_Id].deck_usage) ~= 'table' then
                     G.PROFILES[G.AP.profile_Id].deck_usage = {}
                 end
                 if not G.PROFILES[G.AP.profile_Id].deck_usage[k] then
@@ -629,12 +632,12 @@ function Game:init_item_prototypes()
                 if not G.PROFILES[G.AP.profile_Id].deck_usage[k].losses then
                     G.PROFILES[G.AP.profile_Id].deck_usage[k].losses = {}
                 end
-                if not G.PROFILES[G.AP.profile_Id].deck_usage[k].wins_by_key then
-                    G.PROFILES[G.AP.profile_Id].deck_usage[k].wins_by_key = {}
-                end
-                if not G.PROFILES[G.AP.profile_Id].deck_usage[k].losses_by_key then
-                    G.PROFILES[G.AP.profile_Id].deck_usage[k].losses_by_key = {}
-                end
+                -- if not G.PROFILES[G.AP.profile_Id].deck_usage[k].wins_by_key then
+                    -- G.PROFILES[G.AP.profile_Id].deck_usage[k].wins_by_key = {}
+                -- end
+                -- if not G.PROFILES[G.AP.profile_Id].deck_usage[k].losses_by_key then
+                    -- G.PROFILES[G.AP.profile_Id].deck_usage[k].losses_by_key = {}
+                -- end
                 if not G.PROFILES[G.AP.profile_Id].deck_usage[k].stake_unlocks then
                     G.PROFILES[G.AP.profile_Id].deck_usage[k].stake_unlocks = {}
                     for i = 1, 8, 1 do
@@ -767,7 +770,7 @@ function Game:init_item_prototypes()
 
         -- AP goal progress
         if not G.PROFILES[G.AP.profile_Id].ap_progress then
-            G.PROFILES[G.AP.profile_Id].ap_progress = 0
+            G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress() or 0
         end
 
         -- Pick the hardest stake as the required one if AP.slot_data lacks one
@@ -1009,6 +1012,12 @@ function CardArea:emplace(card, location, stay_flipped)
 	
 	if isAPProfileLoaded() and G.AP.bypass_lock then
 		card.bypass_lock = true
+	end
+	
+	-- prevent saving the AP check voucher on redeem
+	if G.vouchers and self == G.vouchers and card.config.center.key == 'v_rand_ap_item' then
+		self:remove_card(card, false)
+		card:remove()
 	end
 	
     if isAPProfileLoaded() and self.cards and (((center.unlocked == false and not card.bypass_lock) and
@@ -1311,8 +1320,15 @@ SMODS.Voucher {
             end
         }))
     end,
+	redeem = function(self, card)
+		G.GAME.used_vouchers["v_rand_ap_item"] = false
+
+		if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+			sendLocationCleared(card.ability.extra.id)
+		end
+	end,
     set_sprites = function(self, card, front)
-        if card.ability and card.ability.extra.id ~= 0 then
+        if card.ability and card.ability.extra and card.ability.extra.id ~= 0 then
             if G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
                 -- restore alt sprite on load
                 card.children.center:set_sprite_pos({
@@ -2243,11 +2259,6 @@ function Card:redeem()
     end
     redeemref(self)
     if self.config.center_key == 'v_rand_ap_item' then
-        G.GAME.used_vouchers[self.config.center_key] = false
-
-        if G.APClient ~= nil and tableContains(G.APClient.missing_locations, self.ability.extra.id) then
-            sendLocationCleared(self.ability.extra.id)
-        end
         G.GAME.current_shop_check = nil
         G.GAME.current_round.voucher = current_round_voucher
     end
@@ -2403,12 +2414,73 @@ function get_unlocked_jokers()
     return count
 end
 
--- Here you can unlock checks
+-- this is used to measure current progress on the AP goal
+-- (separate function bcos its needed for profile reconstruction from server data)
+function G.AP.check_progress()
+	if G.AP.goal == 0 then
+		local deck_wins = 0
+		for k, v in pairs(G.P_CENTERS) do
+			if string.find(tostring(k), '^b_') then
+				if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
+					G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
+					#G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
+					deck_wins = deck_wins + 1
+				end
+			end
+		end
+		
+		return deck_wins
+	elseif G.AP.goal == 1 then
+		return get_unlocked_jokers()
+		
+	elseif G.AP.goal == 3 then
+		local deck_stickers = 0
+		
+		for _, d in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
+			for k, v in pairs(d.wins) do
+				if G.P_CENTER_POOLS.Stake[k].stake_level >= G.AP.slot_data.required_stake and v > 0 then
+					deck_stickers = deck_stickers + 1
+					break
+				end
+			end
+		end
+		
+		return deck_stickers
+	elseif G.AP.goal == 4 then
+		local joker_stickers = 0
+		
+		for _, v in pairs(G.P_CENTERS) do
+			if v.set == 'Joker' then
+				if get_joker_win_sticker(v, true) >= G.AP.slot_data.required_stake then
+					joker_stickers = joker_stickers + 1
+				end
+			end
+		end
+		
+		return joker_stickers
+	elseif G.AP.goal == 5 then
+		local unique_wins = 0
+		for k, v in pairs(G.P_CENTERS) do
+			if string.find(tostring(k), '^b_') then
+				if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
+					G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins then
+					for _stake, _win in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins) do
+						if _win > 0 then
+							unique_wins = unique_wins + 1
+						end
+					end
+				end
+			end
+		end
+		return unique_wins
+	end
+end
 
 local check_for_unlockRef = check_for_unlock
 function check_for_unlock(args)
     local check_for_unlock = check_for_unlockRef(args)
     if isAPProfileLoaded() then
+		-- ante up checks
         if args.type == 'ante_up' and args.ante and args.ante > 1 and args.ante < 10 then
             -- when an ante is beaten
             local deck_name = G.GAME.selected_back.name
@@ -2428,25 +2500,18 @@ function check_for_unlock(args)
             if G.STAGE == G.STAGES.RUN then
                 -- beat # of decks goal
                 if G.AP.goal == 0 then
+					
+					if args.type == 'win' then
+						-- get all individual deck wins 
+						local deck_wins = G.AP.check_progress()
 
-                    -- get all individual deck wins 
-                    local deck_wins = 0
-                    for k, v in pairs(G.P_CENTERS) do
-                        if string.find(tostring(k), '^b_') then
-                            if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
-                                G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
-                                #G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
-                                deck_wins = deck_wins + 1
-                            end
-                        end
-                    end
+						if deck_wins >= G.AP.slot_data.decks_win_goal then
+							sendGoalReached()
+						end
 
-                    if deck_wins >= G.AP.slot_data.decks_win_goal then
-                        sendGoalReached()
-                    end
-
-                    G.PROFILES[G.AP.profile_Id].ap_progress = deck_wins
-
+						G.PROFILES[G.AP.profile_Id].ap_progress = deck_wins
+					end
+					
                     -- unlock # of jokers (must be in run to avoid cringe bugs when loading in)
                 elseif G.AP.goal == 1 then
                     if tonumber(get_unlocked_jokers() or 0) >= tonumber(G.AP.slot_data.jokers_unlock_goal) then
@@ -2455,21 +2520,12 @@ function check_for_unlock(args)
 
                     -- beat ante
                 elseif G.AP.goal == 2 then
-                    if args.type == 'ante_up' and args.ante >= G.AP.slot_data.ante_win_goal then
+                    if args.type == 'ante_up' and args.ante > G.AP.slot_data.ante_win_goal then
                         sendGoalReached()
                     end
                     -- (completionist+ edition) deck wins on at least # stake
                 elseif G.AP.goal == 3 then
-                    local deck_stickers = 0
-
-                    for _, d in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
-                        for k, v in pairs(d.wins) do
-                            if G.P_CENTER_POOLS.Stake[k].stake_level >= G.AP.slot_data.required_stake and v > 0 then
-                                deck_stickers = deck_stickers + 1
-                                break
-                            end
-                        end
-                    end
+                    local deck_stickers = G.AP.check_progress()
 
                     if deck_stickers >= tonumber(G.AP.slot_data.decks_win_goal) then
                         sendGoalReached()
@@ -2478,36 +2534,28 @@ function check_for_unlock(args)
                     G.PROFILES[G.AP.profile_Id].ap_progress = deck_stickers
                     -- (completionist++ edition) win with # of jokers on at least # stake
                 elseif G.AP.goal == 4 then
-                    local joker_stickers = 0
+					if args.type == 'win' then
+						local joker_stickers = G.AP.check_progress()
 
-                    for _, v in pairs(G.P_CENTERS) do
-                        if v.set == 'Joker' then
-                            if get_joker_win_sticker(v, true) >= G.AP.slot_data.required_stake then
-                                joker_stickers = joker_stickers + 1
-                            end
-                        end
-                    end
+						for _, v in pairs(G.P_CENTERS) do
+							if v.set == 'Joker' then
+								if get_joker_win_sticker(v, true) >= G.AP.slot_data.required_stake then
+									joker_stickers = joker_stickers + 1
+								end
+							end
+						end
 
-                    if joker_stickers >= tonumber(G.AP.slot_data.jokers_unlock_goal) then
-                        sendGoalReached()
-                    end
+						if joker_stickers >= tonumber(G.AP.slot_data.jokers_unlock_goal) then
+							sendGoalReached()
+						end
 
-                    G.PROFILES[G.AP.profile_Id].ap_progress = joker_stickers
+						G.PROFILES[G.AP.profile_Id].ap_progress = joker_stickers
+						G.AP.server_save_jokers()
+					end
                     -- number of unique wins
                 elseif G.AP.goal == 5 then
-                    local unique_wins = 0
-                    for k, v in pairs(G.P_CENTERS) do
-                        if string.find(tostring(k), '^b_') then
-                            if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
-                                G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins then
-                                for _stake, _win in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins) do
-                                    if _win > 0 then
-                                        unique_wins = unique_wins + 1
-                                    end
-                                end
-                            end
-                        end
-                    end
+                    local unique_wins = G.AP.check_progress()
+					
                     if unique_wins >= G.AP.slot_data.unique_deck_win_goal then
                         sendGoalReached()
                     end
@@ -2578,6 +2626,14 @@ function Card:add_to_deck(from_debuff)
         if G.jokers then
             self.ability.joker_added_to_deck_but_debuffed = true
         end
+		-- negative fix
+		if self.edition and self.edition.card_limit then
+			if self.ability.consumeable then
+				G.consumeables.config.card_limit = G.consumeables.config.card_limit + self.edition.card_limit
+			else
+				G.jokers.config.card_limit = G.jokers.config.card_limit + self.edition.card_limit
+			end
+		end
     else
         Card_add_to_deckRef(self, from_debuff)
     end

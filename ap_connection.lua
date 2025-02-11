@@ -554,6 +554,7 @@ function APConnect()
         local seed = G.APClient:get_seed()
         local clientSeed = nil
         local info = get_compressed(G.AP.profile_Id .. '/profile.jkr')
+		local seed_mismatch = false
         if info then
             local unpacked = STR_UNPACK(info)
             clientSeed = unpacked['ap_seed']
@@ -564,7 +565,8 @@ function APConnect()
         else
             if clientSeed ~= seed then
                 sendDebugMessage("Client and Server have different seeds")
-                G.FUNCS.APDisconnect()
+				seed_mismatch = true
+                --G.FUNCS.APDisconnect()
             end
         end
 
@@ -572,9 +574,10 @@ function APConnect()
         G.PROFILES[G.AP.profile_Id]['name'] = G.AP['APSlot']
         -- just to make sure it's actually loading the right profile
         G.SETTINGS.profile = G.AP.profile_Id
-
-        G.FUNCS.load_profile(false)
-
+		
+		-- wrong seed will wipe the AP profile (all needed data is serverside)
+        G.FUNCS.load_profile(seed_mismatch)
+		
         G.FUNCS.set_up_APProfile()
     end
 
@@ -1564,14 +1567,29 @@ function APConnect()
     end
 
     function on_retrieved(map, keys, extra)
-        print("Retrieved:")
+        sendDebugMessage("Retrieved:")
         -- since lua tables won't contain nil values, we can use keys array
         for _, key in ipairs(keys) do
+		
+			if key == "balatro_deck_wins"..tostring(G.AP.player_id) and type(map[key]) == 'table' then 
+				G.PROFILES[G.SETTINGS.profile].deck_usage = map[key]
+				if G.AP.goal ~= 4 then
+					G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+				end
+			end
+			
+			if key == "balatro_joker_wins"..tostring(G.AP.player_id) and type(map[key]) == 'table' then 
+				G.PROFILES[G.SETTINGS.profile].joker_usage = map[key]
+				if G.AP.goal == 4 then
+					G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+				end
+			end
+			
             if key == "_read_hints_" .. tostring(G.AP.team_id) .. "_" .. tostring(G.AP.player_id) then
                 G.AP.hints = map[key]
                 G.AP.update_hints()
             end
-            print("  " .. key .. ": " .. tostring(map[key]))
+            sendDebugMessage("  " .. key .. ": " .. tostring(map[key]))
             if type(map[key]) == "table" then
                 --print(tprint(map[key]))
             end
@@ -1642,7 +1660,7 @@ function G.AP.make_hint_step(i, hint)
 							blocking = true,
 							pause_force = true,
 							func = function()
-								print("waiting on hint #"..tostring(i))
+								sendDebugMessage("waiting on hint #"..tostring(i))
 								return G.AP.hint_locations[G.AP.hints[i].location]
 							end
 						}, 'ap_hints')
@@ -1653,7 +1671,7 @@ function G.AP.make_hint_step(i, hint)
 							pause_force = true,
 							func = function()
 								G.AP.make_hint_step(i+1)
-								print("queued hint #"..tostring(i+1))
+								sendDebugMessage("queued hint #"..tostring(i+1))
 								return true
 							end
 						}, 'ap_hints')
@@ -1670,7 +1688,7 @@ function G.AP.make_hint_step(i, hint)
 								blocking = true,
 								pause_force = true,
 								func = function()
-									print("waiting on name for player "..tostring(finder))
+									sendDebugMessage("waiting on name for player "..tostring(finder))
 									return G.AP.player_names[finder]
 								end
 							}, 'ap_hints')
@@ -1681,7 +1699,7 @@ function G.AP.make_hint_step(i, hint)
 								pause_force = true,
 								func = function()
 									G.AP.make_hint_step(i+1)
-									print("queued hint #"..tostring(i+1))
+									sendDebugMessage("queued hint #"..tostring(i+1))
 									return true
 								end
 							}, 'ap_hints')
@@ -1702,7 +1720,7 @@ function G.AP.make_hint_step(i, hint)
 					blocking = true,
 					pause_force = true,
 					func = function()
-						print("waiting on priority hint")
+						sendDebugMessage("waiting on priority hint")
 						return G.AP.hint_locations[hint.location]
 					end
 				}, 'ap_hints')
@@ -1712,7 +1730,7 @@ function G.AP.make_hint_step(i, hint)
 					blockable = true,
 					pause_force = true,
 					func = function()
-						print("priority hint received")
+						sendDebugMessage("priority hint received")
 						G.AP.hint_priotiy[hint.location] = nil
 						return true
 					end
@@ -1723,4 +1741,22 @@ function G.AP.make_hint_step(i, hint)
 	end
 	
 	G.SETTINGS.paused = temp_pause
+end
+
+
+G.AP.server_save_decks = function()
+	if G.PROFILES[G.SETTINGS.profile].deck_usage then
+		G.APClient:Set("balatro_deck_wins"..tostring(G.AP.player_id), {}, false, {{'replace', G.PROFILES[G.SETTINGS.profile].deck_usage}})
+	end
+end
+
+G.AP.server_save_jokers = function()
+	if G.PROFILES[G.SETTINGS.profile].joker_usage then
+		G.APClient:Set("balatro_joker_wins"..tostring(G.AP.player_id), {}, false, {'replace', G.PROFILES[G.SETTINGS.profile].joker_usage})
+	end
+end
+
+G.AP.server_load = function()
+	G.APClient:Get({"balatro_deck_wins"..tostring(G.AP.player_id)})
+	G.APClient:Get({"balatro_joker_wins"..tostring(G.AP.player_id)})
 end
