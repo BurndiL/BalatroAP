@@ -552,9 +552,9 @@ function APConnect()
         -- end
 
         local seed = G.APClient:get_seed()
+		local seed_mismatch = false
         local clientSeed = nil
         local info = get_compressed(G.AP.profile_Id .. '/profile.jkr')
-		local seed_mismatch = false
         if info then
             local unpacked = STR_UNPACK(info)
             clientSeed = unpacked['ap_seed']
@@ -566,19 +566,30 @@ function APConnect()
             if clientSeed ~= seed then
                 sendDebugMessage("Client and Server have different seeds")
 				seed_mismatch = true
-                --G.FUNCS.APDisconnect()
+				
+				love.filesystem.remove(G.AP.profile_Id..'/'..'profile.jkr')
+				love.filesystem.remove(G.AP.profile_Id..'/'..'save.jkr')
+				love.filesystem.remove(G.AP.profile_Id..'/'..'meta.jkr')
+				love.filesystem.remove(G.AP.profile_Id..'/'..'unlock_notify.jkr')
+				love.filesystem.remove(G.AP.profile_Id..'')
+				G.SAVED_GAME = nil
+				G.DISCOVER_TALLIES = nil
+				G.PROGRESS = nil
+				G.PROFILES[G.AP.profile_Id] = {}
+				
+				G.FUNCS.APDisconnect()
             end
         end
-
-        -- set profile name to slot name 
-        G.PROFILES[G.AP.profile_Id]['name'] = G.AP['APSlot']
-        -- just to make sure it's actually loading the right profile
-        G.SETTINGS.profile = G.AP.profile_Id
+		
+		-- set profile name to slot name 
+		G.PROFILES[G.AP.profile_Id]['name'] = G.AP['APSlot']
+		-- just to make sure it's actually loading the right profile
+		G.SETTINGS.profile = G.AP.profile_Id
 		
 		-- wrong seed will wipe the AP profile (all needed data is serverside)
-        G.FUNCS.load_profile(seed_mismatch)
+		G.FUNCS.load_profile(seed_mismatch)
 		
-        G.FUNCS.set_up_APProfile()
+		G.FUNCS.set_up_APProfile()
     end
 
     function on_slot_refused(reasons)
@@ -1571,14 +1582,14 @@ function APConnect()
         -- since lua tables won't contain nil values, we can use keys array
         for _, key in ipairs(keys) do
 		
-			if key == "balatro_deck_wins"..tostring(G.AP.player_id) and type(map[key]) == 'table' then 
+			if key == "balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
 				G.PROFILES[G.SETTINGS.profile].deck_usage = map[key]
 				if G.AP.goal ~= 4 then
 					G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
 				end
 			end
 			
-			if key == "balatro_joker_wins"..tostring(G.AP.player_id) and type(map[key]) == 'table' then 
+			if key == "balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
 				G.PROFILES[G.SETTINGS.profile].joker_usage = map[key]
 				if G.AP.goal == 4 then
 					G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
@@ -1746,17 +1757,17 @@ end
 
 G.AP.server_save_decks = function()
 	if G.PROFILES[G.SETTINGS.profile].deck_usage then
-		G.APClient:Set("balatro_deck_wins"..tostring(G.AP.player_id), {}, false, {{'replace', G.PROFILES[G.SETTINGS.profile].deck_usage}})
+		G.APClient:Set("balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id), {}, false, {{'replace', G.PROFILES[G.SETTINGS.profile].deck_usage}})
 	end
 end
 
 G.AP.server_save_jokers = function()
 	if G.PROFILES[G.SETTINGS.profile].joker_usage then
-		G.APClient:Set("balatro_joker_wins"..tostring(G.AP.player_id), {}, false, {'replace', G.PROFILES[G.SETTINGS.profile].joker_usage})
+		G.APClient:Set("balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id), {}, false, {{'replace', G.PROFILES[G.SETTINGS.profile].joker_usage}})
 	end
 end
 
 G.AP.server_load = function()
-	G.APClient:Get({"balatro_deck_wins"..tostring(G.AP.player_id)})
-	G.APClient:Get({"balatro_joker_wins"..tostring(G.AP.player_id)})
+	G.APClient:Get({"balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
+	G.APClient:Get({"balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
 end
