@@ -145,6 +145,7 @@ G.FUNCS.APDisconnect = function()
     collectgarbage("collect")
     unloadAPProfile = true
     standard_deck = nil
+	G.E_MANAGER.queues.ap_hints = nil
 end
 
 -- Initialize AP Buffs
@@ -166,9 +167,11 @@ function Game:init_game_object()
 
         init_game_object.starting_params.hand_size = init_game_object.starting_params.hand_size +
                                                          (G.PROFILES[G.AP.profile_Id]["bonushandsize"] or 0)
-
+		
+		local ap_interest = G.PROFILES[G.AP.profile_Id]["maxinterest"] or 0
+		
         init_game_object.interest_cap = init_game_object.interest_cap +
-                                            (G.PROFILES[G.AP.profile_Id]["maxinterest"] * 5 or 0)
+                                            (ap_interest * 5 or 0)
 
         init_game_object.starting_params.joker_slots = init_game_object.starting_params.joker_slots +
                                                            (G.PROFILES[G.AP.profile_Id]["bonusjoker"] or 0)
@@ -521,6 +524,7 @@ function Game:init_item_prototypes()
 	
     if isAPProfileLoaded() then
 		-- load serverside data
+		G.SETTINGS.profile = G.AP.profile_Id
 		G.AP.server_load()
 		
         if tableContains(G.AP.slot_data.included_decks, 'b_red') then
@@ -543,7 +547,14 @@ function Game:init_item_prototypes()
 
             G.localization.descriptions.Back[k] = v
         end
-
+		
+		--safeguard bcos crashes on seed mismatch
+		G.PROFILES[G.AP.profile_Id]["jokers"] = G.PROFILES[G.AP.profile_Id]["jokers"] or {}
+		G.PROFILES[G.AP.profile_Id]["backs"] = G.PROFILES[G.AP.profile_Id]["backs"] or {}
+		G.PROFILES[G.AP.profile_Id]["vouchers"] = G.PROFILES[G.AP.profile_Id]["vouchers"] or {}
+		G.PROFILES[G.AP.profile_Id]["packs"] = G.PROFILES[G.AP.profile_Id]["packs"] or {}
+		G.PROFILES[G.AP.profile_Id]["consumables"] = G.PROFILES[G.AP.profile_Id]["consumables"] or {}
+		
         for k, v in pairs(G.AP.JokerQueue) do
             G.PROFILES[G.AP.profile_Id]["jokers"][k] = true
         end
@@ -2474,6 +2485,7 @@ function G.AP.check_progress()
 		end
 		return unique_wins
 	end
+	return 0
 end
 
 local check_for_unlockRef = check_for_unlock
@@ -2536,14 +2548,6 @@ function check_for_unlock(args)
                 elseif G.AP.goal == 4 then
 					if args.type == 'win' then
 						local joker_stickers = G.AP.check_progress()
-
-						for _, v in pairs(G.P_CENTERS) do
-							if v.set == 'Joker' then
-								if get_joker_win_sticker(v, true) >= G.AP.slot_data.required_stake then
-									joker_stickers = joker_stickers + 1
-								end
-							end
-						end
 
 						if joker_stickers >= tonumber(G.AP.slot_data.jokers_unlock_goal) then
 							sendGoalReached()
