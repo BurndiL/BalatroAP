@@ -551,43 +551,43 @@ function APConnect()
         --               G.APClient:get_player_game(player.slot))
         -- end
 
-        local seed = G.APClient:get_seed()
-		local seed_mismatch = false
-        local clientSeed = nil
-        local info = get_compressed(G.AP.profile_Id .. '/profile.jkr')
-        if info then
-            local unpacked = STR_UNPACK(info)
-            clientSeed = unpacked['ap_seed']
-        end
+        -- local seed = G.APClient:get_seed()
+		-- local seed_mismatch = false
+        -- local clientSeed = nil
+        -- local info = get_compressed(G.AP.profile_Id .. '/profile.jkr')
+        -- if info then
+            -- local unpacked = STR_UNPACK(info)
+            -- clientSeed = unpacked['ap_seed']
+        -- end
 
-        if not clientSeed then
-            G.PROFILES[G.AP.profile_Id]['ap_seed'] = seed
-        else
-            if clientSeed ~= seed then
-                sendDebugMessage("Client and Server have different seeds")
-				seed_mismatch = true
+        -- if not clientSeed then
+            -- G.PROFILES[G.AP.profile_Id]['ap_seed'] = seed
+        -- else
+            -- if clientSeed ~= seed then
+                -- sendDebugMessage("Client and Server have different seeds")
+				-- seed_mismatch = true
 				
-				love.filesystem.remove(G.AP.profile_Id..'/'..'profile.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'/'..'save.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'/'..'meta.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'/'..'unlock_notify.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'')
-				G.SAVED_GAME = nil
-				G.DISCOVER_TALLIES = nil
-				G.PROGRESS = nil
-				G.PROFILES[G.AP.profile_Id] = {}
+				-- love.filesystem.remove(G.AP.profile_Id..'/'..'profile.jkr')
+				-- love.filesystem.remove(G.AP.profile_Id..'/'..'save.jkr')
+				-- love.filesystem.remove(G.AP.profile_Id..'/'..'meta.jkr')
+				-- love.filesystem.remove(G.AP.profile_Id..'/'..'unlock_notify.jkr')
+				-- love.filesystem.remove(G.AP.profile_Id..'')
+				-- G.SAVED_GAME = nil
+				-- G.DISCOVER_TALLIES = nil
+				-- G.PROGRESS = nil
+				-- G.PROFILES[G.AP.profile_Id] = {}
 				
-				G.FUNCS.APDisconnect()
-            end
-        end
+				-- G.FUNCS.APDisconnect()
+            -- end
+        -- end
 		
 		-- set profile name to slot name 
-		G.PROFILES[G.AP.profile_Id]['name'] = G.AP['APSlot']
+		--G.PROFILES[G.AP.profile_Id]['name'] = G.AP['APSlot']
 		-- just to make sure it's actually loading the right profile
 		G.SETTINGS.profile = G.AP.profile_Id
 		
 		-- wrong seed will wipe the AP profile (all needed data is serverside)
-		G.FUNCS.load_profile(seed_mismatch)
+		G.FUNCS.load_profile(false)
 		
 		G.FUNCS.set_up_APProfile()
     end
@@ -599,6 +599,7 @@ function APConnect()
     function on_items_received(items)
         print("Items received:")
         for _, item in ipairs(items) do
+			local notify = #items == 1 
             local item_id = item.item - G.AP.id_offset
             local item_key = G.APItems[item.item]
 			
@@ -686,7 +687,7 @@ function APConnect()
 					}
 				end
 
-				G.FUNCS.AP_unlock_item(item)
+				G.FUNCS.AP_unlock_item(item, notify)
 			end
 			end
 
@@ -1581,18 +1582,24 @@ function APConnect()
         sendDebugMessage("Retrieved:")
         -- since lua tables won't contain nil values, we can use keys array
         for _, key in ipairs(keys) do
-		
-			if key == "balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
-				G.PROFILES[G.SETTINGS.profile].deck_usage = map[key]
-				if G.AP.goal ~= 4 then
-					G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
-				end
-			end
 			
-			if key == "balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
-				G.PROFILES[G.SETTINGS.profile].joker_usage = map[key]
-				if G.AP.goal == 4 then
-					G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+			if isAPProfileLoaded() then
+				if key == "balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
+					G.PROFILES[G.SETTINGS.profile].deck_usage = map[key]
+					if G.AP.goal ~= 4 then
+						G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+					end
+				end
+				
+				if key == "balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
+					G.PROFILES[G.SETTINGS.profile].joker_usage = map[key]
+					if G.AP.goal == 4 then
+						G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+					end
+				end 
+				
+				if key == "balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) then 
+					G.SAVED_GAME = map[key]
 				end
 			end
 			
@@ -1754,6 +1761,142 @@ function G.AP.make_hint_step(i, hint)
 	G.SETTINGS.paused = temp_pause
 end
 
+local LoadProfileHook = G.FUNCS.load_profile
+G.FUNCS.load_profile = function(delete_prof_data)
+	if isAPProfileSelected() and not isAPProfileLoaded() then
+		G.SAVED_GAME = nil
+		G.E_MANAGER:clear_queue()
+		G.FUNCS.wipe_on()
+		G.E_MANAGER:add_event(Event({
+			no_delete = true,
+			func = function()
+				G:delete_run()
+				local _name = nil
+				if G.PROFILES[G.focused_profile].name and G.PROFILES[G.focused_profile].name ~= '' then
+				_name = G.PROFILES[G.focused_profile].name
+				end
+				if delete_prof_data then G.PROFILES[G.focused_profile] = {} end
+				G.DISCOVER_TALLIES = nil
+				G.PROGRESS = nil
+				G.AP.load_profile()
+				G:init_item_prototypes()
+				return true
+			end
+		}))
+		
+		G.E_MANAGER:add_event(Event({
+			no_delete = true,
+			blockable = true, 
+			blocking = false,
+			func = function()
+				G:main_menu()
+				G.FILE_HANDLER.force = true
+				return true
+			end
+		}))
+		
+		G.FUNCS.wipe_off()
+	else
+		LoadProfileHook(delete_prof_data)
+	end
+end
+
+G.AP.load_profile = function()
+	local temp_profile = {
+		MEMORY = {
+			deck = 'Red Deck',
+			stake = 1,
+		},
+		stake = 1,
+		name = G.AP['APSlot'],
+		Archipelago = true,
+		high_scores = {
+			hand = {label = 'Best Hand', amt = 0},
+			furthest_round = {label = 'Highest Round', amt = 0},
+			furthest_ante = {label = 'Highest Ante', amt = 0},
+			most_money = {label = 'Most Money', amt = 0},
+			boss_streak = {label = 'Most Bosses in a Row', amt = 0},
+			collection = {label = 'Collection', amt = 0, tot = 1},
+			win_streak = {label = 'Best Win Streak', amt = 0},
+			current_streak = {label = '', amt = 0},
+			poker_hand = {label = 'Most Played Hand', amt = 0}
+		},
+
+		career_stats = {
+			c_round_interest_cap_streak = 0,
+			c_dollars_earned = 0,
+			c_shop_dollars_spent = 0,
+			c_tarots_bought = 0,
+			c_planets_bought = 0,
+			c_playing_cards_bought = 0,
+			c_vouchers_bought = 0,
+			c_tarot_reading_used = 0,
+			c_planetarium_used = 0,
+			c_shop_rerolls = 0,
+			c_cards_played = 0,
+			c_cards_discarded = 0,
+			c_losses = 0,
+			c_wins = 0,
+			c_rounds = 0,
+			c_hands_played = 0,
+			c_face_cards_played = 0,
+			c_jokers_sold = 0,
+			c_cards_sold = 0,
+			c_single_hand_round_streak = 0,
+		},
+		progress = {
+
+		},
+		joker_usage = {},
+		consumeable_usage = {},
+		voucher_usage = {},
+		hand_usage = {},
+		deck_usage = {},
+		deck_stakes = {},
+		challenges_unlocked = nil,
+		challenge_progress = {
+		completed = {},
+		unlocked = {}
+		}
+	}
+	G.PROFILES[G.AP.profile_Id] = temp_profile
+end
+
+local CanContinueRef = G.FUNCS.can_continue
+G.FUNCS.can_continue = function(e)
+	if isAPProfileLoaded() then
+		if e.config.func then
+			local _can_continue = nil
+			
+			if G.SAVED_GAME and G.SAVED_GAME.GAME then
+				if G.SAVED_GAME.GAME.ap_seed == G.APClient:get_seed() and
+				G.SAVED_GAME.GAME.ap_jokers_removed == AreJokersRemoved() and
+				G.SAVED_GAME.GAME.ap_consums_removed == AreConsumablesRemoved() then
+					_can_continue = true
+				end
+			end
+			
+			e.config.func = nil
+			
+			if not _can_continue then
+				e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+				e.config.button = nil
+			end
+			
+			return _can_continue
+		end
+	else
+		return CanContinueRef(e)
+	end
+end
+
+local remove_saveRef = remove_save
+function remove_save()
+	if isAPProfileLoaded() then
+		G.AP.server_save_run(nil)
+	end
+	return remove_saveRef()
+end
 
 G.AP.server_save_decks = function()
 	if G.PROFILES[G.SETTINGS.profile].deck_usage then
@@ -1767,7 +1910,12 @@ G.AP.server_save_jokers = function()
 	end
 end
 
+G.AP.server_save_run = function(data)
+	G.APClient:Set("balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id), {}, false, {{'replace', data}})
+end
+
 G.AP.server_load = function()
 	G.APClient:Get({"balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
 	G.APClient:Get({"balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
+	G.APClient:Get({"balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
 end

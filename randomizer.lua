@@ -6,7 +6,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9c
+--- VERSION: 0.1.9d
 --- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-1326a]
 ----------------------------------------------
 ------------MOD CODE -------------------------
@@ -146,6 +146,11 @@ G.FUNCS.APDisconnect = function()
     unloadAPProfile = true
     standard_deck = nil
 	G.E_MANAGER.queues.ap_hints = nil
+	G.AP.Spectral = {
+		item = nil,
+		active = false,
+		item_detected = false
+	}
 end
 
 -- Initialize AP Buffs
@@ -178,6 +183,10 @@ function Game:init_game_object()
 
         init_game_object.starting_params.consumable_slots = init_game_object.starting_params.consumable_slots +
                                                                 (G.PROFILES[G.AP.profile_Id]["bonusconsumable"] or 0)
+		
+		init_game_object.ap_seed = G.APClient:get_seed()
+		init_game_object.ap_jokers_removed = AreJokersRemoved()	
+		init_game_object.ap_consums_removed = AreConsumablesRemoved()
 
     end
 
@@ -495,12 +504,12 @@ function Back:init(selected_back)
 end
 -- unlock Items based on APItems
 
-G.FUNCS.AP_unlock_item = function(item)
-    G:save_notify(item)
+G.FUNCS.AP_unlock_item = function(item, notify)
+    --G:save_notify(item)
     table.sort(G.P_CENTER_POOLS["Back"], function(a, b)
         return (a.order - (a.unlocked and 100 or 0)) < (b.order - (b.unlocked and 100 or 0))
     end)
-    G:save_progress()
+    --G:save_progress()
     if item.set == 'Back' then
         discover_card(item)
     end
@@ -514,7 +523,7 @@ G.FUNCS.AP_unlock_item = function(item)
     -- prevent duplicate notification on stake_unlock_mode 4
     if not (item.set == 'Back' and tonumber(G.AP.slot_data.stake_unlock_mode) ==
         G.AP.stake_unlock_modes.stake_as_item_per_deck) then
-        notify_alert(item.key, item.set)
+        if notify then notify_alert(item.key, item.set) end
     end
 end
 
@@ -524,8 +533,9 @@ function Game:init_item_prototypes()
 	
     if isAPProfileLoaded() then
 		-- load serverside data
-		G.SETTINGS.profile = G.AP.profile_Id
 		G.AP.server_load()
+		G.PROFILES[G.AP.profile_Id].name = G.AP['APSlot'] 
+		G.PROFILES[G.AP.profile_Id].Archipelago = true 
 		
         if tableContains(G.AP.slot_data.included_decks, 'b_red') then
             standard_deck = 'b_red'
@@ -579,7 +589,9 @@ function Game:init_item_prototypes()
         for k, v in pairs(self.P_CENTERS) do
             -- for jokers
             if string.find(k, '^j_') then
-
+				
+				v.alerted = true
+				
                 if AreJokersRemoved() then
                     v.wip = true
                     v.unlocked = false
@@ -609,6 +621,7 @@ function Game:init_item_prototypes()
                 end
                 -- for backs (decks)
             elseif string.find(k, '^b_') then
+				v.alerted = true
                 v.unlocked = false
                 G.AP.UnlockConsCache[k] = v.unlock_condition
                 v.unlock_condition = nil
@@ -660,7 +673,7 @@ function Game:init_item_prototypes()
             elseif string.find(k, '^v_') and not string.find(k, '^v_rand_ap_item') then
                 v.wip = true
                 v.unlocked = false
-				
+				v.alerted = true
                 if G.PROFILES[G.AP.profile_Id]["vouchers"][v.key] ~= nil then
                     -- progressive vouchers
                     if v.requires then
@@ -679,10 +692,14 @@ function Game:init_item_prototypes()
                         G.FUNCS.AP_unlock_item(v)
                     end
                 end
+			elseif k == 'v_rand_ap_item' then
+				v.alerted = true
                 -- for packs
             elseif string.find(k, '^p_') then
                 v.unlocked = false
+				v.discovered = false
                 v.wip = true
+				v.alerted = true
 				for pack_key, pack_center in pairs(G.PROFILES[G.AP.profile_Id]["packs"]) do
 					if string.find(k, pack_key) and pack_center ~= nil then
 					--if G.PROFILES[G.AP.profile_Id]["packs"][v.key] ~= nil then
@@ -700,7 +717,9 @@ function Game:init_item_prototypes()
 
             elseif string.find(k, '^c_') and not string.find(k, '^c_base') then --and 
 				--not tableContains({'c_rand_ap_tarot', 'c_rand_ap_planet', 'c_rand_ap_spectral'}, k) then
-
+				
+				v.discovered = false
+				v.alerted = true
                 if AreConsumablesRemoved() then
                     v.wip = true
                     v.unlocked = false
@@ -717,6 +736,7 @@ function Game:init_item_prototypes()
                         v.hidden = false
                     else
                         v.ap_unlocked = true
+						v.discovered = true
                     end
 
                     if (G.AP.ConsumableQueue[v] == true) then
@@ -742,6 +762,7 @@ function Game:init_item_prototypes()
 			if G.AP.this_mod.config.modded ~= 1 and not string.find(k, '^b_') then
 				if not IsVanillaItem(k) then
                     v.modded = true
+					v.alerted = true
 				    if G.AP.this_mod.config.modded == 2 then
 						v.ap_unlocked = false
 						v.wip = true
@@ -895,7 +916,7 @@ function Game:init_item_prototypes()
 		end
 		
 		
-        G:save_progress()
+        -- G:save_progress()
     else
         -- restore unlock conditions
         for k, v in pairs(G.AP.UnlockConsCache) do
@@ -932,6 +953,38 @@ function Game:init_item_prototypes()
 
             G.AP.ChallengeCache = {}
         end
+		
+		-- reload metadata just in case because it doesnt want to work properly
+		if not love.filesystem.getInfo(G.SETTINGS.profile..'') then love.filesystem.createDirectory( G.SETTINGS.profile..'' ) end
+		if not love.filesystem.getInfo(G.SETTINGS.profile..'/'..'meta.jkr') then love.filesystem.append( G.SETTINGS.profile..'/'..'meta.jkr', 'return {}') end
+
+		convert_save_to_meta()
+
+		local meta = STR_UNPACK(get_compressed(G.SETTINGS.profile..'/'..'meta.jkr') or 'return {}')
+		meta.discovered = meta.discovered or {}
+
+		for k, v in pairs(self.P_CENTERS) do
+			if not v.discovered and (string.find(k, '^j_') or string.find(k, '^b_') or string.find(k, '^e_') or string.find(k, '^c_') or string.find(k, '^p_') or string.find(k, '^v_')) and meta.discovered[k] then 
+				v.discovered = true
+			end
+		end
+		
+		-- Delete Archipelago profile
+		G.E_MANAGER:add_event(Event({
+			no_delete = true,
+			blockable = false, 
+			blocking = false,
+			func = function()
+				if G.AP.profile_Id then
+					love.filesystem.remove(G.AP.profile_Id..'/'..'profile.jkr')
+					love.filesystem.remove(G.AP.profile_Id..'/'..'save.jkr')
+					love.filesystem.remove(G.AP.profile_Id..'/'..'meta.jkr')
+					love.filesystem.remove(G.AP.profile_Id..'/'..'unlock_notify.jkr')
+					love.filesystem.remove(G.AP.profile_Id..'')
+				end
+				return true
+			end
+		}))
     end
     return game_init_item_prototypes
 end
@@ -1289,6 +1342,7 @@ end
 SMODS.Voucher {
     key = 'ap_item',
     loc_txt = {},
+	alerted = true,
     atlas = 'ap_item_voucher',
     cost = 0,
     config = {
@@ -2554,7 +2608,6 @@ function check_for_unlock(args)
 						end
 
 						G.PROFILES[G.AP.profile_Id].ap_progress = joker_stickers
-						G.AP.server_save_jokers()
 					end
                     -- number of unique wins
                 elseif G.AP.goal == 5 then
