@@ -1871,7 +1871,8 @@ G.FUNCS.can_continue = function(e)
 			if G.SAVED_GAME and G.SAVED_GAME.GAME then
 				if G.SAVED_GAME.GAME.ap_seed == G.APClient:get_seed() and
 				G.SAVED_GAME.GAME.ap_jokers_removed == AreJokersRemoved() and
-				G.SAVED_GAME.GAME.ap_consums_removed == AreConsumablesRemoved() then
+				G.SAVED_GAME.GAME.ap_consums_removed == AreConsumablesRemoved() and
+				G.SAVED_GAME.GAME.ap_modded_items == G.AP.this_mod.config.modded then
 					_can_continue = true
 				end
 			end
