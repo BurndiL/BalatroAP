@@ -187,6 +187,7 @@ function Game:init_game_object()
 		init_game_object.ap_seed = G.APClient:get_seed()
 		init_game_object.ap_jokers_removed = AreJokersRemoved()	
 		init_game_object.ap_consums_removed = AreConsumablesRemoved()
+		init_game_object.ap_modded_items = G.AP.this_mod.config.modded
 
     end
 
