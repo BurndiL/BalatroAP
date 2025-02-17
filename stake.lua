@@ -787,10 +787,47 @@ function set_deck_win()
             set_challenge_unlock()
             G:save_settings()
 			G.AP.server_save_decks()
+			G.AP.server_save_jokers()
         end
     else
         return set_deck_winRef()
     end
+end
+
+-- Joker stickers!
+local joker_win_Ref = set_joker_win
+function set_joker_win()
+	if isAPProfileLoaded() then
+		for k, v in pairs(G.jokers.cards) do
+			if v.config.center_key and v.ability.set == 'Joker' then
+			G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key] = G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key] or {count = 1, order = v.config.center.order, wins = {}, losses = {}}
+				if G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key] then
+					G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key].wins = G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key].wins or {}
+					G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key].wins[G.GAME.stake] = (G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key].wins[G.GAME.stake] or 0) + 1
+				end
+			end
+		end
+		G:save_settings()
+	else
+		return joker_win_Ref()
+	end
+end
+
+local joker_sticker_Ref = get_joker_win_sticker
+function get_joker_win_sticker(_center, index)
+	if isAPProfileLoaded() then
+		if G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key] and G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins then 
+			local _w = 0
+			for k, v in pairs(G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins) do
+			_w = math.max(G.P_CENTER_POOLS.Stake[k].stake_level, _w)
+			end
+			if index then return _w end
+			if _w > 0 then return G.sticker_map[_w] end
+		end
+		if index then return 0 end
+	else
+		return joker_sticker_Ref(_center, index)
+	end
 end
 
 -- custom stake application cus yay
