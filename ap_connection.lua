@@ -544,51 +544,12 @@ function APConnect()
         end
 
         G.APClient:ConnectUpdate(nil, tags)
-        -- print("Players:")
-        -- local players = G.APClient:get_players()
-        -- for _, player in ipairs(players) do
-        --     print("  " .. tostring(player.slot) .. ": " .. player.name .. " playing " ..
-        --               G.APClient:get_player_game(player.slot))
-        -- end
-
-        -- local seed = G.APClient:get_seed()
-		-- local seed_mismatch = false
-        -- local clientSeed = nil
-        -- local info = get_compressed(G.AP.profile_Id .. '/profile.jkr')
-        -- if info then
-            -- local unpacked = STR_UNPACK(info)
-            -- clientSeed = unpacked['ap_seed']
-        -- end
-
-        -- if not clientSeed then
-            -- G.PROFILES[G.AP.profile_Id]['ap_seed'] = seed
-        -- else
-            -- if clientSeed ~= seed then
-                -- sendDebugMessage("Client and Server have different seeds")
-				-- seed_mismatch = true
-				
-				-- love.filesystem.remove(G.AP.profile_Id..'/'..'profile.jkr')
-				-- love.filesystem.remove(G.AP.profile_Id..'/'..'save.jkr')
-				-- love.filesystem.remove(G.AP.profile_Id..'/'..'meta.jkr')
-				-- love.filesystem.remove(G.AP.profile_Id..'/'..'unlock_notify.jkr')
-				-- love.filesystem.remove(G.AP.profile_Id..'')
-				-- G.SAVED_GAME = nil
-				-- G.DISCOVER_TALLIES = nil
-				-- G.PROGRESS = nil
-				-- G.PROFILES[G.AP.profile_Id] = {}
-				
-				-- G.FUNCS.APDisconnect()
-            -- end
-        -- end
 		
-		-- set profile name to slot name 
-		--G.PROFILES[G.AP.profile_Id]['name'] = G.AP['APSlot']
 		-- just to make sure it's actually loading the right profile
 		G.SETTINGS.profile = G.AP.profile_Id
 		
 		-- wrong seed will wipe the AP profile (all needed data is serverside)
 		G.FUNCS.load_profile(false)
-		
 		G.FUNCS.set_up_APProfile()
     end
 
@@ -1772,11 +1733,6 @@ G.FUNCS.load_profile = function(delete_prof_data)
 			no_delete = true,
 			func = function()
 				G:delete_run()
-				local _name = nil
-				if G.PROFILES[G.focused_profile].name and G.PROFILES[G.focused_profile].name ~= '' then
-				_name = G.PROFILES[G.focused_profile].name
-				end
-				if delete_prof_data then G.PROFILES[G.focused_profile] = {} end
 				G.DISCOVER_TALLIES = nil
 				G.PROGRESS = nil
 				G.AP.load_profile()
@@ -1803,7 +1759,7 @@ G.FUNCS.load_profile = function(delete_prof_data)
 end
 
 G.AP.load_profile = function()
-	local temp_profile = {
+	local temp_APprofile = {
 		MEMORY = {
 			deck = 'Red Deck',
 			stake = 1,
@@ -1860,7 +1816,9 @@ G.AP.load_profile = function()
 		unlocked = {}
 		}
 	}
-	G.PROFILES[G.AP.profile_Id] = temp_profile
+	G.PROFILES[G.AP.profile_Id] = temp_APprofile
+	G.PROFILES[G.AP.profile_Id].init = true
+	G.FUNCS.set_up_APProfile()
 end
 
 local CanContinueRef = G.FUNCS.can_continue

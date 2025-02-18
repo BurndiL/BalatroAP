@@ -141,6 +141,7 @@ end
 
 -- gets called when connection wants to be ended (for example when selecting non AP profile)
 G.FUNCS.APDisconnect = function()
+	if G.SETTINGS.profile == G.AP.profile_Id then G.SETTINGS.profile = 1 end
     G.APClient = nil
     collectgarbage("collect")
     unloadAPProfile = true
@@ -325,7 +326,12 @@ function Game:update(dt)
     local game_update = game_updateRef(self, dt)
     if G.APClient ~= nil then
         G.APClient:poll()
-    end
+    elseif isAPProfileLoaded() then
+		G.FUNCS.APDisconnect()
+		G.focused_profile = 1
+		G.SETTINGS.profile = 1
+		G.FUNCS.load_profile()
+	end
     return game_update
 end
 
@@ -465,7 +471,7 @@ end
 
 local game_load_profileRef = Game.load_profile
 function Game:load_profile(_profile)
-
+	print(tostring(_profile).." "..tostring(isAPProfileLoaded()).." "..tostring(G.AP.GameObjectInit))
     if unloadAPProfile then
         _profile = _profile == G.AP.profile_Id and 1 or _profile
         unloadAPProfile = false
@@ -477,9 +483,13 @@ function Game:load_profile(_profile)
         G.PROFILES[G.AP.profile_Id] = {}
         sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
     end
-
-    local game_load_profile = game_load_profileRef(self, _profile)
-
+	
+	if _profile ~= G.AP.profile_Id or not G.AP.GameObjectInit then
+		local game_load_profile = game_load_profileRef(self, _profile)
+	elseif _profile == G.AP.profile_Id and G.AP.GameObjectInit then
+		G.SETTINGS.profile = G.AP.profile_Id
+	end
+	
     local APSettings = NFS.read('APSettings.json')
 
     if APSettings ~= nil then
@@ -491,7 +501,6 @@ function Game:load_profile(_profile)
             G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
         end
     end
-
     return game_load_profile
 end
 
@@ -1295,8 +1304,9 @@ end
 -- hints in main menu
 local main_menuRef = Game.main_menu
 function Game:main_menu(change_context)
-
+	
 	if isAPProfileLoaded() then
+		
 		if self.AP.hints then
 			self.P_LOCKED = {}
 			
@@ -2386,21 +2396,25 @@ function Game:update_shop(dt)
 end
 
 -- handle profile deletion
+-- deprecated
 G.FUNCS.can_delete_AP_profile = function(e)
-    G.AP.CHECK_PROFILE_DATA = G.AP.CHECK_PROFILE_DATA or NFS.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
-    if (not G.AP.CHECK_PROFILE_DATA) or e.config.disable_button or
-        (G.APClient and G.APClient:get_state() == AP.State.SOCKET_CONNECTING) then
-        G.AP.CHECK_PROFILE_DATA = false
-        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
-        e.config.button = nil
-    else
-        e.config.colour = G.C.RED
-        e.config.button = 'delete_AP_profile'
-    end
+	e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+    e.config.button = nil
+    -- G.AP.CHECK_PROFILE_DATA = G.AP.CHECK_PROFILE_DATA or NFS.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
+    -- if (not G.AP.CHECK_PROFILE_DATA) or e.config.disable_button or
+        -- (G.APClient and G.APClient:get_state() == AP.State.SOCKET_CONNECTING) then
+        -- G.AP.CHECK_PROFILE_DATA = false
+        -- e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        -- e.config.button = nil
+    -- else
+        -- e.config.colour = G.C.RED
+        -- e.config.button = 'delete_AP_profile'
+    -- end
 end
 
 G.FUNCS.delete_AP_profile = function(e)
     if ap_profile_delete then
+		local was_connected = isAPProfileLoaded()
         G.FUNCS.APDisconnect()
         ap_profile_delete = false
         G.E_MANAGER:add_event(Event({
@@ -2415,7 +2429,6 @@ G.FUNCS.delete_AP_profile = function(e)
     G.FUNCS.delete_profile(e)
     ap_profile_delete = true
     G.AP.CHECK_PROFILE_DATA = nil
-
 end
 
 local exit_overlay_menuRef = G.FUNCS.exit_overlay_menu
