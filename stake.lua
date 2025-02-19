@@ -1,33 +1,29 @@
-G.FUNCS.AP_unlock_stake = function(stake_name)
+G.FUNCS.AP_unlock_stake = function(stake_name, notify)
     for k, v in ipairs(G.P_CENTER_POOLS.Stake) do
         if (v.name == stake_name) then
             G.PROFILES[G.AP.profile_Id].stake_unlocks[k] = true
             v.unlocked = true
             if G.AP.StakesInit then
-                notify_alert(G.P_CENTER_POOLS.Stake[k].key, 'Stake')
+                if notify then notify_alert(G.P_CENTER_POOLS.Stake[k].key, 'Stake') end
             end
 
         end
     end
 end
 
-G.FUNCS.AP_unlock_stake_per_deck = function(stake_key, deck_key)
+G.FUNCS.AP_unlock_stake_per_deck = function(stake_key, deck_key, notify)
     for k, v in ipairs(G.P_CENTER_POOLS.Stake) do
         if stake_key == nil then
             sendDebugMessage("stake_key is nil, this is bad!")
         end
-
-        if G.PROFILES[G.AP.profile_Id].deck_usage[deck_key] == nil then
-            sendDebugMessage("deck_usage is nil, this is bad!")
-        end
-
+		
         -- check for existence of the deck_usage to avoid crashes when the key is blank
         if (v.key == stake_key) and G.PROFILES[G.AP.profile_Id].deck_usage[deck_key] then
 
-            G.PROFILES[G.AP.profile_Id].deck_usage[deck_key].stake_unlocks[k] = true
+            G.PROFILES[G.AP.profile_Id].deck_stake[deck_key][k] = true
 
             if G.AP.StakesInit then
-                notify_alert(stake_key .. deck_key, 'BackStake')
+                if notify then notify_alert(stake_key .. deck_key, 'BackStake') end
             end
 
         end
@@ -345,9 +341,9 @@ function check_stake_unlock(_stake, _deck_key)
     -- (stakes are unlocked if their entry in deck_usage.stake_unlocks exists and is true)
     -- stakes are items for each deck; the decks themselves are not items
     if tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.stake_as_item_per_deck then
-        if G.PROFILES[G.SETTINGS.profile].deck_usage and G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key] and
-            G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks then
-            return G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks[_stake] or false
+        if G.PROFILES[G.SETTINGS.profile].deck_stake and G.PROFILES[G.SETTINGS.profile].deck_stake[_deck_key] and
+            G.PROFILES[G.SETTINGS.profile].deck_stake[_deck_key] then
+            return G.PROFILES[G.SETTINGS.profile].deck_stake[_deck_key][_stake] or false
         end
 
     end
@@ -787,10 +783,47 @@ function set_deck_win()
             set_challenge_unlock()
             G:save_settings()
 			G.AP.server_save_decks()
+			G.AP.server_save_jokers()
         end
     else
         return set_deck_winRef()
     end
+end
+
+-- Joker stickers!
+local joker_win_Ref = set_joker_win
+function set_joker_win()
+	if isAPProfileLoaded() then
+		for k, v in pairs(G.jokers.cards) do
+			if v.config.center_key and v.ability.set == 'Joker' then
+			G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key] = G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key] or {count = 1, order = v.config.center.order, wins = {}, losses = {}}
+				if G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key] then
+					G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key].wins = G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key].wins or {}
+					G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key].wins[G.GAME.stake] = (G.PROFILES[G.SETTINGS.profile].joker_usage[v.config.center_key].wins[G.GAME.stake] or 0) + 1
+				end
+			end
+		end
+		G:save_settings()
+	else
+		return joker_win_Ref()
+	end
+end
+
+local joker_sticker_Ref = get_joker_win_sticker
+function get_joker_win_sticker(_center, index)
+	if isAPProfileLoaded() then
+		if G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key] and G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins then 
+			local _w = 0
+			for k, v in pairs(G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins) do
+			_w = math.max(G.P_CENTER_POOLS.Stake[k] and G.P_CENTER_POOLS.Stake[k].stake_level or 0, _w)
+			end
+			if index then return _w end
+			if _w > 0 then return G.sticker_map[_w] end
+		end
+		if index then return 0 end
+	else
+		return joker_sticker_Ref(_center, index)
+	end
 end
 
 -- custom stake application cus yay

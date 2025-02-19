@@ -514,7 +514,12 @@ function APConnect()
         print("Socket error: " .. msg)
         connection_attempts = connection_attempts + 1
         if connection_attempts >= 3 then
-            G.FUNCS.APDisconnect()
+			if not isAPProfileLoaded() then
+				G.FUNCS.APDisconnect()
+				unloadAPProfile = false
+			else
+				G.APClient = nil
+			end
         end
     end
 
@@ -544,51 +549,12 @@ function APConnect()
         end
 
         G.APClient:ConnectUpdate(nil, tags)
-        -- print("Players:")
-        -- local players = G.APClient:get_players()
-        -- for _, player in ipairs(players) do
-        --     print("  " .. tostring(player.slot) .. ": " .. player.name .. " playing " ..
-        --               G.APClient:get_player_game(player.slot))
-        -- end
-
-        local seed = G.APClient:get_seed()
-		local seed_mismatch = false
-        local clientSeed = nil
-        local info = get_compressed(G.AP.profile_Id .. '/profile.jkr')
-        if info then
-            local unpacked = STR_UNPACK(info)
-            clientSeed = unpacked['ap_seed']
-        end
-
-        if not clientSeed then
-            G.PROFILES[G.AP.profile_Id]['ap_seed'] = seed
-        else
-            if clientSeed ~= seed then
-                sendDebugMessage("Client and Server have different seeds")
-				seed_mismatch = true
-				
-				love.filesystem.remove(G.AP.profile_Id..'/'..'profile.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'/'..'save.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'/'..'meta.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'/'..'unlock_notify.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'')
-				G.SAVED_GAME = nil
-				G.DISCOVER_TALLIES = nil
-				G.PROGRESS = nil
-				G.PROFILES[G.AP.profile_Id] = {}
-				
-				G.FUNCS.APDisconnect()
-            end
-        end
 		
-		-- set profile name to slot name 
-		G.PROFILES[G.AP.profile_Id]['name'] = G.AP['APSlot']
 		-- just to make sure it's actually loading the right profile
 		G.SETTINGS.profile = G.AP.profile_Id
 		
 		-- wrong seed will wipe the AP profile (all needed data is serverside)
-		G.FUNCS.load_profile(seed_mismatch)
-		
+		G.FUNCS.load_profile(false)
 		G.FUNCS.set_up_APProfile()
     end
 
@@ -599,6 +565,7 @@ function APConnect()
     function on_items_received(items)
         print("Items received:")
         for _, item in ipairs(items) do
+			local notify = #items == 1 
             local item_id = item.item - G.AP.id_offset
             local item_key = G.APItems[item.item]
 			
@@ -686,7 +653,7 @@ function APConnect()
 					}
 				end
 
-				G.FUNCS.AP_unlock_item(item)
+				G.FUNCS.AP_unlock_item(item, notify)
 			end
 			end
 
@@ -762,7 +729,7 @@ function APConnect()
                                 ease_discard(1)
                             end
 
-                            notify_alert('op_discard', "Bonus")
+                            if notify then notify_alert('op_discard', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusdiscards",
@@ -779,7 +746,7 @@ function APConnect()
                                 ease_dollars(1, true)
                             end
 
-                            notify_alert('op_money', "Bonus")
+                            if notify then notify_alert('op_money', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusstartingmoney",
@@ -797,7 +764,7 @@ function APConnect()
                                 ease_hands_played(1)
                             end
 
-                            notify_alert('op_hand', "Bonus")
+                            if notify then notify_alert('op_hand', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonushands",
@@ -813,7 +780,7 @@ function APConnect()
                                 G.hand:change_size(1)
                             end
 
-                            notify_alert('op_hand_size', "Bonus")
+                            if notify then notify_alert('op_hand_size', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonushandsize",
@@ -834,7 +801,7 @@ function APConnect()
                                 }))
                             end
 
-                            notify_alert('op_interest', "Bonus")
+                            if notify then notify_alert('op_interest', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "maxinterest",
@@ -857,7 +824,7 @@ function APConnect()
                                 }))
                             end
 
-                            notify_alert('op_joker_slot', "Bonus")
+                            if notify then notify_alert('op_joker_slot', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusjoker",
@@ -878,7 +845,7 @@ function APConnect()
                                 }))
                             end
 
-                            notify_alert('op_consum_slot', "Bonus")
+                            if notify then notify_alert('op_consum_slot', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusconsumable",
@@ -893,7 +860,7 @@ function APConnect()
                             local amount = math.random(3, 8)
                             ease_dollars(amount)
 
-                            notify_alert('fill_money', "Bonus")
+                            if notify then notify_alert('fill_money', "Bonus") end
                         end
                     elseif item_id == 311 then
                         -- receive random Joker (must be during a game)
@@ -915,7 +882,7 @@ function APConnect()
                                 }
                             end
 
-                            notify_alert('fill_buffoon', "Bonus")
+                           if notify then notify_alert('fill_buffoon', "Bonus") end
                         end
                     elseif item_id == 312 then
                         -- receive random consumable (must be during a game)
@@ -954,7 +921,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_juggle', "Bonus")
+                            if notify then notify_alert('fill_juggle', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -975,7 +942,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_d_six', "Bonus")
+                            if notify then notify_alert('fill_d_six', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -996,7 +963,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_uncommon', "Bonus")
+                            if notify then notify_alert('fill_uncommon', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1017,7 +984,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_rare', "Bonus")
+                            if notify then notify_alert('fill_rare', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1038,7 +1005,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_negative', "Bonus")
+                            if notify then notify_alert('fill_negative', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1059,7 +1026,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_foil', "Bonus")
+                            if notify then notify_alert('fill_foil', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1080,7 +1047,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_holo', "Bonus")
+                            if notify then notify_alert('fill_holo', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1101,7 +1068,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_poly', "Bonus")
+                            if notify then notify_alert('fill_poly', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1122,7 +1089,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_double', "Bonus")
+                            if notify then notify_alert('fill_double', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1139,33 +1106,33 @@ function APConnect()
                     if (item_id == 330) then
                         -- Lose All Money
                         ease_dollars(-G.GAME.dollars, true)
-                        notify_alert("t_money", "Trap")
+                        if notify then notify_alert("t_money", "Trap") end
 
                     elseif (item_id == 331) then
                         -- Lose 1 Discard
                         ease_discard(-1)
-                        notify_alert("t_discard", "Trap")
+                        if notify then notify_alert("t_discard", "Trap") end
                     elseif item_id == 332 then
                         -- Lose 1 Hand
                         ease_hands_played(-1)
-                        notify_alert("t_hand", "Trap")
+                        if notify then notify_alert("t_hand", "Trap") end
                     elseif item_id == 333 then
                         -- make joker perishable
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_perishable(true)
-                            notify_alert("t_perishable", "Trap")
+                            if notify then notify_alert("t_perishable", "Trap") end
                         end
                     elseif item_id == 334 then
                         -- make joker eternal
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_eternal(true)
-                            notify_alert("t_eternal", "Trap")
+                            if notify then notify_alert("t_eternal", "Trap") end
                         end
                     elseif item_id == 335 then
                         -- make joker rental
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_rental(true)
-                            notify_alert("t_rental", "Trap")
+                            if notify then notify_alert("t_rental", "Trap") end
                         end
                     end
 
@@ -1287,7 +1254,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('White Stake')
+                                G.FUNCS.AP_unlock_stake('White Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'White Stake'
                             end
@@ -1298,7 +1265,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Red Stake')
+                                G.FUNCS.AP_unlock_stake('Red Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Red Stake'
                             end
@@ -1309,7 +1276,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Green Stake')
+                                G.FUNCS.AP_unlock_stake('Green Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Green Stake'
                             end
@@ -1320,7 +1287,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Black Stake')
+                                G.FUNCS.AP_unlock_stake('Black Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Black Stake'
                             end
@@ -1331,7 +1298,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Blue Stake')
+                                G.FUNCS.AP_unlock_stake('Blue Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Blue Stake'
                             end
@@ -1342,7 +1309,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Purple Stake')
+                                G.FUNCS.AP_unlock_stake('Purple Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Purple Stake'
                             end
@@ -1353,7 +1320,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Orange Stake')
+                                G.FUNCS.AP_unlock_stake('Orange Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Orange Stake'
                             end
@@ -1364,7 +1331,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Gold Stake')
+                                G.FUNCS.AP_unlock_stake('Gold Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Gold Stake'
                             end
@@ -1486,7 +1453,7 @@ function APConnect()
                     end
 
                     if (G.AP.StakesInit) then
-                        G.FUNCS.AP_unlock_stake_per_deck(stake_name, deck_name)
+                        G.FUNCS.AP_unlock_stake_per_deck(stake_name, deck_name, notify)
                     else
                         G.AP.StakeQueue[#G.AP.StakeQueue + 1] = {
                             stake = stake_name,
@@ -1581,18 +1548,26 @@ function APConnect()
         sendDebugMessage("Retrieved:")
         -- since lua tables won't contain nil values, we can use keys array
         for _, key in ipairs(keys) do
-		
-			if key == "balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
-				G.PROFILES[G.SETTINGS.profile].deck_usage = map[key]
-				if G.AP.goal ~= 4 then
-					G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
-				end
-			end
 			
-			if key == "balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
-				G.PROFILES[G.SETTINGS.profile].joker_usage = map[key]
-				if G.AP.goal == 4 then
-					G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+			if isAPProfileLoaded() then
+				if key == "balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
+					G.PROFILES[G.SETTINGS.profile].deck_usage = map[key]
+					
+					if G.AP.goal ~= 4 then
+						G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+					end
+				end
+				
+				if key == "balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
+					G.PROFILES[G.SETTINGS.profile].joker_usage = map[key]
+					if G.AP.goal == 4 then
+						G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+					end
+				end 
+				
+				if key == "balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'string' then 
+					local decompressed_save = STR_UNPACK(map[key])
+					G.SAVED_GAME = decompressed_save
 				end
 			end
 			
@@ -1754,6 +1729,140 @@ function G.AP.make_hint_step(i, hint)
 	G.SETTINGS.paused = temp_pause
 end
 
+local LoadProfileHook = G.FUNCS.load_profile
+G.FUNCS.load_profile = function(delete_prof_data)
+	if isAPProfileSelected() and not isAPProfileLoaded() then
+		G.SAVED_GAME = nil
+		G.E_MANAGER:clear_queue()
+		G.FUNCS.wipe_on()
+		G.E_MANAGER:add_event(Event({
+			no_delete = true,
+			func = function()
+				G:delete_run()
+				G.DISCOVER_TALLIES = nil
+				G.PROGRESS = nil
+				G.AP.load_profile()
+				G:init_item_prototypes()
+				return true
+			end
+		}))
+		
+		G.E_MANAGER:add_event(Event({
+			no_delete = true,
+			blockable = true, 
+			blocking = false,
+			func = function()
+				G:main_menu()
+				G.FILE_HANDLER.force = true
+				return true
+			end
+		}))
+		
+		G.FUNCS.wipe_off()
+	else
+		LoadProfileHook(delete_prof_data)
+	end
+end
+
+G.AP.load_profile = function()
+	local temp_APprofile = {
+		MEMORY = {
+			deck = 'Red Deck',
+			stake = 1,
+		},
+		stake = 1,
+		name = G.AP['APSlot'],
+		Archipelago = true,
+		high_scores = {
+			hand = {label = 'Best Hand', amt = 0},
+			furthest_round = {label = 'Highest Round', amt = 0},
+			furthest_ante = {label = 'Highest Ante', amt = 0},
+			most_money = {label = 'Most Money', amt = 0},
+			boss_streak = {label = 'Most Bosses in a Row', amt = 0},
+			collection = {label = 'Collection', amt = 0, tot = 1},
+			win_streak = {label = 'Best Win Streak', amt = 0},
+			current_streak = {label = '', amt = 0},
+			poker_hand = {label = 'Most Played Hand', amt = 0}
+		},
+
+		career_stats = {
+			c_round_interest_cap_streak = 0,
+			c_dollars_earned = 0,
+			c_shop_dollars_spent = 0,
+			c_tarots_bought = 0,
+			c_planets_bought = 0,
+			c_playing_cards_bought = 0,
+			c_vouchers_bought = 0,
+			c_tarot_reading_used = 0,
+			c_planetarium_used = 0,
+			c_shop_rerolls = 0,
+			c_cards_played = 0,
+			c_cards_discarded = 0,
+			c_losses = 0,
+			c_wins = 0,
+			c_rounds = 0,
+			c_hands_played = 0,
+			c_face_cards_played = 0,
+			c_jokers_sold = 0,
+			c_cards_sold = 0,
+			c_single_hand_round_streak = 0,
+		},
+		progress = {
+
+		},
+		joker_usage = {},
+		consumeable_usage = {},
+		voucher_usage = {},
+		hand_usage = {},
+		deck_usage = {},
+		deck_stakes = {},
+		challenges_unlocked = nil,
+		challenge_progress = {
+		completed = {},
+		unlocked = {}
+		}
+	}
+	G.PROFILES[G.AP.profile_Id] = temp_APprofile
+	G.PROFILES[G.AP.profile_Id].init = true
+	G.FUNCS.set_up_APProfile()
+end
+
+local CanContinueRef = G.FUNCS.can_continue
+G.FUNCS.can_continue = function(e)
+	if isAPProfileLoaded() then
+		if e.config.func then
+			local _can_continue = nil
+			
+			if G.SAVED_GAME and G.SAVED_GAME.GAME then
+				if G.SAVED_GAME.GAME.ap_seed == G.APClient:get_seed() and
+				G.SAVED_GAME.GAME.ap_jokers_removed == AreJokersRemoved() and
+				G.SAVED_GAME.GAME.ap_consums_removed == AreConsumablesRemoved() and
+				G.SAVED_GAME.GAME.ap_modded_items == G.AP.this_mod.config.modded then
+					_can_continue = true
+				end
+			end
+			
+			e.config.func = nil
+			
+			if not _can_continue then
+				e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+				e.config.button = nil
+			end
+			
+			return _can_continue
+		end
+	else
+		return CanContinueRef(e)
+	end
+end
+
+local remove_saveRef = remove_save
+function remove_save()
+	if isAPProfileLoaded() then
+		G.AP.server_save_run(nil)
+	end
+	return remove_saveRef()
+end
 
 G.AP.server_save_decks = function()
 	if G.PROFILES[G.SETTINGS.profile].deck_usage then
@@ -1767,7 +1876,13 @@ G.AP.server_save_jokers = function()
 	end
 end
 
+G.AP.server_save_run = function(data)
+	local compressed_save = data and STR_PACK(data) or nil
+	G.APClient:Set("balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id), {}, false, {{'replace', compressed_save}})
+end
+
 G.AP.server_load = function()
 	G.APClient:Get({"balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
 	G.APClient:Get({"balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
+	G.APClient:Get({"balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
 end

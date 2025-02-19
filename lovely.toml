@@ -10,5 +10,17 @@ priority = 0
 target = '=[SMODS _ "src/utils.lua"]'
 pattern = '''function convert_save_data()'''
 position = "after"
-payload = '''if G.PROFILES[G.SETTINGS.profile].ap_seed then return nil end'''
+payload = '''if isAPProfileLoaded and isAPProfileLoaded() then return nil end'''
+match_indent=true
+
+# save run serverside
+[[patches]]
+[patches.pattern]
+target = 'game.lua'
+pattern = '''if G.FILE_HANDLER.run then'''
+position = "after"
+payload = '''if isAPProfileLoaded() then 
+	G.AP.server_save_run(G.ARGS.save_run) 
+	G.SAVED_GAME = G.ARGS.save_run
+end'''
 match_indent=true
