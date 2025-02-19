@@ -140,18 +140,21 @@ G.FUNCS.APConnect = function(e)
 end
 
 -- gets called when connection wants to be ended (for example when selecting non AP profile)
-G.FUNCS.APDisconnect = function()
-	if G.SETTINGS.profile == G.AP.profile_Id then G.SETTINGS.profile = 1 end
+G.FUNCS.APDisconnect = function(sanity_check)
     G.APClient = nil
     collectgarbage("collect")
     unloadAPProfile = true
     standard_deck = nil
 	G.E_MANAGER.queues.ap_hints = nil
+	G.AP.GameObjectInit = false
 	G.AP.Spectral = {
 		item = nil,
 		active = false,
 		item_detected = false
 	}
+	if sanity_check then
+		if G.SETTINGS.profile == G.AP.profile_Id then G.SETTINGS.profile = 1 end
+	end
 end
 
 -- Initialize AP Buffs
@@ -1341,6 +1344,15 @@ function Game:main_menu(change_context)
 		end
 		
 	end
+	
+	G.E_MANAGER:add_event(Event({
+		func = function()
+			if G.APClient and not isAPProfileLoaded() then
+				G.APClient = nil
+			end
+			return true
+		end
+	}))
 end
 
 
@@ -2108,6 +2120,7 @@ G.AP.location_seen = function(id)
 end
 
 function get_tarot_location(_pool_length)
+	if not G.APClient then return nil end
 	if G.AP.slot_data["consumable_pool_locations"] then
         local valid_locations = {}
         local all_locations = G.AP.slot_data["consumable_pool_locations"]
@@ -2449,9 +2462,8 @@ end
 local load_profile_funcRef = G.FUNCS.load_profile
 
 G.FUNCS.load_profile = function(delete_prof_data)
-    if isAPProfileLoaded() and not isAPProfileSelected() and G.APClient ~= nil then
-        G.FUNCS.APDisconnect()
-        G.AP.GameObjectInit = false
+    if G.AP.GameObjectInit and G.APClient ~= nil then
+        G.FUNCS.APDisconnect(true)
     end
     ap_profile_delete = false
     return load_profile_funcRef(delete_prof_data)

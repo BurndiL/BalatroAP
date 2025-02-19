@@ -514,7 +514,12 @@ function APConnect()
         print("Socket error: " .. msg)
         connection_attempts = connection_attempts + 1
         if connection_attempts >= 3 then
-            G.FUNCS.APDisconnect()
+			if not isAPProfileLoaded() then
+				G.FUNCS.APDisconnect()
+				unloadAPProfile = false
+			else
+				G.APClient = nil
+			end
         end
     end
 
