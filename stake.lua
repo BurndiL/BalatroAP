@@ -1,33 +1,29 @@
-G.FUNCS.AP_unlock_stake = function(stake_name)
+G.FUNCS.AP_unlock_stake = function(stake_name, notify)
     for k, v in ipairs(G.P_CENTER_POOLS.Stake) do
         if (v.name == stake_name) then
             G.PROFILES[G.AP.profile_Id].stake_unlocks[k] = true
             v.unlocked = true
             if G.AP.StakesInit then
-                notify_alert(G.P_CENTER_POOLS.Stake[k].key, 'Stake')
+                if notify then notify_alert(G.P_CENTER_POOLS.Stake[k].key, 'Stake') end
             end
 
         end
     end
 end
 
-G.FUNCS.AP_unlock_stake_per_deck = function(stake_key, deck_key)
+G.FUNCS.AP_unlock_stake_per_deck = function(stake_key, deck_key, notify)
     for k, v in ipairs(G.P_CENTER_POOLS.Stake) do
         if stake_key == nil then
             sendDebugMessage("stake_key is nil, this is bad!")
         end
-
-        if G.PROFILES[G.AP.profile_Id].deck_usage[deck_key] == nil then
-            sendDebugMessage("deck_usage is nil, this is bad!")
-        end
-
+		
         -- check for existence of the deck_usage to avoid crashes when the key is blank
         if (v.key == stake_key) and G.PROFILES[G.AP.profile_Id].deck_usage[deck_key] then
 
-            G.PROFILES[G.AP.profile_Id].deck_usage[deck_key].stake_unlocks[k] = true
+            G.PROFILES[G.AP.profile_Id].deck_stake[deck_key][k] = true
 
             if G.AP.StakesInit then
-                notify_alert(stake_key .. deck_key, 'BackStake')
+                if notify then notify_alert(stake_key .. deck_key, 'BackStake') end
             end
 
         end
@@ -345,9 +341,9 @@ function check_stake_unlock(_stake, _deck_key)
     -- (stakes are unlocked if their entry in deck_usage.stake_unlocks exists and is true)
     -- stakes are items for each deck; the decks themselves are not items
     if tonumber(G.AP.slot_data.stake_unlock_mode) == G.AP.stake_unlock_modes.stake_as_item_per_deck then
-        if G.PROFILES[G.SETTINGS.profile].deck_usage and G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key] and
-            G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks then
-            return G.PROFILES[G.SETTINGS.profile].deck_usage[_deck_key].stake_unlocks[_stake] or false
+        if G.PROFILES[G.SETTINGS.profile].deck_stake and G.PROFILES[G.SETTINGS.profile].deck_stake[_deck_key] and
+            G.PROFILES[G.SETTINGS.profile].deck_stake[_deck_key] then
+            return G.PROFILES[G.SETTINGS.profile].deck_stake[_deck_key][_stake] or false
         end
 
     end

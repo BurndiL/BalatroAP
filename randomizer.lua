@@ -471,7 +471,7 @@ end
 
 local game_load_profileRef = Game.load_profile
 function Game:load_profile(_profile)
-	print(tostring(_profile).." "..tostring(isAPProfileLoaded()).." "..tostring(G.AP.GameObjectInit))
+	-- print(tostring(_profile).." "..tostring(isAPProfileLoaded()).." "..tostring(G.AP.GameObjectInit))
     if unloadAPProfile then
         _profile = _profile == G.AP.profile_Id and 1 or _profile
         unloadAPProfile = false
@@ -672,10 +672,14 @@ function Game:init_item_prototypes()
                 -- if not G.PROFILES[G.AP.profile_Id].deck_usage[k].losses_by_key then
                     -- G.PROFILES[G.AP.profile_Id].deck_usage[k].losses_by_key = {}
                 -- end
-                if not G.PROFILES[G.AP.profile_Id].deck_usage[k].stake_unlocks then
-                    G.PROFILES[G.AP.profile_Id].deck_usage[k].stake_unlocks = {}
+				if not G.PROFILES[G.AP.profile_Id].deck_stake then
+					G.PROFILES[G.AP.profile_Id].deck_stake = {}
+				end
+				
+                if not G.PROFILES[G.AP.profile_Id].deck_stake[k] then
+                    G.PROFILES[G.AP.profile_Id].deck_stake[k] = {}
                     for i = 1, 8, 1 do
-                        G.PROFILES[G.AP.profile_Id].deck_usage[k].stake_unlocks[i] = false
+                        G.PROFILES[G.AP.profile_Id].deck_stake[k][i] = false
                     end
                 end
 

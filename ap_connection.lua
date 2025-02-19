@@ -724,7 +724,7 @@ function APConnect()
                                 ease_discard(1)
                             end
 
-                            notify_alert('op_discard', "Bonus")
+                            if notify then notify_alert('op_discard', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusdiscards",
@@ -741,7 +741,7 @@ function APConnect()
                                 ease_dollars(1, true)
                             end
 
-                            notify_alert('op_money', "Bonus")
+                            if notify then notify_alert('op_money', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusstartingmoney",
@@ -759,7 +759,7 @@ function APConnect()
                                 ease_hands_played(1)
                             end
 
-                            notify_alert('op_hand', "Bonus")
+                            if notify then notify_alert('op_hand', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonushands",
@@ -775,7 +775,7 @@ function APConnect()
                                 G.hand:change_size(1)
                             end
 
-                            notify_alert('op_hand_size', "Bonus")
+                            if notify then notify_alert('op_hand_size', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonushandsize",
@@ -796,7 +796,7 @@ function APConnect()
                                 }))
                             end
 
-                            notify_alert('op_interest', "Bonus")
+                            if notify then notify_alert('op_interest', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "maxinterest",
@@ -819,7 +819,7 @@ function APConnect()
                                 }))
                             end
 
-                            notify_alert('op_joker_slot', "Bonus")
+                            if notify then notify_alert('op_joker_slot', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusjoker",
@@ -840,7 +840,7 @@ function APConnect()
                                 }))
                             end
 
-                            notify_alert('op_consum_slot', "Bonus")
+                            if notify then notify_alert('op_consum_slot', "Bonus") end
                         else
                             G.AP.BonusQueue[#G.AP.BonusQueue + 1] = {
                                 type = "bonusconsumable",
@@ -855,7 +855,7 @@ function APConnect()
                             local amount = math.random(3, 8)
                             ease_dollars(amount)
 
-                            notify_alert('fill_money', "Bonus")
+                            if notify then notify_alert('fill_money', "Bonus") end
                         end
                     elseif item_id == 311 then
                         -- receive random Joker (must be during a game)
@@ -877,7 +877,7 @@ function APConnect()
                                 }
                             end
 
-                            notify_alert('fill_buffoon', "Bonus")
+                           if notify then notify_alert('fill_buffoon', "Bonus") end
                         end
                     elseif item_id == 312 then
                         -- receive random consumable (must be during a game)
@@ -916,7 +916,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_juggle', "Bonus")
+                            if notify then notify_alert('fill_juggle', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -937,7 +937,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_d_six', "Bonus")
+                            if notify then notify_alert('fill_d_six', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -958,7 +958,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_uncommon', "Bonus")
+                            if notify then notify_alert('fill_uncommon', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -979,7 +979,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_rare', "Bonus")
+                            if notify then notify_alert('fill_rare', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1000,7 +1000,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_negative', "Bonus")
+                            if notify then notify_alert('fill_negative', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1021,7 +1021,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_foil', "Bonus")
+                            if notify then notify_alert('fill_foil', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1042,7 +1042,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_holo', "Bonus")
+                            if notify then notify_alert('fill_holo', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1063,7 +1063,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_poly', "Bonus")
+                            if notify then notify_alert('fill_poly', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1084,7 +1084,7 @@ function APConnect()
                                     return true
                                 end)
                             }))
-                            notify_alert('fill_double', "Bonus")
+                            if notify then notify_alert('fill_double', "Bonus") end
 
                             -- spectral gimmick
                             if G.AP.Spectral.active == true and not G.AP.Spectral.item then
@@ -1101,33 +1101,33 @@ function APConnect()
                     if (item_id == 330) then
                         -- Lose All Money
                         ease_dollars(-G.GAME.dollars, true)
-                        notify_alert("t_money", "Trap")
+                        if notify then notify_alert("t_money", "Trap") end
 
                     elseif (item_id == 331) then
                         -- Lose 1 Discard
                         ease_discard(-1)
-                        notify_alert("t_discard", "Trap")
+                        if notify then notify_alert("t_discard", "Trap") end
                     elseif item_id == 332 then
                         -- Lose 1 Hand
                         ease_hands_played(-1)
-                        notify_alert("t_hand", "Trap")
+                        if notify then notify_alert("t_hand", "Trap") end
                     elseif item_id == 333 then
                         -- make joker perishable
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_perishable(true)
-                            notify_alert("t_perishable", "Trap")
+                            if notify then notify_alert("t_perishable", "Trap") end
                         end
                     elseif item_id == 334 then
                         -- make joker eternal
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_eternal(true)
-                            notify_alert("t_eternal", "Trap")
+                            if notify then notify_alert("t_eternal", "Trap") end
                         end
                     elseif item_id == 335 then
                         -- make joker rental
                         if G.jokers and #G.jokers.cards > 0 then
                             G.jokers.cards[math.random(#G.jokers.cards)]:set_rental(true)
-                            notify_alert("t_rental", "Trap")
+                            if notify then notify_alert("t_rental", "Trap") end
                         end
                     end
 
@@ -1249,7 +1249,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('White Stake')
+                                G.FUNCS.AP_unlock_stake('White Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'White Stake'
                             end
@@ -1260,7 +1260,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Red Stake')
+                                G.FUNCS.AP_unlock_stake('Red Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Red Stake'
                             end
@@ -1271,7 +1271,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Green Stake')
+                                G.FUNCS.AP_unlock_stake('Green Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Green Stake'
                             end
@@ -1282,7 +1282,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Black Stake')
+                                G.FUNCS.AP_unlock_stake('Black Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Black Stake'
                             end
@@ -1293,7 +1293,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Blue Stake')
+                                G.FUNCS.AP_unlock_stake('Blue Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Blue Stake'
                             end
@@ -1304,7 +1304,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Purple Stake')
+                                G.FUNCS.AP_unlock_stake('Purple Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Purple Stake'
                             end
@@ -1315,7 +1315,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Orange Stake')
+                                G.FUNCS.AP_unlock_stake('Orange Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Orange Stake'
                             end
@@ -1326,7 +1326,7 @@ function APConnect()
                         if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                             G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                             if (G.AP.StakesInit) then
-                                G.FUNCS.AP_unlock_stake('Gold Stake')
+                                G.FUNCS.AP_unlock_stake('Gold Stake', notify)
                             else
                                 G.AP.StakeQueue[#G.AP.StakeQueue + 1] = 'Gold Stake'
                             end
@@ -1448,7 +1448,7 @@ function APConnect()
                     end
 
                     if (G.AP.StakesInit) then
-                        G.FUNCS.AP_unlock_stake_per_deck(stake_name, deck_name)
+                        G.FUNCS.AP_unlock_stake_per_deck(stake_name, deck_name, notify)
                     else
                         G.AP.StakeQueue[#G.AP.StakeQueue + 1] = {
                             stake = stake_name,
@@ -1547,6 +1547,7 @@ function APConnect()
 			if isAPProfileLoaded() then
 				if key == "balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
 					G.PROFILES[G.SETTINGS.profile].deck_usage = map[key]
+					
 					if G.AP.goal ~= 4 then
 						G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
 					end
