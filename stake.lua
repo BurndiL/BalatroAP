@@ -815,7 +815,7 @@ function get_joker_win_sticker(_center, index)
 		if G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key] and G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins then 
 			local _w = 0
 			for k, v in pairs(G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins) do
-			_w = math.max(G.P_CENTER_POOLS.Stake[k].stake_level, _w)
+			_w = math.max(G.P_CENTER_POOLS.Stake[k] and G.P_CENTER_POOLS.Stake[k].stake_level or 0, _w)
 			end
 			if index then return _w end
 			if _w > 0 then return G.sticker_map[_w] end
