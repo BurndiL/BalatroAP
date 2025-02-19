@@ -1872,7 +1872,7 @@ G.AP.server_save_jokers = function()
 end
 
 G.AP.server_save_run = function(data)
-	local compressed_save = STR_PACK(data)
+	local compressed_save = data and STR_PACK(data) or nil
 	G.APClient:Set("balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id), {}, false, {{'replace', compressed_save}})
 end
 
