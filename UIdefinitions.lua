@@ -318,6 +318,7 @@ function G.FUNCS.go_to_ap_tab()
 	if G.AP.profile_Id == -1 then
         G.AP.profile_Id = #G.PROFILES + 1
         G.PROFILES[G.AP.profile_Id] = {}
+		delete_ap_profile()
         sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
 		
 		-- load data to avoid resetting the text inputs
@@ -719,7 +720,16 @@ end
 local Cardgenerate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
 function Card:generate_UIBox_ability_table()
     if isAPProfileLoaded() then
-	
+		if not G.localization.descriptions.Other.debuffed_default_b or 
+		not G.localization.descriptions.Other.debuffed_default_b.text_parsed then
+			G.localization.descriptions.Other.debuffed_default_b = {}
+			G.localization.descriptions.Other.debuffed_default_b.text_parsed = {}
+			for k, v in pairs(G.localization.descriptions.Other.debuffed_default.text) do
+				G.localization.descriptions.Other.debuffed_default_b.text = v
+				G.localization.descriptions.Other.debuffed_default_b.text_parsed[k] = loc_parse_string(v)
+			end
+		end
+		
 		local _has_hint = false
 		if ((G.your_collection and tableContains(G.your_collection, self.area)) or self.area == G.title_top) and G.AP.hints then
 			if((self.debuff and self.config.center.ap_unlocked == false) or self.config.center.unlocked == false) then
@@ -738,15 +748,6 @@ function Card:generate_UIBox_ability_table()
 					if target_text and target_text ~= {} then
 						
 						if self.debuff then 
-							if not G.localization.descriptions.Other.debuffed_default_b or 
-							not G.localization.descriptions.Other.debuffed_default_b.text_parsed then
-								G.localization.descriptions.Other.debuffed_default_b = {}
-								G.localization.descriptions.Other.debuffed_default_b.text_parsed = {}
-								for k, v in pairs(G.localization.descriptions.Other.debuffed_default.text) do
-									G.localization.descriptions.Other.debuffed_default_b.text_parsed[k] = loc_parse_string(v)
-								end
-							end
-							
 							G.localization.descriptions.Other.debuffed_default.text_parsed = target_text
 						else
 							G.localization.descriptions.Other.wip_locked.text_parsed = target_text
@@ -779,15 +780,6 @@ function Card:generate_UIBox_ability_table()
 		end
 		
         if self.debuff then -- debuff
-			if not G.localization.descriptions.Other.debuffed_default_b or 
-			not G.localization.descriptions.Other.debuffed_default_b.text_parsed then
-				G.localization.descriptions.Other.debuffed_default_b = {}
-				G.localization.descriptions.Other.debuffed_default_b.text_parsed = {}
-				for k, v in pairs(G.localization.descriptions.Other.debuffed_default.text) do
-					G.localization.descriptions.Other.debuffed_default_b.text_parsed[k] = loc_parse_string(v)
-				end
-			end
-			
             if self.config.center.ap_unlocked == false then
                 G.localization.descriptions.Other.debuffed_default.text_parsed =
                     G.localization.descriptions.Other.ap_debuffed.text_parsed
@@ -1692,11 +1684,6 @@ end
 local GUIDEFrun_setup_option = G.UIDEF.run_setup_option
 function G.UIDEF.run_setup_option(type)
 	if isAPProfileLoaded() then
-		
-		if not G.SAVED_GAME then
-			G.SAVED_GAME = get_compressed(G.SETTINGS.profile..'/'..'save.jkr')
-			if G.SAVED_GAME ~= nil then G.SAVED_GAME = STR_UNPACK(G.SAVED_GAME) end
-		end
 
 		--remove challenge deck from main pool if its there somehow
 		for k, v in ipairs(G.P_CENTER_POOLS.Back) do

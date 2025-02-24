@@ -6,7 +6,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9d
+--- VERSION: 0.1.9e
 --- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-1326a]
 ----------------------------------------------
 ------------MOD CODE -------------------------
@@ -54,6 +54,9 @@ G.AP.location_id_to_item_name = {}
 G.AP.game_over_by_deathlink = false
 
 G.AP.this_mod = SMODS.current_mod
+G.AP.this_mod.process_loc_text = function()
+	G.localization.misc.labels.rand_ap_borrowed = 'Borrowed'
+end
 
 NFS.load(G.AP.this_mod.path .. "ap_connection.lua")()
 NFS.load(G.AP.this_mod.path .. "utils.lua")()
@@ -147,6 +150,14 @@ G.FUNCS.APDisconnect = function(sanity_check)
     standard_deck = nil
 	G.E_MANAGER.queues.ap_hints = nil
 	G.AP.GameObjectInit = false
+	
+	G.PROFILES[G.AP.profile_Id] = {}
+	
+	G.AP.hints = nil
+	G.AP.hint_locations = nil
+	G.AP.player_names = nil
+	G.AP.hint_priotiy = nil
+	
 	G.AP.Spectral = {
 		item = nil,
 		active = false,
@@ -484,6 +495,7 @@ function Game:load_profile(_profile)
     if G.AP.profile_Id == -1 then
         G.AP.profile_Id = #G.PROFILES + 1
         G.PROFILES[G.AP.profile_Id] = {}
+		delete_ap_profile()
         sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
     end
 	
@@ -549,6 +561,14 @@ function Game:init_item_prototypes()
 		G.AP.server_load()
 		G.PROFILES[G.AP.profile_Id].name = G.AP['APSlot'] 
 		G.PROFILES[G.AP.profile_Id].Archipelago = true 
+		
+		-- AP lock sticker
+		if not G.AP.locked_sticker then
+			G.AP.locked_sticker = Sprite(0, 0, G.CARD_W, G.CARD_H, G.ASSET_ATLAS["rand_ap_lock"], {x = 0, y = 0})
+		end
+		
+		-- borrowed sticker
+		SMODS.Stickers.rand_ap_borrowed.no_collection = nil
 		
         if tableContains(G.AP.slot_data.included_decks, 'b_red') then
             standard_deck = 'b_red'
@@ -950,7 +970,10 @@ function Game:init_item_prototypes()
                 self.P_CENTERS[k].wip = nil
             end
         end
-
+		
+		-- borrowed sticker
+		SMODS.Stickers.rand_ap_borrowed.no_collection = true
+		
         -- fix some custom implementation of the Challenge Deck
         G.P_CENTERS['b_challenge'].name = "Challenge Deck"
         G.P_CENTERS['b_challenge'].unlocked = true
@@ -987,21 +1010,7 @@ function Game:init_item_prototypes()
 		end
 		
 		-- Delete Archipelago profile
-		G.E_MANAGER:add_event(Event({
-			no_delete = true,
-			blockable = false, 
-			blocking = false,
-			func = function()
-				if G.AP.profile_Id then
-					love.filesystem.remove(G.AP.profile_Id..'/'..'profile.jkr')
-					love.filesystem.remove(G.AP.profile_Id..'/'..'save.jkr')
-					love.filesystem.remove(G.AP.profile_Id..'/'..'meta.jkr')
-					love.filesystem.remove(G.AP.profile_Id..'/'..'unlock_notify.jkr')
-					love.filesystem.remove(G.AP.profile_Id..'')
-				end
-				return true
-			end
-		}))
+		delete_ap_profile()
     end
     return game_init_item_prototypes
 end
@@ -1091,8 +1100,12 @@ function CardArea:emplace(card, location, stay_flipped)
 	local fallbacks = {'j_joker', 'c_pluto', 'c_strength', 'c_incantation'}
 	local center = card.config.center
 	
-	if isAPProfileLoaded() and G.AP.bypass_lock then
-		card.bypass_lock = true
+	-- bypass lock and apply borrow
+	if isAPProfileLoaded() and G.AP.bypass_lock and not card.playing_card then
+		if not center.unlocked or ((center.set == 'Joker' and not AreJokersRemoved() or not AreConsumablesRemoved()) and not center.ap_unlocked) then
+			card.bypass_lock = true
+			card.ability.rand_ap_borrowed = true
+		end
 	end
 	
 	-- prevent saving the AP check voucher on redeem
@@ -1285,6 +1298,7 @@ function Card:set_ability(center, initial, delay_sprites)
 	set_abilityRef(self, center, initial, delay_sprites)
 	
 	if isAPProfileLoaded() then
+		
 		if ((self.debuff and self.config.center.ap_unlocked == false) or self.config.center.unlocked == false) and center.ap_id and G.AP.hints then
 			
 			local _hint
@@ -1332,6 +1346,8 @@ function Game:main_menu(change_context)
 				end
 			end
 		end
+	else
+		delete_ap_profile()
 	end
 	
 	main_menuRef(self, change_context)
@@ -1343,6 +1359,9 @@ function Game:main_menu(change_context)
 			end
 		end
 		
+		if self.title_top.cards[1] then
+			self.title_top.cards[1].ability.rand_ap_borrowed = true
+		end
 	end
 	
 	G.E_MANAGER:add_event(Event({
@@ -1354,6 +1373,24 @@ function Game:main_menu(change_context)
 		end
 	}))
 end
+
+SMODS.Sticker {
+	key = 'ap_borrowed',
+	default_compat = false,
+	atlas = 'ap_lock',
+	loc_txt = {
+		name = 'Borrowed',
+		text = {
+			"Bypasses lock",
+			"restrictions."
+		}
+	},
+	pos = { x = 0, y = 1 },
+	sets = {}, -- so it doesnt spawn naturally
+	badge_colour = {0.4666, 0.286, 0.6588, 1},
+	no_collection = true
+}
+
 
 
 -- AP Items in shop
@@ -2796,6 +2833,25 @@ function IsDeathlinkOn()
 	end
 	
 	return nil
+end
+
+-- delete ap profile
+function delete_ap_profile()
+	G.E_MANAGER:add_event(Event({
+		no_delete = true,
+		blockable = false, 
+		blocking = false,
+		func = function()
+			if G.AP.profile_Id then
+				love.filesystem.remove(G.AP.profile_Id..'/'..'profile.jkr')
+				love.filesystem.remove(G.AP.profile_Id..'/'..'save.jkr')
+				love.filesystem.remove(G.AP.profile_Id..'/'..'meta.jkr')
+				love.filesystem.remove(G.AP.profile_Id..'/'..'unlock_notify.jkr')
+				love.filesystem.remove(G.AP.profile_Id..'')
+			end
+			return true
+		end
+	}))
 end
 
 G.AP.localize_name = function(item_id, to_self)
