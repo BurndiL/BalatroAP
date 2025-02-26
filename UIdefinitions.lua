@@ -720,15 +720,6 @@ end
 local Cardgenerate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
 function Card:generate_UIBox_ability_table()
     if isAPProfileLoaded() then
-		if not G.localization.descriptions.Other.debuffed_default_b or 
-		not G.localization.descriptions.Other.debuffed_default_b.text_parsed then
-			G.localization.descriptions.Other.debuffed_default_b = {}
-			G.localization.descriptions.Other.debuffed_default_b.text_parsed = {}
-			for k, v in pairs(G.localization.descriptions.Other.debuffed_default.text) do
-				G.localization.descriptions.Other.debuffed_default_b.text = v
-				G.localization.descriptions.Other.debuffed_default_b.text_parsed[k] = loc_parse_string(v)
-			end
-		end
 		
 		local _has_hint = false
 		if ((G.your_collection and tableContains(G.your_collection, self.area)) or self.area == G.title_top) and G.AP.hints then
