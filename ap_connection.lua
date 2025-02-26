@@ -1549,22 +1549,38 @@ function APConnect()
         -- since lua tables won't contain nil values, we can use keys array
         for _, key in ipairs(keys) do
 			
-			if isAPProfileLoaded() then
-				if key == "balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
-					G.PROFILES[G.SETTINGS.profile].deck_usage = map[key]
+			if key == "balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
+				G.E_MANAGER:add_event(
+					Event { blocking = false, blockable = false, force_pause = true,
+						func = function()
+							if isAPProfileLoaded() then
+								G.PROFILES[G.AP.profile_Id].deck_usage = map[key]
 					
-					if G.AP.goal ~= 4 then
-						G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
-					end
-				end
-				
-				if key == "balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
-					G.PROFILES[G.SETTINGS.profile].joker_usage = map[key]
-					if G.AP.goal == 4 then
-						G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
-					end
-				end 
-				
+								if G.AP.goal ~= 4 then
+									G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+								end
+							end
+							return true
+						end
+					})
+			end
+			
+			if key == "balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'table' then 
+				G.E_MANAGER:add_event(
+					Event { blocking = false, blockable = false, force_pause = true,
+						func = function()
+							if isAPProfileLoaded() then
+								G.PROFILES[G.AP.profile_Id].joker_usage = map[key]
+								if G.AP.goal == 4 then
+									G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+								end
+							end
+							return true
+						end
+					})
+			end 
+			
+			if isAPProfileLoaded() then
 				if key == "balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and type(map[key]) == 'string' then 
 					local decompressed_save = STR_UNPACK(map[key])
 					G.SAVED_GAME = decompressed_save
@@ -1589,15 +1605,44 @@ function APConnect()
     end
 
     function on_set_reply(message)
-        print("Set Reply:")
-        for key, value in pairs(message) do
-            print("  " .. key .. ": " .. tostring(value))
-            if key == "value" and type(value) == "table" then
-                for subkey, subvalue in pairs(value) do
-                    print("    " .. subkey .. ": " .. tostring(subvalue))
-                end
-            end
-        end
+        print("Set Reply:"..message.key)
+		if message.key == "balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) then
+			G.E_MANAGER:add_event(
+			Event { blocking = false, blockable = false, force_pause = true,
+				func = function()
+					if isAPProfileLoaded() then
+						G.PROFILES[G.AP.profile_Id].joker_usage = message.value
+						if G.AP.goal == 4 then
+							G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+						end
+					end
+					return true
+				end
+			})
+		end
+		
+		if message.key == "balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) then
+			G.E_MANAGER:add_event(
+			Event { blocking = false, blockable = false, force_pause = true,
+				func = function()
+					if isAPProfileLoaded() then
+						G.PROFILES[G.AP.profile_Id].deck_usage = message.value
+						if G.AP.goal ~= 4 then
+							G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
+						end
+					end
+					return true
+				end
+			})
+		end
+        -- for key, value in pairs(message) do
+            -- print("  " .. key .. ": " .. tostring(value))
+            -- if key == "value" and type(value) == "table" then
+                -- for subkey, subvalue in pairs(value) do
+                    -- print("    " .. subkey .. ": " .. tostring(subvalue))
+                -- end
+            -- end
+        -- end
     end
     local uuid = ""
     G.APClient = AP(uuid, "Balatro", server);
@@ -1882,7 +1927,7 @@ G.AP.server_save_run = function(data)
 end
 
 G.AP.server_load = function()
-	G.APClient:Get({"balatro_deck_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
-	G.APClient:Get({"balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
-	G.APClient:Get({"balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)})
+	local PID = tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id)
+	G.APClient:Get({"balatro_deck_wins"..PID, "balatro_joker_wins"..PID, "balatro_current_run"..PID})
+	G.APClient:SetNotify({"balatro_deck_wins"..PID, "balatro_joker_wins"..PID})
 end

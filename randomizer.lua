@@ -11,27 +11,6 @@
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
--- TODO LIST:
--- clientside:
---  [ ] Deck hints
---  [ ] Stake hints (Galdur compat)
---  [ ] Location progress text (Locations left, next location, etc)
---  [ ] Clean up the AP status/goal UI (update text when necessary instead of every frame)
---  [ ] finish AP buffs menu
---  [x] hook G.main_menu() to show cards with hints
---  [ ] finish AP item tooltips
---
--- serverside:
---  [x] store progress on server (deck wins/joker stickers)
---
--- challenge update:
---  [ ] implement challenges serverside
---      [ ] challenges and challenge deck as items
---      [ ] separate item pools for challenges (mostly for shop checks, as challenge deck using white stake pool would be odd)
---      [ ] challenge unlock mode options 
---  [X] system to let cards bypass AP's removal on clientside
---  [ ] clientside config for default stake on challenges
-
 _RELEASE_MODE = false
 
 G.AP = {
