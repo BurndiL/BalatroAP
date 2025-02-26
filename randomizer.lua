@@ -35,6 +35,12 @@ G.AP.game_over_by_deathlink = false
 G.AP.this_mod = SMODS.current_mod
 G.AP.this_mod.process_loc_text = function()
 	G.localization.misc.labels.rand_ap_borrowed = 'Borrowed'
+	G.localization.descriptions.Other.debuffed_default_b = {}
+	G.localization.descriptions.Other.debuffed_default_b.name = G.localization.descriptions.Other.debuffed_default.name
+	G.localization.descriptions.Other.debuffed_default_b.text = {}
+	for k, v in ipairs(G.localization.descriptions.Other.debuffed_default.text) do
+		G.localization.descriptions.Other.debuffed_default_b.text[k] = v
+	end
 end
 
 NFS.load(G.AP.this_mod.path .. "ap_connection.lua")()
@@ -542,8 +548,10 @@ function Game:init_item_prototypes()
 		G.PROFILES[G.AP.profile_Id].Archipelago = true 
 		
 		-- AP lock sticker
-		if not G.AP.locked_sticker then
-			G.AP.locked_sticker = Sprite(0, 0, G.CARD_W, G.CARD_H, G.ASSET_ATLAS["rand_ap_lock"], {x = 0, y = 0})
+		if not G.AP.locked_stickers then
+			G.AP.locked_stickers = {}
+			G.AP.locked_stickers[1] = Sprite(0, 0, G.CARD_W, G.CARD_H, G.ASSET_ATLAS["rand_ap_lock"], {x = 0, y = 0})
+			G.AP.locked_stickers[2] = Sprite(0, 0, G.CARD_W, G.CARD_H, G.ASSET_ATLAS["rand_ap_lock"], {x = 1, y = 0})
 		end
 		
 		-- borrowed sticker
@@ -2831,6 +2839,16 @@ function delete_ap_profile()
 			return true
 		end
 	}))
+end
+
+-- custom function to render ap lock
+function G.AP.render_ap_debuff(card)
+	local sticker_type = 1
+	-- remove bottom chain if aspect ratio isnt perfect card
+	if card.T.w/card.T.h ~= G.CARD_W/G.CARD_H then sticker_type = 2 end
+	card.children.center:draw_shader('rand_ap_debuff', nil, card.ARGS.send_to_shader)
+	G.AP.locked_stickers[sticker_type].role.draw_major = card
+	G.AP.locked_stickers[sticker_type]:draw_shader('dissolve', nil, nil, nil, card.children.center)
 end
 
 G.AP.localize_name = function(item_id, to_self)
