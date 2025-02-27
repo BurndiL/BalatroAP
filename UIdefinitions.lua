@@ -771,7 +771,7 @@ function Card:generate_UIBox_ability_table()
 		end
 		
         if self.debuff then -- debuff
-            if self.config.center.ap_unlocked == false then
+            if self.config.center.ap_unlocked == false and not self.bypass_lock then
                 G.localization.descriptions.Other.debuffed_default.text_parsed =
                     G.localization.descriptions.Other.ap_debuffed.text_parsed
             else
