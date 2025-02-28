@@ -1088,7 +1088,6 @@ function CardArea:emplace(card, location, stay_flipped)
 	end
 	
     if isAPProfileLoaded() and (((center.unlocked == false and not card.bypass_lock) or center.key == 'j_rand_fallback') and 
-	--(G.STATE == G.STATES.SHOP or self == G.shop_jokers or self == G.jokers or self == G.consumeables or self == G.pack_cards) and
         ((G.your_collection ~= nil and tableContains(G.your_collection, self) == false) or G.your_collection == nil)) then
 
         if (center.unlocked == false and not card.bypass_lock) or center.key == 'j_rand_fallback' then
@@ -1104,6 +1103,8 @@ function CardArea:emplace(card, location, stay_flipped)
     return cardAreaemplace
 end
 
+-- AreJokersRemoved + AreConsumablesRemoved
+-- to not check the card type every time
 function IsCardRemoved(card)
 	center = card.config.center
 	if center.set == 'Joker' then
@@ -1133,7 +1134,8 @@ end
 -- to recalc rates for shop
 function G.AP.recalc_shop_rates(rates)
 	local total_rate = 0
-	local modified 
+	local modified -- need to know if we modified to not advance rng
+	               -- unless absolutely necessary
 	
 	for k, v in ipairs(rates) do
 		if k ~= 4 then -- exclude playing cards
@@ -1160,13 +1162,20 @@ local card_set_debuffRef = Card.set_debuff
 
 function Card:set_debuff(should_debuff)
 
-    if isAPProfileLoaded() and (self.config.center.ap_unlocked == false) and 
-	should_debuff == false and not IsCardRemoved(self) then
-		should_debuff = true
+    if isAPProfileLoaded() and should_debuff == false then
+		should_debuff = G.AP.should_ap_debuff(self)
     end
 	
     return card_set_debuffRef(self, should_debuff)
 
+end
+
+-- used to determine if a card is supposed to be debuffed by AP
+function G.AP.should_ap_debuff(card)
+	if isAPProfileLoaded() and (card.config.center.ap_unlocked == false) and not IsCardRemoved(card) then
+		return true
+    end
+	return false
 end
 
 local card_can_use_consumeableRef = Card.can_use_consumeable

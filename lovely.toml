@@ -32,7 +32,7 @@ target = 'card.lua'
 pattern = '''self.children.center:draw_shader('debuff', nil, self.ARGS.send_to_shader)'''
 position = "before"
 payload = '''
-if isAPProfileLoaded() and not AreJokersRemoved() and (not self.config.center.ap_unlocked and not self.playing_card) and G.AP.locked_stickers then 
+if isAPProfileLoaded() and G.AP.should_ap_debuff(self) and G.AP.locked_stickers then 
 	G.AP.render_ap_debuff(self)
 else
 '''
