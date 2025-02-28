@@ -6,7 +6,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9e
+--- VERSION: 0.1.9e-indev
 --- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-1326a]
 ----------------------------------------------
 ------------MOD CODE -------------------------
@@ -1167,24 +1167,6 @@ function Card:set_debuff(should_debuff)
 	
     return card_set_debuffRef(self, should_debuff)
 
-end
-
-local can_skip_boosterRef = G.FUNCS.can_skip_booster
-G.FUNCS.can_skip_booster = function(e)
-    if isAPProfileLoaded() then
-        if G.pack_cards and G.pack_cards.cards and
-            (G.STATE == G.STATES.PLANET_PACK or G.STATE == G.STATES.STANDARD_PACK or G.STATE == G.STATES.BUFFOON_PACK or
-                (G.hand and (G.hand.cards[1] or (G.hand.config.card_limit <= 0)))) then
-            e.config.colour = G.C.GREY
-            e.config.button = 'skip_booster'
-        else
-            e.config.colour = G.C.UI.BACKGROUND_INACTIVE
-            e.config.button = nil
-        end
-
-        return
-    end
-    return can_skip_boosterRef(e)
 end
 
 local card_can_use_consumeableRef = Card.can_use_consumeable
