@@ -1096,7 +1096,7 @@ function CardArea:emplace(card, location, stay_flipped)
         end
 
     end
-    if isAPProfileLoaded() and (not center.ap_unlocked and not IsCardRemoved(card)) and not card.bypass_lock and not card.playing_card then
+    if isAPProfileLoaded() and (not center.ap_unlocked and not IsCardRemoved(center)) and not card.bypass_lock and not card.playing_card then
 		card:set_debuff(true)
     end
 
@@ -1105,8 +1105,8 @@ end
 
 -- AreJokersRemoved + AreConsumablesRemoved
 -- to not check the card type every time
-function IsCardRemoved(card)
-	center = card.config.center
+function IsCardRemoved(center)
+	
 	if center.set == 'Joker' then
 		return AreJokersRemoved()
 	elseif tableContains({'Tarot', 'Planet', 'Spectral'}, center.set) then
@@ -1172,10 +1172,54 @@ end
 
 -- used to determine if a card is supposed to be debuffed by AP
 function G.AP.should_ap_debuff(card)
-	if isAPProfileLoaded() and (card.config.center.ap_unlocked == false) and not IsCardRemoved(card) then
+	if isAPProfileLoaded() and (card.config.center.ap_unlocked == false) and not IsCardRemoved(card.config.center) then
 		return true
     end
 	return false
+end
+
+-- used to undebuff unlocked cards
+function G.AP.check_cardarea_debuff(key)
+	local check_debuff = function(v)
+		if v and type(v) == 'table' and v.config.center.key == key and v.debuff and not v.bypass_lock then
+			v:set_debuff(false)
+			v:juice_up(0.1, 0.06)
+		end
+	end
+	
+	if G.jokers and G.jokers.cards then
+		for k, v in pairs(G.jokers.cards) do
+			check_debuff(v)
+		end
+	end
+
+	if G.consumeables and G.consumeables.cards then
+		for k, v in pairs(G.consumeables.cards) do
+			check_debuff(v)
+		end
+	end
+
+	if G.shop_jokers and G.shop_jokers.cards then
+		for k, v in pairs(G.shop_jokers.cards) do
+			check_debuff(v)
+		end
+	end
+	
+	if G.pack_cards and G.pack_cards.cards then
+		for k, v in pairs(G.pack_cards.cards) do
+			check_debuff(v)
+		end
+	end
+	
+	if G.your_collection then
+		for kk, vv in pairs(G.your_collection) do
+			if vv.cards then
+				for k, v in pairs(vv.cards) do
+					check_debuff(v)
+				end
+			end
+		end
+	end
 end
 
 local card_can_use_consumeableRef = Card.can_use_consumeable

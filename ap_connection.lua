@@ -607,42 +607,11 @@ function APConnect()
 					item.wip = nil
 					item.ap_unlocked = true
 					
-					if (not AreJokersRemoved() and item.set == "Joker") or (not AreConsumablesRemoved() and
-						(item.set == "Tarot" or item.set == "Planet" or item.set == "Spectral")) then
-
-						if G.jokers and G.jokers.cards then
-							for k, v in pairs(G.jokers.cards) do
-								if v and type(v) == 'table' and v.config.center.key == item.key then
-									v:set_debuff(false)
-								end
-							end
-						end
-
-						if G.consumeables and G.consumeables.cards then
-							for k, v in pairs(G.consumeables.cards) do
-								if v and type(v) == 'table' and v.config.center.key == item.key then
-									v:set_debuff(false)
-								end
-							end
-						end
-
-						if G.STATES then
-							if G.STATE == G.STATES.SHOP and G.shop_jokers and G.shop_jokers.cards then
-								for k, v in pairs(G.shop_jokers.cards) do
-									if v and type(v) == 'table' and v.config.center.key == item.key then
-										v:set_debuff(false)
-									end
-								end
-							end
-							if G.STATE == G.STATES.BUFFOON_PACK and G.pack_cards and G.pack_cards.cards then
-								for k, v in pairs(G.pack_cards.cards) do
-									if v and type(v) == 'table' and v.config.center.key == item.key then
-										v:set_debuff(false)
-									end
-								end
-							end
-						end
-					end
+					G.E_MANAGER:add_event(Event({
+					func = function()
+						G.AP.check_cardarea_debuff(item.key)
+						return true
+					end}))
 					
 					-- spectral gimmick
 					if G.AP.Spectral.active == true and not G.AP.Spectral.item then
