@@ -6,7 +6,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9e-indev
+--- VERSION: 0.1.9e-indev-3
 --- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-1326a]
 ----------------------------------------------
 ------------MOD CODE -------------------------
@@ -1096,8 +1096,8 @@ function CardArea:emplace(card, location, stay_flipped)
         end
 
     end
-    if isAPProfileLoaded() and (not center.ap_unlocked and not IsCardRemoved(center)) and not card.bypass_lock and not card.playing_card then
-		card:set_debuff(true)
+    if isAPProfileLoaded() and not card.bypass_lock and not card.playing_card then
+		G.AP.update_ap_debuff(card)
     end
 
     return cardAreaemplace
@@ -1158,15 +1158,15 @@ function G.AP.recalc_shop_rates(rates)
 	return total_rate, modified
 end
 
-local card_set_debuffRef = Card.set_debuff
+local card_loadRef = Card.load
 
-function Card:set_debuff(should_debuff)
+function Card:load(cardTable, other_card)
 
-    if isAPProfileLoaded() and should_debuff == false then
-		should_debuff = G.AP.should_ap_debuff(self)
+	card_loadRef(self, cardTable, other_card)
+
+    if isAPProfileLoaded() then
+		G.AP.update_ap_debuff(self)
     end
-	
-    return card_set_debuffRef(self, should_debuff)
 
 end
 
@@ -1182,8 +1182,7 @@ end
 function G.AP.check_cardarea_debuff(key)
 	local check_debuff = function(v)
 		if v and type(v) == 'table' and v.config.center.key == key and v.debuff and not v.bypass_lock then
-			v:set_debuff(false)
-			v:juice_up(0.1, 0.06)
+			G.AP.update_ap_debuff(v, true)
 		end
 	end
 	
@@ -1219,6 +1218,20 @@ function G.AP.check_cardarea_debuff(key)
 				end
 			end
 		end
+	end
+end
+
+function G.AP.update_ap_debuff(card, juice)
+	local center = card.config.center
+	if not isAPProfileLoaded() then return nil end
+	if IsCardRemoved(center) then return nil end
+	if card.bypass_lock then return nil end
+	
+	if center.ap_unlocked then
+		if card.debuff and juice then card:juice_up(0.1, 0.06) end
+		SMODS.debuff_card(card, nil, 'archipelago')
+	else
+		SMODS.debuff_card(card, true, 'archipelago')
 	end
 end
 
