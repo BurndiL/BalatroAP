@@ -6,7 +6,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9e-indev-4
+--- VERSION: 0.1.9e-indev-5
 --- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0302d]
 ----------------------------------------------
 ------------MOD CODE -------------------------
@@ -95,6 +95,11 @@ G.viewed_stake_act = {}
 G.viewed_stake_act[1] = 1
 G.viewed_stake_act[2] = 1
 
+-- quick command for DP users
+function APhint()
+	G.APClient:Say("!hint "..dp.hovered.config.center.name)
+end
+
 -- true if the profile was selected and loaded
 function isAPProfileLoaded()
     return G.SETTINGS and G.AP and G.SETTINGS.profile == G.AP.profile_Id
@@ -103,6 +108,28 @@ end
 -- true if the profile is selected in profile selection, does not have to be loaded yet
 function isAPProfileSelected()
     return G.focused_profile == G.AP.profile_Id
+end
+
+G.AP.create_ap_profile = function()
+	if G.AP.profile_Id == -1 then
+        G.AP.profile_Id = #G.PROFILES + 1
+        G.PROFILES[G.AP.profile_Id] = {}
+		delete_ap_profile()
+        sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
+		
+		-- load data to avoid resetting the text inputs
+		local APSettings = NFS.read('APSettings.json')
+
+		if APSettings ~= nil then
+			APSettings = json.decode(APSettings)
+			if APSettings ~= nil then
+				G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
+				G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
+				G.AP.APPort = APSettings['APPort'] or G.AP.APPort
+				G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
+			end
+		end
+    end
 end
 
 G.FUNCS.can_APConnect = function(e)
@@ -478,12 +505,7 @@ function Game:load_profile(_profile)
     end
     ap_profile_delete = false
 
-    if G.AP.profile_Id == -1 then
-        G.AP.profile_Id = #G.PROFILES + 1
-        G.PROFILES[G.AP.profile_Id] = {}
-		delete_ap_profile()
-        sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
-    end
+    G.AP.create_ap_profile()
 	
 	if _profile ~= G.AP.profile_Id or not G.AP.GameObjectInit then
 		local game_load_profile = game_load_profileRef(self, _profile)
@@ -491,17 +513,6 @@ function Game:load_profile(_profile)
 		G.SETTINGS.profile = G.AP.profile_Id
 	end
 	
-    local APSettings = NFS.read('APSettings.json')
-
-    if APSettings ~= nil then
-        APSettings = json.decode(APSettings)
-        if APSettings ~= nil then
-            G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
-            G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
-            G.AP.APPort = APSettings['APPort'] or G.AP.APPort
-            G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
-        end
-    end
     return game_load_profile
 end
 

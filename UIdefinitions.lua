@@ -315,25 +315,7 @@ end
 
 function G.FUNCS.go_to_ap_tab()
 	-- create AP profile if it doesnt exist
-	if G.AP.profile_Id == -1 then
-        G.AP.profile_Id = #G.PROFILES + 1
-        G.PROFILES[G.AP.profile_Id] = {}
-		delete_ap_profile()
-        sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
-		
-		-- load data to avoid resetting the text inputs
-		local APSettings = NFS.read('APSettings.json')
-
-		if APSettings ~= nil then
-			APSettings = json.decode(APSettings)
-			if APSettings ~= nil then
-				G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
-				G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
-				G.AP.APPort = APSettings['APPort'] or G.AP.APPort
-				G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
-			end
-		end
-    end
+	G.AP.create_ap_profile()
 	
 	-- save config
 	SMODS.save_mod_config(G.AP.this_mod)
