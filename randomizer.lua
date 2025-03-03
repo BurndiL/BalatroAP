@@ -6,7 +6,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9e-indev-5
+--- VERSION: 0.1.9e-indev-6
 --- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0302d]
 ----------------------------------------------
 ------------MOD CODE -------------------------
@@ -2646,13 +2646,15 @@ function check_for_unlock(args)
                     end
                     -- (completionist+ edition) deck wins on at least # stake
                 elseif G.AP.goal == 3 then
-                    local deck_stickers = G.AP.check_progress()
+					if args.type == 'win' then
+						local deck_stickers = G.AP.check_progress()
 
-                    if deck_stickers >= tonumber(G.AP.slot_data.decks_win_goal) then
-                        sendGoalReached()
-                    end
+						if deck_stickers >= tonumber(G.AP.slot_data.decks_win_goal) then
+							sendGoalReached()
+						end
 
-                    G.PROFILES[G.AP.profile_Id].ap_progress = deck_stickers
+						G.PROFILES[G.AP.profile_Id].ap_progress = deck_stickers
+					end
                     -- (completionist++ edition) win with # of jokers on at least # stake
                 elseif G.AP.goal == 4 then
 					if args.type == 'win' then
@@ -2666,14 +2668,15 @@ function check_for_unlock(args)
 					end
                     -- number of unique wins
                 elseif G.AP.goal == 5 then
-                    local unique_wins = G.AP.check_progress()
-					
-                    if unique_wins >= G.AP.slot_data.unique_deck_win_goal then
-                        sendGoalReached()
-                    end
+					if args.type == 'win' then
+						local unique_wins = G.AP.check_progress()
+						
+						if unique_wins >= G.AP.slot_data.unique_deck_win_goal then
+							sendGoalReached()
+						end
 
-                    G.PROFILES[G.AP.profile_Id].ap_progress = unique_wins
-
+						G.PROFILES[G.AP.profile_Id].ap_progress = unique_wins
+					end
                 end
             end
         else
