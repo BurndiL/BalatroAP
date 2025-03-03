@@ -39,7 +39,7 @@ And the inside of the BalatroAP folder should look something like this:
 ![Your AppData Folder should look something like this](https://i.imgur.com/3JzrdlV.png).
 
 
-You should be good to go then! You can start the game normally over Steam and it should load the mod. If there are any issues, consider going to the [Archipelago After Dark Discord](https://discord.com/invite/fqvNCCRsu4) server, there is a Balatro thread in future-game-design. 
+You should be good to go then! You can start the game normally over Steam and it should load the mod. If there are any issues, consider going to the [Archipelago Discord](https://discord.gg/RwF6r5W6cY) server, there is a Balatro thread in future-game-design. 
 
 ## Connecting
 
