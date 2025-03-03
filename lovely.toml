@@ -25,26 +25,6 @@ payload = '''if isAPProfileLoaded() then
 end'''
 match_indent=true
 
-# debuff chain (might need changing once CardDrawAPI is released)
-[[patches]]
-[patches.pattern]
-target = 'card.lua'
-pattern = '''self.children.center:draw_shader('debuff', nil, self.ARGS.send_to_shader)'''
-position = "before"
-payload = '''
-if isAPProfileLoaded() and G.AP.should_ap_debuff(self) and G.AP.locked_stickers then 
-	G.AP.render_ap_debuff(self)
-else
-'''
-match_indent=true
-[[patches]]
-[patches.pattern]
-target = 'card.lua'
-pattern = '''self.children.center:draw_shader('debuff', nil, self.ARGS.send_to_shader)'''
-position = "after"
-payload = 'end'
-match_indent=true
-
 # fix the game breaking our use of bypass_lock
 [[patches]]
 [patches.pattern]

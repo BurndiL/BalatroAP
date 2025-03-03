@@ -6,8 +6,8 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9e-indev-3
---- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-1326a]
+--- VERSION: 0.1.9e-indev-4
+--- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0302d]
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -49,6 +49,7 @@ NFS.load(G.AP.this_mod.path .. "misc.lua")()
 NFS.load(G.AP.this_mod.path .. "stake.lua")()
 NFS.load(G.AP.this_mod.path .. "UIdefinitions.lua")()
 NFS.load(G.AP.this_mod.path .. "atlas.lua")()
+--NFS.load(G.AP.this_mod.path .. "modsupport.lua")()
 
 json = NFS.load(G.AP.this_mod.path .. "json.lua")()
 AP = require('lua-apclientpp')
@@ -2829,6 +2830,17 @@ function G.AP.render_ap_debuff(card)
 	card.children.center:draw_shader('rand_ap_debuff', nil, card.ARGS.send_to_shader)
 	G.AP.locked_stickers[sticker_type].role.draw_major = card
 	G.AP.locked_stickers[sticker_type]:draw_shader('dissolve', nil, nil, nil, card.children.center)
+end
+
+local base_debuff_ref = SMODS.DrawSteps.debuff.func
+SMODS.DrawSteps.debuff.func = function(self)
+	if isAPProfileLoaded() then
+		if G.AP.should_ap_debuff(self) and G.AP.locked_stickers then
+			G.AP.render_ap_debuff(self)
+			return nil
+		end
+	end
+	base_debuff_ref(self)
 end
 
 G.AP.localize_name = function(item_id, to_self)
