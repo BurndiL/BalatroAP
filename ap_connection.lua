@@ -528,13 +528,13 @@ function APConnect()
     end
 
     function on_room_info()
-        print("Room info")
+        G.AP.log("Room info")
         G.APClient:ConnectSlot(slot, password, 7, {"Lua-APClientPP"}, {0, 5, 0})
     end
 
     function on_slot_connected(slot_data)
         print("Slot connected")
-        sendDebugMessage("slot_data: " .. tostring(slot_data))
+        G.AP.log("slot_data: " .. tostring(slot_data))
 
         G.AP.slot_data = slot_data
         G.AP.goal = slot_data.goal
@@ -563,7 +563,7 @@ function APConnect()
     end
 
     function on_items_received(items)
-        print("Items received:")
+        G.AP.log("Items received:")
         for _, item in ipairs(items) do
 			local notify = #items == 1 
             local item_id = item.item - G.AP.id_offset
@@ -625,15 +625,15 @@ function APConnect()
 				end
 			end
 
-            sendDebugMessage("received Item id " .. tostring(item_id))
-            sendDebugMessage("received Item key " .. tostring(item_key))
+            G.AP.log("received Item id " .. tostring(item_id))
+            G.AP.log("received Item key " .. tostring(item_key))
 
             -- failsave, because if item_key is unknown or was already received, item_id will be 0
             if item_id ~= 0 then
                 -- unlock decks by adding their name to the list of backs (this backs list is only there in AP to keep track of unlocks):
                 -- same with jokers/vouchers
                 if item_id <= 15 then
-                    sendDebugMessage("received Deck")
+                    G.AP.log("received Deck")
 
                     -- different handling if item was received on startup (queue it)
                     -- or if it's during gameplay (display immediately)
@@ -646,7 +646,7 @@ function APConnect()
                     end
 
                 elseif item_id >= 16 and item_id <= 165 then
-                    sendDebugMessage("received Joker")
+                    G.AP.log("received Joker")
                     if G.AP.GameObjectInit then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                         G.PROFILES[G.AP.profile_Id]["jokers"][item_key] = true
@@ -656,7 +656,7 @@ function APConnect()
                     end
                     -- Vouchers
                 elseif item_id >= 166 and item_id <= 197 then
-                    sendDebugMessage("received Voucher")
+                    G.AP.log("received Voucher")
                     if G.AP.GameObjectInit then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                         G.PROFILES[G.AP.profile_Id]["vouchers"][item_key] = true
@@ -666,7 +666,7 @@ function APConnect()
                     end
                     -- Packs
                 elseif item_id >= 198 and item_id <= 212 then
-                    sendDebugMessage("received Pack")
+                    G.AP.log("received Pack")
                     if G.AP.GameObjectInit then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                         G.PROFILES[G.AP.profile_Id]["packs"][item_key] = true
@@ -676,7 +676,7 @@ function APConnect()
                     end
                     -- Consumables
                 elseif item_id >= 213 and item_id <= 267 then
-                    sendDebugMessage("received Consumable")
+                    G.AP.log("received Consumable")
                     if G.AP.GameObjectInit then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                         G.PROFILES[G.AP.profile_Id]["consumables"][item_key] = true
@@ -1106,7 +1106,7 @@ function APConnect()
 
                     -- joker bundles
                 elseif item_id >= 521 and item_id <= 540 then
-                    sendDebugMessage("received Joker Bundle")
+                    G.AP.log("received Joker Bundle")
                     if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
                         if G.AP.slot_data["jokerbundles"][item_id - 520] then
@@ -1485,10 +1485,17 @@ function APConnect()
     end
 
     function on_print_json(msg, extra)
-        -- print(G.APClient:render_json(msg, AP.RenderFormat.TEXT))
-        -- for key, value in pairs(extra) do
-        --     sendDebugMessage("  " .. tostring(key) .. ": " .. tostring(value))
-        -- end
+		if G.AP.debugplus then
+			G.AP.log(G.APClient:render_json(msg, AP.RenderFormat.TEXT), 'INFO')
+			--print(G.APClient:render_json(msg, AP.RenderFormat.TEXT))
+			--local logger = G.AP.debugplus.logger
+			--local color = {0, 1, 1}
+		end
+        for key, value in pairs(extra) do
+			--print("  " .. tostring(key) .. ": " .. tostring(value))
+			--if type(value) == 'table' then print(value) end
+            --G.AP.log("  " .. tostring(key) .. ": " .. tostring(value))
+        end
     end
 
     function on_bounced(bounce)
@@ -1497,7 +1504,7 @@ function APConnect()
         if bounce ~= nil and bounce.tags and tableContains(bounce.tags, "DeathLink") and bounce.data then
             if G.AP.LAST_DEATH_LINK_TIME ~= nil and tostring(G.AP.LAST_DEATH_LINK_TIME) == tostring(bounce.data.time) then
                 -- our own package -> Do nothing
-                sendDebugMessage("skipping this deathlink")
+                G.AP.log("skipping this deathlink")
             else
                 G.AP.death_link_cause = bounce.data.cause or "unknown"
                 G.AP.death_link_source = bounce.data.source or "unknown"
@@ -1513,7 +1520,7 @@ function APConnect()
     end
 
     function on_retrieved(map, keys, extra)
-        sendDebugMessage("Retrieved:")
+        --G.AP.log("Retrieved:")
         -- since lua tables won't contain nil values, we can use keys array
         for _, key in ipairs(keys) do
 			
@@ -1522,6 +1529,7 @@ function APConnect()
 					Event { blocking = false, blockable = false, force_pause = true,
 						func = function()
 							if isAPProfileLoaded() then
+								G.AP.log("Retrieved: "..key)
 								G.PROFILES[G.AP.profile_Id].deck_usage = map[key]
 					
 								if G.AP.goal ~= 4 then
@@ -1538,6 +1546,7 @@ function APConnect()
 					Event { blocking = false, blockable = false, force_pause = true,
 						func = function()
 							if isAPProfileLoaded() then
+								G.AP.log("Retrieved: "..key)
 								G.PROFILES[G.AP.profile_Id].joker_usage = map[key]
 								if G.AP.goal == 4 then
 									G.PROFILES[G.AP.profile_Id].ap_progress = G.AP.check_progress()
@@ -1559,21 +1568,18 @@ function APConnect()
                 G.AP.hints = map[key]
                 G.AP.update_hints()
             end
-            sendDebugMessage("  " .. key .. ": " .. tostring(map[key]))
-            if type(map[key]) == "table" then
-                --print(tprint(map[key]))
-            end
+            --G.AP.log("  " .. key .. ": " .. tostring(map[key]))
         end
         -- extra will include extra fields from Get
-        print("Extra:")
-        for key, value in pairs(extra) do
-            print("  " .. key .. ": " .. tostring(value))
-        end
+        --G.AP.log("Extra:")
+        --for key, value in pairs(extra) do
+            --G.AP.log("  " .. key .. ": " .. tostring(value))
+        --end
         -- both keys and extra are optional
     end
 
     function on_set_reply(message)
-        print("Set Reply:"..message.key)
+        G.AP.log("Set Reply:"..message.key)
 		if message.key == "balatro_joker_wins"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) then
 			G.E_MANAGER:add_event(
 			Event { blocking = false, blockable = false, force_pause = true,
@@ -1659,7 +1665,7 @@ function G.AP.make_hint_step(i, hint)
 							blocking = true,
 							pause_force = true,
 							func = function()
-								sendDebugMessage("waiting on hint #"..tostring(i))
+								--G.AP.log("waiting on hint #"..tostring(i))
 								return G.AP.hint_locations[G.AP.hints[i].location]
 							end
 						}, 'ap_hints')
@@ -1670,7 +1676,7 @@ function G.AP.make_hint_step(i, hint)
 							pause_force = true,
 							func = function()
 								G.AP.make_hint_step(i+1)
-								sendDebugMessage("queued hint #"..tostring(i+1))
+								--G.AP.log("queued hint #"..tostring(i+1))
 								return true
 							end
 						}, 'ap_hints')
@@ -1687,7 +1693,7 @@ function G.AP.make_hint_step(i, hint)
 								blocking = true,
 								pause_force = true,
 								func = function()
-									sendDebugMessage("waiting on name for player "..tostring(finder))
+									--G.AP.log("waiting on name for player "..tostring(finder))
 									return G.AP.player_names[finder]
 								end
 							}, 'ap_hints')
@@ -1698,7 +1704,7 @@ function G.AP.make_hint_step(i, hint)
 								pause_force = true,
 								func = function()
 									G.AP.make_hint_step(i+1)
-									sendDebugMessage("queued hint #"..tostring(i+1))
+									--G.AP.log("queued hint #"..tostring(i+1))
 									return true
 								end
 							}, 'ap_hints')
@@ -1719,7 +1725,7 @@ function G.AP.make_hint_step(i, hint)
 					blocking = true,
 					pause_force = true,
 					func = function()
-						sendDebugMessage("waiting on priority hint")
+						--G.AP.log("waiting on priority hint")
 						return G.AP.hint_locations[hint.location]
 					end
 				}, 'ap_hints')
@@ -1729,7 +1735,7 @@ function G.AP.make_hint_step(i, hint)
 					blockable = true,
 					pause_force = true,
 					func = function()
-						sendDebugMessage("priority hint received")
+						--G.AP.log("priority hint received")
 						G.AP.hint_priotiy[hint.location] = nil
 						return true
 					end

@@ -6,12 +6,10 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9e-indev-6
+--- VERSION: 0.1.9e-indev-7
 --- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0302d]
 ----------------------------------------------
 ------------MOD CODE -------------------------
-
-_RELEASE_MODE = false
 
 G.AP = {
     APAddress = "archipelago.gg",
@@ -49,7 +47,7 @@ NFS.load(G.AP.this_mod.path .. "misc.lua")()
 NFS.load(G.AP.this_mod.path .. "stake.lua")()
 NFS.load(G.AP.this_mod.path .. "UIdefinitions.lua")()
 NFS.load(G.AP.this_mod.path .. "atlas.lua")()
---NFS.load(G.AP.this_mod.path .. "modsupport.lua")()
+NFS.load(G.AP.this_mod.path .. "modsupport.lua")()
 
 json = NFS.load(G.AP.this_mod.path .. "json.lua")()
 AP = require('lua-apclientpp')
@@ -95,11 +93,6 @@ G.viewed_stake_act = {}
 G.viewed_stake_act[1] = 1
 G.viewed_stake_act[2] = 1
 
--- quick command for DP users
-function APhint()
-	G.APClient:Say("!hint "..dp.hovered.config.center.name)
-end
-
 -- true if the profile was selected and loaded
 function isAPProfileLoaded()
     return G.SETTINGS and G.AP and G.SETTINGS.profile == G.AP.profile_Id
@@ -115,7 +108,7 @@ G.AP.create_ap_profile = function()
         G.AP.profile_Id = #G.PROFILES + 1
         G.PROFILES[G.AP.profile_Id] = {}
 		delete_ap_profile()
-        sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
+        G.AP.log("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
 		
 		-- load data to avoid resetting the text inputs
 		local APSettings = NFS.read('APSettings.json')
@@ -319,12 +312,12 @@ end
 
 function sendDeathLinkBounce(cause, source)
 
-    sendDebugMessage("sendDeathLinkBounce started")
+    G.AP.log("sendDeathLinkBounce started")
     cause = cause or "Balatro"
     source = source or G.AP.APSlot or "BalatroPlayer"
     local time = G.APClient:get_server_time()
     G.AP.LAST_DEATH_LINK_TIME = time
-    sendDebugMessage("AP:sendDeathLinkBounce " .. tostring(time) .. " " .. cause .. " " .. source)
+    G.AP.log("AP:sendDeathLinkBounce " .. tostring(time) .. " " .. cause .. " " .. source)
     local res = G.APClient:Bounce({
         time = time,
         cause = cause,
@@ -705,6 +698,7 @@ function Game:init_item_prototypes()
             elseif string.find(k, '^v_') and not string.find(k, '^v_rand_ap_item') then
                 v.wip = true
                 v.unlocked = false
+				v.ap_unlocked = false
 				v.alerted = true
                 if G.PROFILES[G.AP.profile_Id]["vouchers"][v.key] ~= nil then
                     -- progressive vouchers
@@ -720,6 +714,7 @@ function Game:init_item_prototypes()
                     v.unlocked = true
                     v.discovered = true
                     v.hidden = false
+					v.ap_unlocked = true
                     if (G.AP.VoucherQueue[v] == true) then
                         G.FUNCS.AP_unlock_item(v)
                     end
@@ -732,6 +727,7 @@ function Game:init_item_prototypes()
 				v.discovered = false
                 v.wip = true
 				v.alerted = true
+				v.ap_unlocked = false
 				for pack_key, pack_center in pairs(G.PROFILES[G.AP.profile_Id]["packs"]) do
 					if string.find(k, pack_key) and pack_center ~= nil then
 					--if G.PROFILES[G.AP.profile_Id]["packs"][v.key] ~= nil then
@@ -739,6 +735,7 @@ function Game:init_item_prototypes()
 						v.unlocked = true
 						v.discovered = true
 						v.hidden = false
+						v.ap_unlocked = true
 						if (G.AP.PackQueue[v] == true) then
 							G.FUNCS.AP_unlock_item(v)
 						end
@@ -932,7 +929,7 @@ function Game:init_item_prototypes()
 				func = function()
 					if isAPProfileLoaded() then
 						G.AP.hint_event.start_timer = false
-						print("autoscout hints")
+						--G.AP.log("autoscout hints")
 						G.APClient:Get({"_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id)})
 					else G.AP.hint_event = nil end
 					return not isAPProfileLoaded()
@@ -2210,10 +2207,10 @@ function get_tarot_location(_pool_length)
 			local id = valid_locations[math.random(#valid_locations)]
             G.FUNCS.resolve_location_id_to_name(id)
 
-            --sendDebugMessage("Returning Tarot Location" .. tostring(id))
+            G.AP.log("Returning Tarot Location" .. tostring(id))
             return id
         else
-            sendDebugMessage("Out of Tarot Locations...")
+            G.AP.log("Out of Tarot Locations...")
             return nil
         end
 
@@ -2312,11 +2309,11 @@ function get_shop_location(_pool_length)
                 _check_data.sprite = 1
             end
 
-            sendDebugMessage("Returning Shop Location " .. tostring(_check_data.id) .. " with price of $" ..
+            G.AP.log("Returning Shop Location " .. tostring(_check_data.id) .. " with price of $" ..
                                  tostring(_check_data.cost))
             return _check_data
         else
-            sendDebugMessage("Out of Shop Locations...")
+            G.AP.log("Out of Shop Locations...")
             return nil
         end
 
@@ -2680,7 +2677,7 @@ function check_for_unlock(args)
                 end
             end
         else
-            sendDebugMessage("No goal available, this is not good")
+            G.AP.log("No goal available, this is not good", "ERROR")
         end
 
     end
@@ -2690,13 +2687,13 @@ end
 
 function sendGoalReached()
     if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
-        sendDebugMessage("Goal Reached. Sending Goal Reached to Server")
+        G.AP.log("Goal Reached. Sending Goal Reached to Server")
         G.APClient:StatusUpdate(30)
     end
 end
 
 function sendLocationCleared(id)
-    sendDebugMessage("sending location cleared")
+    G.AP.log("sending location cleared")
     if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
 
         if (tableContains(G.APClient.missing_locations, id)) then
@@ -2717,7 +2714,7 @@ end
 
 G.FUNCS.set_up_APProfile = function()
 
-    sendDebugMessage("set_up_APProfile called")
+    G.AP.log("set_up_APProfile called")
 
     G.PROFILES[G.AP.profile_Id]["received_indeces"] = {}
     G.PROFILES[G.AP.profile_Id]["jokers"] = {}
