@@ -6,7 +6,7 @@ This is a Mod for [Balatro](https://store.steampowered.com/app/2379780/Balatro/)
 
 After generating a seed, every joker, voucher, booster pack, consumable (spectral, tarot, planet) is locked. You can unlock them by finding them in the world as Archipelago items. 
 
-Locations(Checks) are beating a boss blind at a specific ante with a specific deck at a specific stake. You can limit the amount of stakes and decks in the yaml. There are also buyable checks in the shop and consumable items that are checks. 
+Locations(Checks) are beating a boss blind at a specific ante with a specific deck at a specific stake. You can limit the amount of stakes and decks in the yaml. There are also buyable checks in the shop and special consumable items that are checks. 
 
 There are bonus items, for example permanent bonus hand, permanent bonus starting money and more.
 There are a few traps, for example lose one hand (for the current run), lose all money, make a random joker perishable and more. 
@@ -17,11 +17,11 @@ There are a lot more options, just check out the yaml that is bundled with the l
 
 Here's a [video tutorial](https://youtu.be/XnEvgEOswpk) I made sometime if any step of the installation is unclear.
 
-You will need [Steamodded (Alpha)](https://github.com/Steamopollys/Steamodded). **MAKE SURE TO DOWNLOAD THE ALPHA**. Follow their [installation guide](https://github.com/Steamodded/smods/wiki).
+You will need [Steamodded](https://github.com/Steamodded/smods/releases/latest). Follow their [installation guide](https://github.com/Steamodded/smods/wiki).
 
 After that, you will also have to download `lua51.7z` from [lua apclient](https://github.com/black-sliver/lua-apclientpp/releases). 
 
-From the `lua51.7z` extract the file `lua51-clang64-dynamic > lua-apclientpp.dll` and put it into your Balatro installation folder (the same folder you put Lovely's `version.dll`). 
+From the `lua51.7z` extract the file `lua51-clang64-dynamic > lua-apclientpp.dll` and put it into your Balatro installation folder (the same folder you put Lovely's `version.dll` when installing Steamodded). 
 
 Your Balatro Folder should look something like this (highlighted files should be there):
 ![Your Balatro Folder should look something like this (highlighted files should be there)](https://i.imgur.com/Pe5uTX4.png).
@@ -43,7 +43,7 @@ You should be good to go then! You can start the game normally over Steam and it
 
 ## Connecting
 
-In Balatro you can simply connect by selecting the profile "Archipelago" in the profile selector, then put in your connection info.
+In Balatro you can simply connect by selecting the profile "Archipelago" in the profile selector (bottom left in the main menu), then put in your connection info.
 It is adviced that you backup your existing save files, even though they should not be modified or deleted by this mod. 
 
 ## Linux using Proton via Steam
