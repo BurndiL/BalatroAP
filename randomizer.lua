@@ -2538,8 +2538,9 @@ function G.AP.check_progress()
 	if G.AP.goal == 0 then
 		local deck_wins = 0
 		for _, d in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
-			if d.wins and #d.wins > 0 then
+			for k, v in pairs(d.wins) do 
 				deck_wins = deck_wins + 1
+				break
 			end
 		end
 		
