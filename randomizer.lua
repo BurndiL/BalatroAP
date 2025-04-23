@@ -3,6 +3,7 @@
 --- MOD_ID: Rando
 --- MOD_AUTHOR: [Burndi, SpaD_Overolls, Myst, Silvris]
 --- MOD_DESCRIPTION: Archipelago Client for Balatro
+--- PRIORITY: 8000
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
