@@ -1105,7 +1105,7 @@ function APConnect()
                     end
 
                     -- joker bundles
-                elseif item_id >= 521 and item_id <= 540 then
+                elseif item_id >= 521 and item_id <= 550 then
                     G.AP.log("received Joker Bundle")
                     if not G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] then
                         G.PROFILES[G.AP.profile_Id]["received_indeces"][item.index] = true
