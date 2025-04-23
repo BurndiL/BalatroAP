@@ -7,7 +7,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9e-indev-7
+--- VERSION: 0.1.9e-indev-8
 --- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0302d]
 ----------------------------------------------
 ------------MOD CODE -------------------------
@@ -2537,13 +2537,9 @@ end
 function G.AP.check_progress()
 	if G.AP.goal == 0 then
 		local deck_wins = 0
-		for k, v in pairs(G.P_CENTERS) do
-			if string.find(tostring(k), '^b_') then
-				if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
-					G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
-					#G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
-					deck_wins = deck_wins + 1
-				end
+		for _, d in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
+			if d.wins and #d.wins > 0 then
+				deck_wins = deck_wins + 1
 			end
 		end
 		
@@ -2578,15 +2574,10 @@ function G.AP.check_progress()
 		return joker_stickers
 	elseif G.AP.goal == 5 then
 		local unique_wins = 0
-		for k, v in pairs(G.P_CENTERS) do
-			if string.find(tostring(k), '^b_') then
-				if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
-					G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins then
-					for _stake, _win in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins) do
-						if _win > 0 then
-							unique_wins = unique_wins + 1
-						end
-					end
+		for _, d in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
+			for k, v in pairs(d.wins) do
+				if v > 0 then
+					unique_wins = unique_wins + 1
 				end
 			end
 		end
