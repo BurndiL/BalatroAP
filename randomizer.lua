@@ -7,7 +7,7 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9e-indev-8
+--- VERSION: 0.1.9e-indev-9
 --- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0302d]
 ----------------------------------------------
 ------------MOD CODE -------------------------
@@ -108,7 +108,6 @@ G.AP.create_ap_profile = function()
 	if G.AP.profile_Id == -1 then
         G.AP.profile_Id = #G.PROFILES + 1
         G.PROFILES[G.AP.profile_Id] = {}
-		delete_ap_profile()
         G.AP.log("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
 		
 		-- load data to avoid resetting the text inputs
@@ -996,9 +995,6 @@ function Game:init_item_prototypes()
 				v.discovered = true
 			end
 		end
-		
-		-- Delete Archipelago profile
-		delete_ap_profile()
     end
     return game_init_item_prototypes
 end
@@ -1325,8 +1321,6 @@ function Game:main_menu(change_context)
 				end
 			end
 		end
-	else
-		delete_ap_profile()
 	end
 	
 	main_menuRef(self, change_context)
@@ -2486,11 +2480,26 @@ end
 local load_profile_funcRef = G.FUNCS.load_profile
 
 G.FUNCS.load_profile = function(delete_prof_data)
+	local new_detele = delete_prof_data
     if G.AP.GameObjectInit and G.APClient ~= nil then
         G.FUNCS.APDisconnect(true)
     end
     ap_profile_delete = false
-    return load_profile_funcRef(delete_prof_data)
+
+	if isAPProfileSelected() then -- delete ap profile before loading into it
+		love.filesystem.remove(G.focused_profile..'/'..'profile.jkr')
+		love.filesystem.remove(G.focused_profile..'/'..'save.jkr')
+		love.filesystem.remove(G.focused_profile..'/'..'meta.jkr')
+		love.filesystem.remove(G.focused_profile..'/'..'unlock_notify.jkr')
+		love.filesystem.remove(G.focused_profile..'')
+		G.SAVED_GAME = nil
+		G.DISCOVER_TALLIES = nil
+		G.PROGRESS = nil
+		G.PROFILES[G.focused_profile] = {}
+		new_detele = true
+	end
+	
+    return load_profile_funcRef(new_detele)
 end
 
 -- other stuff 
@@ -2805,25 +2814,6 @@ function IsDeathlinkOn()
 	end
 	
 	return nil
-end
-
--- delete ap profile
-function delete_ap_profile()
-	G.E_MANAGER:add_event(Event({
-		no_delete = true,
-		blockable = false, 
-		blocking = false,
-		func = function()
-			if G.AP.profile_Id then
-				love.filesystem.remove(G.AP.profile_Id..'/'..'profile.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'/'..'save.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'/'..'meta.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'/'..'unlock_notify.jkr')
-				love.filesystem.remove(G.AP.profile_Id..'')
-			end
-			return true
-		end
-	}))
 end
 
 -- custom function to render ap lock
