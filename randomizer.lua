@@ -500,8 +500,11 @@ function Game:load_profile(_profile)
 
     G.AP.create_ap_profile()
 	
-	if _profile ~= G.AP.profile_Id or not G.AP.GameObjectInit then
+	if _profile ~= G.AP.profile_Id then
 		local game_load_profile = game_load_profileRef(self, _profile)
+	elseif _profile == G.AP.profile_Id and not G.AP.GameObjectInit then
+		G.SETTINGS.profile = _profile
+		G.AP.load_profile()
 	elseif _profile == G.AP.profile_Id and G.AP.GameObjectInit then
 		G.SETTINGS.profile = G.AP.profile_Id
 	end
