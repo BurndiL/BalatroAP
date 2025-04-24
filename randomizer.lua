@@ -2523,7 +2523,7 @@ function get_unlocked_jokers()
     local count = 0
     if (G.P_CENTERS) then
         for k, v in pairs(G.P_CENTERS) do
-            if string.find(tostring(k), '^j_') and not k == 'j_rand_fallback' and
+            if string.find(tostring(k), '^j_') and k ~= 'j_rand_fallback' and
                 v.ap_unlocked == true and not v.modded then
                 count = count + 1
             end
