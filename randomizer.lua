@@ -1450,83 +1450,7 @@ SMODS.Voucher {
         end
     end,
     loc_vars = function(self, info_queue, card)
-		if not card then return nil end -- sanity check
-        if card.ability.extra.id == 0 then
-            return {} -- no location = default description
-        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
-            if (G.AP.location_id_to_item_name[card.ability.extra.id] and -- construct entry if names are available
-                G.AP.location_id_to_item_name[card.ability.extra.id].item_name) and tableContains({1,2}, G.AP.this_mod.config.item_names) then
-
-                local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
-                local _desc = {}
-				local _info_queue = {}
-				local _skip_name = nil
-				
-				if G.AP.location_id_to_item_name[card.ability.extra.id].game == 'Balatro' then
-					_item_name, _desc, _info_queue = G.AP.localize_name(G.AP.location_id_to_item_name[card.ability.extra.id].item_id,
-					G.AP.location_id_to_item_name[card.ability.extra.id].player_name == G.AP.APSlot)
-					_skip_name = true
-				end
-				
-				-- Add as hint
-				G.AP.location_seen(card.ability.extra.id)
-				
-				if not _skip_name then
-					if #_item_name <= 24 and #_item_name > 0 then -- use short names as the voucher name
-						G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = {loc_parse_string(
-							_item_name)}
-					else -- otherwise put it into description
-						G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = G.localization
-																									  .descriptions.Voucher
-																									  .v_rand_ap_item
-																									  .name_parsed
-						_desc = split_text_to_lines(_item_name)
-						for k, v in pairs(_desc) do
-							_desc[k] = "{C:attention}" .. v
-						end
-					end
-				else
-					if not _item_name then
-						G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = G.localization
-																								  .descriptions.Voucher
-																								  .v_rand_ap_item
-																								  .name_parsed
-					else
-						G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = {loc_parse_string(_item_name)}
-					end
-					
-					for i = 1, #_info_queue do
-						-- TODO: fix loc_vars here
-						--info_queue[#info_queue+1] = _info_queue[i]
-					end
-				end
-
-                for k, v in pairs(G.localization.descriptions.Voucher.v_rand_ap_item_location.text) do
-                    _desc[#_desc + 1] = v
-                end
-
-                G.localization.descriptions.Voucher.v_rand_ap_item_location.text_parsed = {}
-                for k, v in pairs(_desc) do
-                    G.localization.descriptions.Voucher.v_rand_ap_item_location.text_parsed[k] = loc_parse_string(v)
-                end
-				
-				local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
-				if _player_name == G.AP.APSlot then 
-					_player_name = localize('k_ap_you')
-				end
-				
-                return {
-                    vars = {_player_name},
-                    key = 'v_rand_ap_item_location'
-                }
-            else
-                return {} -- default description if item name is unavailable
-            end
-        else -- use a special message if the location is invalid
-            return {
-                key = 'v_rand_ap_item_invalid'
-            }
-        end
+		return G.AP.ap_item_loc_vars(self, info_queue, card)
     end,
     set_card_type_badge = function(self, card, badges)
         if card.ability and card.ability.sprite == 1 then
@@ -1585,84 +1509,7 @@ SMODS.Consumable {
 		return true
 	end,
 	loc_vars = function(self, info_queue, card)
-		if not card then return nil end -- sanity check
-		if card.debuff then return nil end
-        if card.ability.extra.id == 0 then
-            return {} -- no location = default description
-        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
-            if (G.AP.location_id_to_item_name[card.ability.extra.id] and -- construct entry if names are available
-                G.AP.location_id_to_item_name[card.ability.extra.id].item_name) and tableContains({1,3}, G.AP.this_mod.config.item_names) then
-
-                local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
-                local _desc = {}
-				local _info_queue = {}
-				local _skip_name = nil
-				
-				if G.AP.location_id_to_item_name[card.ability.extra.id].game == 'Balatro' then
-					_item_name, _desc, _info_queue = G.AP.localize_name(G.AP.location_id_to_item_name[card.ability.extra.id].item_id,
-					G.AP.location_id_to_item_name[card.ability.extra.id].player_name == G.AP.APSlot)
-					_skip_name = true
-				end
-				
-				-- Add as hint
-				G.AP.location_seen(card.ability.extra.id)
-
-				if not _skip_name then
-					if #_item_name <= 24 then -- use short names as the voucher name
-						G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = {loc_parse_string(
-							_item_name)}
-					else -- otherwise put it into description
-						G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = G.localization
-																									  .descriptions.Tarot
-																									  .c_rand_ap_tarot
-																									  .name_parsed
-						_desc = split_text_to_lines(_item_name)
-						for k, v in pairs(_desc) do
-							_desc[k] = "{C:attention}" .. v
-						end
-					end
-				else
-					if not _item_name then
-						G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = G.localization
-																									  .descriptions.Tarot
-																									  .c_rand_ap_tarot
-																									  .name_parsed
-					else
-						G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = {loc_parse_string(_item_name)}
-					end
-					
-					for i = 1, #_info_queue do
-						-- TODO: fix loc_vars here
-						--info_queue[#info_queue+1] = _info_queue[i]
-					end
-				end
-				
-                for k, v in pairs(G.localization.descriptions.Tarot.c_rand_ap_tarot_location.text) do
-                    _desc[#_desc + 1] = v
-                end
-
-                G.localization.descriptions.Tarot.c_rand_ap_tarot_location.text_parsed = {}
-                for k, v in pairs(_desc) do
-                    G.localization.descriptions.Tarot.c_rand_ap_tarot_location.text_parsed[k] = loc_parse_string(v)
-                end
-
-                local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
-				if _player_name == G.AP.APSlot then 
-					_player_name = localize('k_ap_you')
-				end
-
-                return {
-                    vars = {_player_name},
-                    key = 'c_rand_ap_tarot_location'
-                }
-            else
-                return {} -- default description if item name is unavailable
-            end
-        else -- use a special message if the location is invalid
-            return {
-                key = 'c_rand_ap_tarot_invalid'
-            }
-        end
+		return G.AP.ap_item_loc_vars(self, info_queue, card)
     end,
 	set_ability = function(self, card, initial, delay_sprites)
 		G.E_MANAGER:add_event(Event({
@@ -1756,84 +1603,7 @@ SMODS.Consumable {
 		return true
 	end,
 	loc_vars = function(self, info_queue, card)
-		if not card then return nil end -- sanity check
-		if card.debuff then return nil end
-        if card.ability.extra.id == 0 then
-            return {} -- no location = default description
-        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
-            if (G.AP.location_id_to_item_name[card.ability.extra.id] and -- construct entry if names are available
-                G.AP.location_id_to_item_name[card.ability.extra.id].item_name) and tableContains({1,3}, G.AP.this_mod.config.item_names) then
-
-                local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
-                local _desc = {}
-				local _info_queue = {}
-				local _skip_name = nil
-				
-				if G.AP.location_id_to_item_name[card.ability.extra.id].game == 'Balatro' then
-					_item_name, _desc, _info_queue = G.AP.localize_name(G.AP.location_id_to_item_name[card.ability.extra.id].item_id,
-					G.AP.location_id_to_item_name[card.ability.extra.id].player_name == G.AP.APSlot)
-					_skip_name = true
-				end
-				
-				-- Add as hint
-				G.AP.location_seen(card.ability.extra.id)
-				
-				if not _skip_name then
-					if #_item_name <= 24 then -- use short names as the voucher name
-						G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = {loc_parse_string(
-							_item_name)}
-					else -- otherwise put it into description
-						G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = G.localization
-																									  .descriptions.Planet
-																									  .c_rand_ap_planet
-																									  .name_parsed
-						_desc = split_text_to_lines(_item_name)
-						for k, v in pairs(_desc) do
-							_desc[k] = "{C:attention}" .. v
-						end
-					end
-				else
-					if not _item_name then
-						G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = G.localization
-																									  .descriptions.Planet
-																									  .c_rand_ap_planet
-																									  .name_parsed
-					else
-						G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = {loc_parse_string(_item_name)}
-					end
-					
-					for i = 1, #_info_queue do
-						-- TODO: fix loc_vars here
-						--info_queue[#info_queue+1] = _info_queue[i]
-					end
-				end
-				
-                for k, v in pairs(G.localization.descriptions.Planet.c_rand_ap_planet_location.text) do
-                    _desc[#_desc + 1] = v
-                end
-
-                G.localization.descriptions.Planet.c_rand_ap_planet_location.text_parsed = {}
-                for k, v in pairs(_desc) do
-                    G.localization.descriptions.Planet.c_rand_ap_planet_location.text_parsed[k] = loc_parse_string(v)
-                end
-
-                local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
-				if _player_name == G.AP.APSlot then 
-					_player_name = localize('k_ap_you')
-				end
-
-                return {
-                    vars = {_player_name},
-                    key = 'c_rand_ap_planet_location'
-                }
-            else
-                return {} -- default description if item name is unavailable
-            end
-        else -- use a special message if the location is invalid
-            return {
-                key = 'c_rand_ap_planet_invalid'
-            }
-        end
+		return G.AP.ap_item_loc_vars(self, info_queue, card)
     end,
 	load = function(self, card, card_table, other_card)
 		G.E_MANAGER:add_event(Event({
@@ -1941,16 +1711,7 @@ SMODS.Consumable {
 		return true
 	end,
 	loc_vars = function(self, info_queue, card)
-		if not card then return nil end -- sanity check
-        if card.ability.extra.id == 0 then
-            return {} -- no location = default description
-        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
-            return {} -- also default description because thats the gimmick LOL
-        else -- use a special message if the location is invalid
-            return {
-                key = 'c_rand_ap_spectral_invalid'
-            }
-        end
+		return G.AP.ap_item_loc_vars(self, info_queue, card)
     end,
 	load = function(self, card, card_table, other_card)
 		G.E_MANAGER:add_event(Event({
@@ -2128,6 +1889,91 @@ SMODS.Consumable {
 	cost = 3,
 }
 
+G.AP.ap_item_loc_vars = function(self, info_queue, card)
+	-- sanity checks
+	if not card then return {} end 
+	if card.debuff then return {} end
+	if not G.APClient then return {} end
+	-- actual code
+	
+	local set = self.set
+	local key = self.key
+	local item_names = G.AP.this_mod.config.item_names
+	
+	if card.ability.extra.id == 0 then
+		return {} -- no location = default description
+	elseif tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+		-- stop here if the name is supposed to be hidden
+		if (set == 'Voucher' and item_names == 2) or (set ~= 'Voucher' and item_names == 3) or key == 'c_rand_ap_spectral' then
+			return {}
+		end
+		
+		-- construct entry if names are available
+		if (G.AP.location_id_to_item_name[card.ability.extra.id] and G.AP.location_id_to_item_name[card.ability.extra.id].item_name) then
+
+			local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
+			local _desc = {}
+			local _info_queue = {}
+			local _skip_name = nil
+			
+			if G.AP.location_id_to_item_name[card.ability.extra.id].game == 'Balatro' then
+				_item_name, _desc, _info_queue = G.AP.localize_name(G.AP.location_id_to_item_name[card.ability.extra.id].item_id,
+				G.AP.location_id_to_item_name[card.ability.extra.id].player_name == G.AP.APSlot)
+				_skip_name = true
+			end
+			
+			-- Add as hint
+			G.AP.location_seen(card.ability.extra.id)
+
+			if not _skip_name then
+				if #_item_name <= 24 then -- use short names as the voucher name
+					G.localization.descriptions[set][key.."_location"].name_parsed = {loc_parse_string(_item_name)}
+				else -- otherwise put it into description
+					G.localization.descriptions[set][key.."_location"].name_parsed = G.localization.descriptions[set][key].name_parsed
+					_desc = split_text_to_lines(_item_name)
+					for k, v in pairs(_desc) do
+						_desc[k] = "{C:attention}" .. v
+					end
+				end
+			else
+				if not _item_name then
+					G.localization.descriptions[set][key.."_location"].name_parsed = G.localization.descriptions[set][key].name_parsed
+				else
+					G.localization.descriptions[set][key.."_location"].name_parsed = {loc_parse_string(_item_name)}
+				end
+				
+				for i = 1, #_info_queue do
+					info_queue[#info_queue+1] = _info_queue[i]
+				end
+			end
+			
+			for k, v in pairs(G.localization.descriptions[set][key.."_location"].text) do
+				_desc[#_desc + 1] = v
+			end
+
+			G.localization.descriptions[set][key.."_location"].text_parsed = {}
+			for k, v in pairs(_desc) do
+				G.localization.descriptions[set][key.."_location"].text_parsed[k] = loc_parse_string(v)
+			end
+
+			local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
+			if _player_name == G.AP.APSlot then 
+				_player_name = localize('k_ap_you')
+			end
+
+			return {
+				vars = {_player_name},
+				key = key.."_location"
+			}
+		else
+			return {} -- default description if item name is unavailable
+		end
+	else -- use a special message if the location is invalid
+		return {
+			key = key.."_invalid"
+		}
+	end
+end
 -- Fallback Joker!
 SMODS.Joker {
 	key = 'fallback',
@@ -2849,12 +2695,12 @@ G.AP.localize_name = function(item_id, to_self)
 		-- Backs
 		if string.find(G.APItems[item_id], "^b_") then
 			_name = localize({type = 'name_text', set = 'Back', key = G.APItems[item_id]})
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]]
+			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]]
 		end
 		-- Jokers
 		if string.find(G.APItems[item_id], "^j_") then
 			_name = localize({type = 'name_text', set = 'Joker', key = G.APItems[item_id]})
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]]
+			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]]
 		end
 		-- Consumables
 		if string.find(G.APItems[item_id], "^c_") then
@@ -2862,7 +2708,7 @@ G.AP.localize_name = function(item_id, to_self)
 				set = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]].set or 'Tarot', 
 				key = G.APItems[item_id]})
 			
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]]
+			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]]
 		end
 		-- Vouchers
 		if string.find(G.APItems[item_id], "^v_") then
@@ -2873,7 +2719,7 @@ G.AP.localize_name = function(item_id, to_self)
 				end
 				
 				_name = localize({type = 'name_text', set = 'Voucher', key = target})
-				_info_queue[#_info_queue + 1] = G.P_CENTERS[target] and G.P_CENTERS[target]
+				_info_queue[#_info_queue + 1] = G.P_CENTERS[target]
 			else
 				_name = nil
 				local targets = {[1] = "", [2] = ""}
@@ -2894,8 +2740,8 @@ G.AP.localize_name = function(item_id, to_self)
 				_desc[1] = '{C:attention}'..localize({type = 'name_text', set = 'Voucher', key = targets[1]})
 				_desc[2] = localize("k_ap_or")
 				_desc[3] = '{C:attention}'..localize({type = 'name_text', set = 'Voucher', key = targets[2]})
-				_info_queue[#_info_queue + 1] = G.P_CENTERS[targets[1]] and G.P_CENTERS[targets[1]]
-				_info_queue[#_info_queue + 1] = G.P_CENTERS[targets[2]] and G.P_CENTERS[targets[2]]
+				_info_queue[#_info_queue + 1] = G.P_CENTERS[targets[1]]
+				_info_queue[#_info_queue + 1] = G.P_CENTERS[targets[2]]
 			end
 		end
 		
@@ -2930,7 +2776,7 @@ G.AP.localize_name = function(item_id, to_self)
 		-- Stakes
 		if string.find(G.APItems[item_id], "^stake_") then
 			_name = localize({type = 'name_text', set = 'Stake', key = G.APItems[item_id]})
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]]
+			--_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]]
 		end
 		
 		-- Bundles
@@ -2987,8 +2833,8 @@ G.AP.localize_name = function(item_id, to_self)
 			_desc[1] = "{C:ap_stake}"..localize({type = 'name_text', set = 'Stake', key = _stake})
 			_desc[2] = '({C:attention}'..localize({type = 'name_text', set = 'Back', key = _back}).."{})"
 			
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[_stake] and G.P_CENTERS[_stake]
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[_back] and G.P_CENTERS[_back]
+			--_info_queue[#_info_queue + 1] = G.P_CENTERS[_stake] and G.P_CENTERS[_stake]
+			--_info_queue[#_info_queue + 1] = G.P_CENTERS[_back] and G.P_CENTERS[_back]
 		end
 	end
 	
