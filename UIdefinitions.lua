@@ -702,6 +702,9 @@ end
 local Cardgenerate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
 function Card:generate_UIBox_ability_table(vars_only)
     if isAPProfileLoaded() then
+		if vars_only then -- fixing thunks things!!
+			self.ability.x_mult = self.ability.Xmult
+		end
 		
 		local _has_hint = false
 		if ((G.your_collection and tableContains(G.your_collection, self.area)) or self.area == G.title_top) and G.AP.hints then
