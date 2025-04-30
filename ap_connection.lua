@@ -1748,41 +1748,6 @@ function G.AP.make_hint_step(i, hint)
 	G.SETTINGS.paused = temp_pause
 end
 
-local LoadProfileHook = G.FUNCS.load_profile
-G.FUNCS.load_profile = function(delete_prof_data)
-	if isAPProfileSelected() and not isAPProfileLoaded() then
-		G.SAVED_GAME = nil
-		G.E_MANAGER:clear_queue()
-		G.FUNCS.wipe_on()
-		G.E_MANAGER:add_event(Event({
-			no_delete = true,
-			func = function()
-				G:delete_run()
-				G.DISCOVER_TALLIES = nil
-				G.PROGRESS = nil
-				G.AP.load_profile()
-				G:init_item_prototypes()
-				return true
-			end
-		}))
-		
-		G.E_MANAGER:add_event(Event({
-			no_delete = true,
-			blockable = true, 
-			blocking = false,
-			func = function()
-				G:main_menu()
-				G.FILE_HANDLER.force = true
-				return true
-			end
-		}))
-		
-		G.FUNCS.wipe_off()
-	else
-		LoadProfileHook(delete_prof_data)
-	end
-end
-
 G.AP.load_profile = function()
 	local temp_APprofile = {
 		MEMORY = {
