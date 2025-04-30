@@ -700,7 +700,7 @@ end
 
 -- AP debuff and locked messages
 local Cardgenerate_UIBox_ability_tableRef = Card.generate_UIBox_ability_table
-function Card:generate_UIBox_ability_table()
+function Card:generate_UIBox_ability_table(vars_only)
     if isAPProfileLoaded() then
 		
 		local _has_hint = false
@@ -804,7 +804,7 @@ function Card:generate_UIBox_ability_table()
             end
         end
     end
-    return Cardgenerate_UIBox_ability_tableRef(self)
+    return Cardgenerate_UIBox_ability_tableRef(self, vars_only)
 end
 
 --transcribe AP hint data into proper localized text
