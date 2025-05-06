@@ -24,3 +24,81 @@ payload = '''if isAPProfileLoaded() then
 	G.SAVED_GAME = G.ARGS.save_run
 end'''
 match_indent=true
+
+# fix the game breaking our use of bypass_lock
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''self.bypass_lock = true'''
+position = "before"
+payload = 'if not isAPProfileLoaded() then'
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''self.bypass_lock = true'''
+position = "after"
+payload = 'end'
+match_indent=true
+
+# Fallback card
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+pattern = '''if _pool_size == 0 then'''
+position = "before"
+payload = '''if not isAPProfileLoaded() then'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+pattern = '''return _pool, _pool_key..(not _legendary and G.GAME.round_resets.ante or '')'''
+position = "before"
+payload = '''else
+	if _pool_size == 0 then _pool[1] = "j_rand_fallback" end
+end'''
+match_indent=true
+
+# remove rarities from polling if they're unavailable
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/utils.lua"]'
+pattern = '''v.weight = v.weight*v.mod'''
+position = "before"
+payload = '''if isAPProfileLoaded() then
+	local pool_poll, pool_poll_key = get_current_pool(_pool_key, v.key)
+	if pool_poll[1] == "j_rand_fallback" then
+		v.mod = 0 
+	end
+end'''
+match_indent=true
+
+# division by zero bad
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/utils.lua"]'
+pattern = '''-- recalculate rarities to account for v.mod'''
+position = "before"
+payload = '''if isAPProfileLoaded() and total_weight == 0 then
+	available_rarities[1].weight = 1
+	available_rarities[1].mod = 1
+	total_weight = 1
+end'''
+match_indent=true
+
+# custom shop
+[[patches]]
+[patches.pattern]
+target = 'functions/UI_definitions.lua'
+pattern = '''for _, v in ipairs(rates) do'''
+position = "before"
+payload = '''if isAPProfileLoaded() then
+	local new_total, modified = G.AP.recalc_shop_rates(rates)
+	if modified then
+		total_rate = new_total
+		polled_rate = pseudorandom(pseudoseed('cdt'..G.GAME.round_resets.ante))*total_rate
+	end
+end'''
+match_indent=true

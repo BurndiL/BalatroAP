@@ -7,33 +7,10 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9d
---- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-1326a]
+--- VERSION: 0.1.9e-indev-9
+--- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0302d]
 ----------------------------------------------
 ------------MOD CODE -------------------------
-
--- TODO LIST:
--- clientside:
---  [ ] Deck hints
---  [ ] Stake hints (Galdur compat)
---  [ ] Location progress text (Locations left, next location, etc)
---  [ ] Clean up the AP status/goal UI (update text when necessary instead of every frame)
---  [ ] finish AP buffs menu
---  [x] hook G.main_menu() to show cards with hints
---  [ ] finish AP item tooltips
---
--- serverside:
---  [x] store progress on server (deck wins/joker stickers)
---
--- challenge update:
---  [ ] implement challenges serverside
---      [ ] challenges and challenge deck as items
---      [ ] separate item pools for challenges (mostly for shop checks, as challenge deck using white stake pool would be odd)
---      [ ] challenge unlock mode options 
---  [X] system to let cards bypass AP's removal on clientside
---  [ ] clientside config for default stake on challenges
-
-_RELEASE_MODE = false
 
 G.AP = {
     APAddress = "archipelago.gg",
@@ -55,6 +32,15 @@ G.AP.location_id_to_item_name = {}
 G.AP.game_over_by_deathlink = false
 
 G.AP.this_mod = SMODS.current_mod
+G.AP.this_mod.process_loc_text = function()
+	G.localization.misc.labels.rand_ap_borrowed = 'Borrowed'
+	G.localization.descriptions.Other.debuffed_default_b = {}
+	G.localization.descriptions.Other.debuffed_default_b.name = G.localization.descriptions.Other.debuffed_default.name
+	G.localization.descriptions.Other.debuffed_default_b.text = {}
+	for k, v in ipairs(G.localization.descriptions.Other.debuffed_default.text) do
+		G.localization.descriptions.Other.debuffed_default_b.text[k] = v
+	end
+end
 
 NFS.load(G.AP.this_mod.path .. "ap_connection.lua")()
 NFS.load(G.AP.this_mod.path .. "utils.lua")()
@@ -62,6 +48,7 @@ NFS.load(G.AP.this_mod.path .. "misc.lua")()
 NFS.load(G.AP.this_mod.path .. "stake.lua")()
 NFS.load(G.AP.this_mod.path .. "UIdefinitions.lua")()
 NFS.load(G.AP.this_mod.path .. "atlas.lua")()
+NFS.load(G.AP.this_mod.path .. "modsupport.lua")()
 
 json = NFS.load(G.AP.this_mod.path .. "json.lua")()
 AP = require('lua-apclientpp')
@@ -117,6 +104,27 @@ function isAPProfileSelected()
     return G.focused_profile == G.AP.profile_Id
 end
 
+G.AP.create_ap_profile = function()
+	if G.AP.profile_Id == -1 then
+        G.AP.profile_Id = #G.PROFILES + 1
+        G.PROFILES[G.AP.profile_Id] = {}
+        G.AP.log("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
+		
+		-- load data to avoid resetting the text inputs
+		local APSettings = NFS.read('APSettings.json')
+
+		if APSettings ~= nil then
+			APSettings = json.decode(APSettings)
+			if APSettings ~= nil then
+				G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
+				G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
+				G.AP.APPort = APSettings['APPort'] or G.AP.APPort
+				G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
+			end
+		end
+    end
+end
+
 G.FUNCS.can_APConnect = function(e)
     if (G.APClient) then
         e.config.button = nil
@@ -148,6 +156,14 @@ G.FUNCS.APDisconnect = function(sanity_check)
     standard_deck = nil
 	G.E_MANAGER.queues.ap_hints = nil
 	G.AP.GameObjectInit = false
+	
+	G.PROFILES[G.AP.profile_Id] = {}
+	
+	G.AP.hints = nil
+	G.AP.hint_locations = nil
+	G.AP.player_names = nil
+	G.AP.hint_priotiy = nil
+	
 	G.AP.Spectral = {
 		item = nil,
 		active = false,
@@ -296,12 +312,12 @@ end
 
 function sendDeathLinkBounce(cause, source)
 
-    sendDebugMessage("sendDeathLinkBounce started")
+    G.AP.log("sendDeathLinkBounce started")
     cause = cause or "Balatro"
     source = source or G.AP.APSlot or "BalatroPlayer"
     local time = G.APClient:get_server_time()
     G.AP.LAST_DEATH_LINK_TIME = time
-    sendDebugMessage("AP:sendDeathLinkBounce " .. tostring(time) .. " " .. cause .. " " .. source)
+    G.AP.log("AP:sendDeathLinkBounce " .. tostring(time) .. " " .. cause .. " " .. source)
     local res = G.APClient:Bounce({
         time = time,
         cause = cause,
@@ -482,29 +498,17 @@ function Game:load_profile(_profile)
     end
     ap_profile_delete = false
 
-    if G.AP.profile_Id == -1 then
-        G.AP.profile_Id = #G.PROFILES + 1
-        G.PROFILES[G.AP.profile_Id] = {}
-        sendDebugMessage("Created AP Profile in Slot " .. tostring(G.AP.profile_Id))
-    end
+    G.AP.create_ap_profile()
 	
-	if _profile ~= G.AP.profile_Id or not G.AP.GameObjectInit then
+	if _profile ~= G.AP.profile_Id then
 		local game_load_profile = game_load_profileRef(self, _profile)
+	elseif _profile == G.AP.profile_Id and not G.AP.GameObjectInit then
+		G.SETTINGS.profile = _profile
+		G.AP.load_profile()
 	elseif _profile == G.AP.profile_Id and G.AP.GameObjectInit then
 		G.SETTINGS.profile = G.AP.profile_Id
 	end
 	
-    local APSettings = NFS.read('APSettings.json')
-
-    if APSettings ~= nil then
-        APSettings = json.decode(APSettings)
-        if APSettings ~= nil then
-            G.AP.APSlot = APSettings['APSlot'] or G.AP.APSlot
-            G.AP.APAddress = APSettings['APAddress'] or G.AP.APAddress
-            G.AP.APPort = APSettings['APPort'] or G.AP.APPort
-            G.AP.APPassword = APSettings['APPassword'] or G.AP.APPassword
-        end
-    end
     return game_load_profile
 end
 
@@ -550,6 +554,16 @@ function Game:init_item_prototypes()
 		G.AP.server_load()
 		G.PROFILES[G.AP.profile_Id].name = G.AP['APSlot'] 
 		G.PROFILES[G.AP.profile_Id].Archipelago = true 
+		
+		-- AP lock sticker
+		if not G.AP.locked_stickers then
+			G.AP.locked_stickers = {}
+			G.AP.locked_stickers[1] = Sprite(0, 0, G.CARD_W, G.CARD_H, G.ASSET_ATLAS["rand_ap_lock"], {x = 0, y = 0})
+			G.AP.locked_stickers[2] = Sprite(0, 0, G.CARD_W, G.CARD_H, G.ASSET_ATLAS["rand_ap_lock"], {x = 1, y = 0})
+		end
+		
+		-- borrowed sticker
+		SMODS.Stickers.rand_ap_borrowed.no_collection = nil
 		
         if tableContains(G.AP.slot_data.included_decks, 'b_red') then
             standard_deck = 'b_red'
@@ -611,6 +625,7 @@ function Game:init_item_prototypes()
                     v.unlocked = false
                     v.discovered = false
                     v.hidden = true
+					v.ap_unlocked = false
                 else
                     v.unlocked = true
                     v.discovered = true
@@ -625,6 +640,7 @@ function Game:init_item_prototypes()
                         v.unlocked = true
                         v.discovered = true
                         v.hidden = false
+						v.ap_unlocked = true
                     else
                         v.ap_unlocked = true
                     end
@@ -670,12 +686,6 @@ function Game:init_item_prototypes()
                 if not G.PROFILES[G.AP.profile_Id].deck_usage[k].losses then
                     G.PROFILES[G.AP.profile_Id].deck_usage[k].losses = {}
                 end
-                -- if not G.PROFILES[G.AP.profile_Id].deck_usage[k].wins_by_key then
-                    -- G.PROFILES[G.AP.profile_Id].deck_usage[k].wins_by_key = {}
-                -- end
-                -- if not G.PROFILES[G.AP.profile_Id].deck_usage[k].losses_by_key then
-                    -- G.PROFILES[G.AP.profile_Id].deck_usage[k].losses_by_key = {}
-                -- end
 				if not G.PROFILES[G.AP.profile_Id].deck_stake then
 					G.PROFILES[G.AP.profile_Id].deck_stake = {}
 				end
@@ -691,6 +701,7 @@ function Game:init_item_prototypes()
             elseif string.find(k, '^v_') and not string.find(k, '^v_rand_ap_item') then
                 v.wip = true
                 v.unlocked = false
+				v.ap_unlocked = false
 				v.alerted = true
                 if G.PROFILES[G.AP.profile_Id]["vouchers"][v.key] ~= nil then
                     -- progressive vouchers
@@ -706,6 +717,7 @@ function Game:init_item_prototypes()
                     v.unlocked = true
                     v.discovered = true
                     v.hidden = false
+					v.ap_unlocked = true
                     if (G.AP.VoucherQueue[v] == true) then
                         G.FUNCS.AP_unlock_item(v)
                     end
@@ -718,6 +730,7 @@ function Game:init_item_prototypes()
 				v.discovered = false
                 v.wip = true
 				v.alerted = true
+				v.ap_unlocked = false
 				for pack_key, pack_center in pairs(G.PROFILES[G.AP.profile_Id]["packs"]) do
 					if string.find(k, pack_key) and pack_center ~= nil then
 					--if G.PROFILES[G.AP.profile_Id]["packs"][v.key] ~= nil then
@@ -725,6 +738,7 @@ function Game:init_item_prototypes()
 						v.unlocked = true
 						v.discovered = true
 						v.hidden = false
+						v.ap_unlocked = true
 						if (G.AP.PackQueue[v] == true) then
 							G.FUNCS.AP_unlock_item(v)
 						end
@@ -736,11 +750,12 @@ function Game:init_item_prototypes()
             elseif string.find(k, '^c_') and not string.find(k, '^c_base') then --and 
 				--not tableContains({'c_rand_ap_tarot', 'c_rand_ap_planet', 'c_rand_ap_spectral'}, k) then
 				
-				v.discovered = false
+				v.discovered = true
 				v.alerted = true
                 if AreConsumablesRemoved() then
                     v.wip = true
                     v.unlocked = false
+					v.ap_unlocked = false
                 else
                     v.unlocked = true
                     v.ap_unlocked = false
@@ -752,6 +767,7 @@ function Game:init_item_prototypes()
                         v.unlocked = true
                         v.discovered = true
                         v.hidden = false
+						v.ap_unlocked = true
                     else
                         v.ap_unlocked = true
 						v.discovered = true
@@ -769,13 +785,6 @@ function Game:init_item_prototypes()
 
             v.unlock_condition = v.unlock_condition or {}
 
-            if (v.unlocked ~= nil and v.unlocked == false) or v.ap_unlocked == false then
-                v.discovered = v.unlocked
-                v.hidden = not v.unlocked
-                --self.P_LOCKED[#self.P_LOCKED + 1] = v
-				-- removed because we dont need this for our mod
-            end
-
             -- modded item overrides (backs excluded)
 			if G.AP.this_mod.config.modded ~= 1 and not string.find(k, '^b_') then
 				if not IsVanillaItem(k) then
@@ -786,7 +795,7 @@ function Game:init_item_prototypes()
 						v.wip = true
 						v.unlocked = false
 						v.discovered = false
-						v.hidden = true
+						v.hidden = false
 					else
 						v.ap_unlocked = true
 						v.wip = nil
@@ -923,7 +932,7 @@ function Game:init_item_prototypes()
 				func = function()
 					if isAPProfileLoaded() then
 						G.AP.hint_event.start_timer = false
-						print("autoscout hints")
+						--G.AP.log("autoscout hints")
 						G.APClient:Get({"_read_hints_"..tostring(G.AP.team_id).."_"..tostring(G.AP.player_id)})
 					else G.AP.hint_event = nil end
 					return not isAPProfileLoaded()
@@ -933,8 +942,8 @@ function Game:init_item_prototypes()
 			G.E_MANAGER:add_event(G.AP.hint_event, 'other')
 		end
 		
-		
-        -- G:save_progress()
+		-- fix decks not being sorted on initial load
+        table.sort(G.P_CENTER_POOLS["Back"], function (a, b) return (a.order - (a.unlocked and 100 or 0)) < (b.order - (b.unlocked and 100 or 0)) end)
     else
         -- restore unlock conditions
         for k, v in pairs(G.AP.UnlockConsCache) do
@@ -951,7 +960,10 @@ function Game:init_item_prototypes()
                 self.P_CENTERS[k].wip = nil
             end
         end
-
+		
+		-- borrowed sticker
+		SMODS.Stickers.rand_ap_borrowed.no_collection = true
+		
         -- fix some custom implementation of the Challenge Deck
         G.P_CENTERS['b_challenge'].name = "Challenge Deck"
         G.P_CENTERS['b_challenge'].unlocked = true
@@ -986,23 +998,6 @@ function Game:init_item_prototypes()
 				v.discovered = true
 			end
 		end
-		
-		-- Delete Archipelago profile
-		G.E_MANAGER:add_event(Event({
-			no_delete = true,
-			blockable = false, 
-			blocking = false,
-			func = function()
-				if G.AP.profile_Id then
-					love.filesystem.remove(G.AP.profile_Id..'/'..'profile.jkr')
-					love.filesystem.remove(G.AP.profile_Id..'/'..'save.jkr')
-					love.filesystem.remove(G.AP.profile_Id..'/'..'meta.jkr')
-					love.filesystem.remove(G.AP.profile_Id..'/'..'unlock_notify.jkr')
-					love.filesystem.remove(G.AP.profile_Id..'')
-				end
-				return true
-			end
-		}))
     end
     return game_init_item_prototypes
 end
@@ -1051,28 +1046,29 @@ end
 local create_cardRef = create_card
 
 function create_card(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
-    -- to properly generate only unlocked jokers in buffoon packs
-    if isAPProfileLoaded() and not AreJokersRemoved() and G.STATE == G.STATES.BUFFOON_PACK and _type ==
-        'Joker' and (G.P_CENTERS) then
-        for k, v in pairs(G.P_CENTERS) do
-            if string.find(tostring(k), '^j_') then
-                v.foo = v.unlocked
-                v.unlocked = v.ap_unlocked
-            end
-        end
+	local consumablelist = {'Tarot', 'Planet', 'Spectral'}
+	local banned_keys = {'sho'}
+	-- non-shop cards are unlocked only
+    if isAPProfileLoaded() then 
+		if _type == 'Joker' and not tableContains(banned_keys, key_append) then
+			G.AP.swap_lock_state(true, {'Joker'})
+		end
+		
+		if tableContains(consumablelist, _type) and not tableContains(banned_keys, key_append) then
+			G.AP.swap_lock_state(true, {_type})
+		end
     end
 
-    local create_card = create_cardRef(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key,
-        key_append)
+    local create_card = create_cardRef(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
 
-    if isAPProfileLoaded() and not AreJokersRemoved() and G.STATE == G.STATES.BUFFOON_PACK and _type ==
-        'Joker' and (G.P_CENTERS) then
-        for k, v in pairs(G.P_CENTERS) do
-            if string.find(tostring(k), '^j_') then
-                v.unlocked = v.foo
-                v.foo = nil
-            end
-        end
+    if isAPProfileLoaded() then 
+		if _type == 'Joker' and not tableContains(banned_keys, key_append) then
+			G.AP.swap_lock_state(AreJokersRemoved(), {'Joker'})
+		end
+		
+		if tableContains(consumablelist, _type) and not tableContains(banned_keys, key_append) then
+			G.AP.swap_lock_state(AreConsumablesRemoved(), {_type})
+		end
     end
 
     return create_card
@@ -1082,176 +1078,170 @@ local cardArea_emplaceRef = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
     local cardAreaemplace = nil
 
-    if (self.cards) then
-        cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
-    else
-        self:remove_card(card, false)
-        card:start_dissolve({G.C.RED}, true, 0)
-    end
+    cardAreaemplace = cardArea_emplaceRef(self, card, location, stay_flipped)
 	
-	local fallbacks = {'j_joker', 'c_pluto', 'c_strength', 'c_incantation'}
 	local center = card.config.center
 	
-	if isAPProfileLoaded() and G.AP.bypass_lock then
-		card.bypass_lock = true
+	-- bypass lock and apply borrow
+	if isAPProfileLoaded() and G.AP.bypass_lock and not card.playing_card then
+		if not center.ap_unlocked then
+			card.bypass_lock = true
+			card.ability.rand_ap_borrowed = true
+		end
 	end
 	
-	-- prevent saving the AP check voucher on redeem
+	-- prevent SMODS better calc from saving the AP check voucher on redeem
 	if G.vouchers and self == G.vouchers and card.config.center.key == 'v_rand_ap_item' then
 		self:remove_card(card, false)
 		card:remove()
 	end
 	
-    if isAPProfileLoaded() and self.cards and (((center.unlocked == false and not card.bypass_lock) and
-        (G.STATE == G.STATES.SHOP or self == G.shop_jokers or self == G.jokers or self == G.consumeables or self ==
-            G.pack_cards)) or (tableContains(fallbacks, center.key) and (center.unlocked or card.bypass_lock))) and
-        ((G.your_collection ~= nil and tableContains(G.your_collection, self) == false) or G.your_collection == nil) then
-		
-		
-        -- following blocks handle standard cards appearing in packs/shop
-        if not next(SMODS.find_card('j_ring_master')) and (center.unlocked or card.bypass_lock) then
-            if (card.config.center_key == "j_joker" and (center.unlocked and not card.bypass_lock)) and self == G.pack_cards then
-                local found_self = false
-                -- if you already have the Joker and don't have showman, delete
-                if next(SMODS.find_card('j_joker')) and not next(SMODS.find_card('j_ring_master')) then
-                    self:remove_card(card, false)
-					card:remove()
+    if isAPProfileLoaded() and (((center.unlocked == false and not card.bypass_lock) or center.key == 'j_rand_fallback') and 
+        ((G.your_collection ~= nil and tableContains(G.your_collection, self) == false) or G.your_collection == nil)) then
 
-                    return cardAreaemplace
-                end
-
-                for k, v in pairs(self.cards) do
-                    if v.config.center.key == "j_joker" then
-                        if not found_self and v.config.center.ap_unlocked then
-                            found_self = true
-                        else
-                            self:remove_card(card, false)
-							card:remove()
-
-                            return cardAreaemplace
-                        end
-
-                    end
-                end
-                if isAPProfileLoaded() and (center.ap_unlocked == false and not card.bypass_lock) then
-                    card:set_debuff(true)
-                end
-                return cardAreaemplace
-            end
-
-            if (card.config.center_key == "c_pluto" and (center.unlocked and not card.bypass_lock)) and
-                (G.STATE == G.STATES.PLANET_PACK or G.STATE == G.STATES.SHOP) then
-                local found_self = false
-
-                for k, v in pairs(self.cards) do
-                    if v.config.center.key == "c_pluto" then
-
-                        if not found_self then
-                            found_self = true
-                        else
-                            self:remove_card(card, false)
-							card:remove()
-
-                            return cardAreaemplace
-                        end
-                    end
-                end
-                if isAPProfileLoaded() and (center.ap_unlocked == false and not card.bypass_lock) then
-                    card:set_debuff(true)
-                end
-                return cardAreaemplace
-            end
-
-            if (card.config.center_key == "c_strength" and (center.unlocked and not card.bypass_lock)) and
-                (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SHOP) then
-                local found_self = false
-
-                for k, v in pairs(self.cards) do
-                    if v.config.center.key == "c_strength" then
-
-                        if not found_self then
-                            found_self = true
-                        else
-                            self:remove_card(card, false)
-							card:remove()
-
-                            return cardAreaemplace
-                        end
-                    end
-                end
-                if isAPProfileLoaded() and (card.config.center.ap_unlocked == false and not card.bypass_lock)  then
-                    card:set_debuff(true)
-                end
-                return cardAreaemplace
-            end
-
-            if (card.config.center_key == "c_incantation" and (center.unlocked and not card.bypass_lock)) and
-                (G.STATE == G.STATES.SPECTRAL_PACK or G.STATE == G.STATES.SHOP) then
-                local found_self = false
-
-                for k, v in pairs(self.cards) do
-                    if v.config.center.key == "c_incantation" then
-
-                        if not found_self then
-                            found_self = true
-                        else
-                            self:remove_card(card, false)
-							card:remove()
-
-                            return cardAreaemplace
-                        end
-                    end
-                end
-                if isAPProfileLoaded() and (center.ap_unlocked == false and not card.bypass_lock) then
-                    card:set_debuff(true)
-                end
-                return cardAreaemplace
-            end
-
-        end
-
-        if (center.unlocked == false and not card.bypass_lock) then
+        if (center.unlocked == false and not card.bypass_lock) or center.key == 'j_rand_fallback' then
             self:remove_card(card, false)
 			card:remove()
         end
 
     end
-    if isAPProfileLoaded() and (center.ap_unlocked == false and not card.bypass_lock and not AreJokersRemoved()) then
-        card:set_debuff(true)
+    if isAPProfileLoaded() and not card.bypass_lock and not card.playing_card then
+		G.AP.update_ap_debuff(card)
     end
 
     return cardAreaemplace
 end
 
-local card_set_debuffRef = Card.set_debuff
-
-function Card:set_debuff(should_debuff)
-
-    if isAPProfileLoaded() and (self.config.center.ap_unlocked == false) and should_debuff == false and
-		(((not AreJokersRemoved()) and self.config.center.set == 'Joker') or (not AreConsumablesRemoved())) then
-			should_debuff = true
-    end
+-- AreJokersRemoved + AreConsumablesRemoved
+-- to not check the card type every time
+function IsCardRemoved(center)
 	
-    return card_set_debuffRef(self, should_debuff)
+	if center.set == 'Joker' then
+		return AreJokersRemoved()
+	elseif tableContains({'Tarot', 'Planet', 'Spectral'}, center.set) then
+		return AreConsumablesRemoved()
+	else
+		return true
+	end
+end
+
+-- to quickly change card lock state
+function G.AP.swap_lock_state(_removed, _types)
+	if not _types then _types = {'Tarot', 'Planet', 'Spectral'} end
+	if type(_types) == 'string' then _types = {_types} end
+	
+	for k, v in pairs(G.P_CENTERS) do
+		if not v.modded and not v.ap_unlocked then
+			if tableContains(_types, v.set) then
+				v.wip = _removed
+				v.unlocked = not _removed
+			end
+		end
+	end
+end
+
+-- to recalc rates for shop
+function G.AP.recalc_shop_rates(rates)
+	local total_rate = 0
+	local modified -- need to know if we modified to not advance rng
+	               -- unless absolutely necessary
+	
+	for k, v in ipairs(rates) do
+		if k ~= 4 then -- exclude playing cards
+			local pool_poll, pool_poll_key = get_current_pool(v.type, v.key)
+			if pool_poll[1] == "j_rand_fallback" then
+				modified = true
+				v.val = 0
+			else
+				total_rate = total_rate + v.val
+			end
+		else
+			total_rate = total_rate + v.val
+		end
+	end
+	
+	if total_rate == 0 then
+		total_rate = 1
+		rates[1].val = 1
+	end
+	return total_rate, modified
+end
+
+local card_loadRef = Card.load
+
+function Card:load(cardTable, other_card)
+
+	card_loadRef(self, cardTable, other_card)
+
+    if isAPProfileLoaded() then
+		G.AP.update_ap_debuff(self)
+    end
 
 end
 
-local can_skip_boosterRef = G.FUNCS.can_skip_booster
-G.FUNCS.can_skip_booster = function(e)
-    if isAPProfileLoaded() then
-        if G.pack_cards and G.pack_cards.cards and
-            (G.STATE == G.STATES.PLANET_PACK or G.STATE == G.STATES.STANDARD_PACK or G.STATE == G.STATES.BUFFOON_PACK or
-                (G.hand and (G.hand.cards[1] or (G.hand.config.card_limit <= 0)))) then
-            e.config.colour = G.C.GREY
-            e.config.button = 'skip_booster'
-        else
-            e.config.colour = G.C.UI.BACKGROUND_INACTIVE
-            e.config.button = nil
-        end
-
-        return
+-- used to determine if a card is supposed to be debuffed by AP
+function G.AP.should_ap_debuff(card)
+	if isAPProfileLoaded() and (card.config.center.ap_unlocked == false) and not IsCardRemoved(card.config.center) then
+		return true
     end
-    return can_skip_boosterRef(e)
+	return false
+end
+
+-- used to undebuff unlocked cards
+function G.AP.check_cardarea_debuff(key)
+	local check_debuff = function(v)
+		if v and type(v) == 'table' and v.config.center.key == key and v.debuff and not v.bypass_lock then
+			G.AP.update_ap_debuff(v, true)
+		end
+	end
+	
+	if G.jokers and G.jokers.cards then
+		for k, v in pairs(G.jokers.cards) do
+			check_debuff(v)
+		end
+	end
+
+	if G.consumeables and G.consumeables.cards then
+		for k, v in pairs(G.consumeables.cards) do
+			check_debuff(v)
+		end
+	end
+
+	if G.shop_jokers and G.shop_jokers.cards then
+		for k, v in pairs(G.shop_jokers.cards) do
+			check_debuff(v)
+		end
+	end
+	
+	if G.pack_cards and G.pack_cards.cards then
+		for k, v in pairs(G.pack_cards.cards) do
+			check_debuff(v)
+		end
+	end
+	
+	if G.your_collection then
+		for kk, vv in pairs(G.your_collection) do
+			if vv.cards then
+				for k, v in pairs(vv.cards) do
+					check_debuff(v)
+				end
+			end
+		end
+	end
+end
+
+function G.AP.update_ap_debuff(card, juice)
+	local center = card.config.center
+	if not isAPProfileLoaded() then return nil end
+	if IsCardRemoved(center) then return nil end
+	if card.bypass_lock then return nil end
+	
+	if center.ap_unlocked then
+		if card.debuff and juice then card:juice_up(0.1, 0.06) end
+		SMODS.debuff_card(card, nil, 'archipelago')
+	else
+		SMODS.debuff_card(card, true, 'archipelago')
+	end
 end
 
 local card_can_use_consumeableRef = Card.can_use_consumeable
@@ -1286,6 +1276,7 @@ function Card:set_ability(center, initial, delay_sprites)
 	set_abilityRef(self, center, initial, delay_sprites)
 	
 	if isAPProfileLoaded() then
+		
 		if ((self.debuff and self.config.center.ap_unlocked == false) or self.config.center.unlocked == false) and center.ap_id and G.AP.hints then
 			
 			local _hint
@@ -1344,6 +1335,9 @@ function Game:main_menu(change_context)
 			end
 		end
 		
+		if self.title_top.cards[1] then
+			self.title_top.cards[1].ability.rand_ap_borrowed = true
+		end
 	end
 	
 	G.E_MANAGER:add_event(Event({
@@ -1355,6 +1349,24 @@ function Game:main_menu(change_context)
 		end
 	}))
 end
+
+SMODS.Sticker {
+	key = 'ap_borrowed',
+	default_compat = false,
+	atlas = 'ap_lock',
+	loc_txt = {
+		name = 'Borrowed',
+		text = {
+			"Bypasses lock",
+			"restrictions."
+		}
+	},
+	pos = { x = 0, y = 1 },
+	sets = {}, -- so it doesnt spawn naturally
+	badge_colour = {0.4666, 0.286, 0.6588, 1},
+	no_collection = true
+}
+
 
 
 -- AP Items in shop
@@ -1438,83 +1450,7 @@ SMODS.Voucher {
         end
     end,
     loc_vars = function(self, info_queue, card)
-		if not card then return nil end -- sanity check
-        if card.ability.extra.id == 0 then
-            return {} -- no location = default description
-        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
-            if (G.AP.location_id_to_item_name[card.ability.extra.id] and -- construct entry if names are available
-                G.AP.location_id_to_item_name[card.ability.extra.id].item_name) and tableContains({1,2}, G.AP.this_mod.config.item_names) then
-
-                local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
-                local _desc = {}
-				local _info_queue = {}
-				local _skip_name = nil
-				
-				if G.AP.location_id_to_item_name[card.ability.extra.id].game == 'Balatro' then
-					_item_name, _desc, _info_queue = G.AP.localize_name(G.AP.location_id_to_item_name[card.ability.extra.id].item_id,
-					G.AP.location_id_to_item_name[card.ability.extra.id].player_name == G.AP.APSlot)
-					_skip_name = true
-				end
-				
-				-- Add as hint
-				G.AP.location_seen(card.ability.extra.id)
-				
-				if not _skip_name then
-					if #_item_name <= 24 and #_item_name > 0 then -- use short names as the voucher name
-						G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = {loc_parse_string(
-							_item_name)}
-					else -- otherwise put it into description
-						G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = G.localization
-																									  .descriptions.Voucher
-																									  .v_rand_ap_item
-																									  .name_parsed
-						_desc = split_text_to_lines(_item_name)
-						for k, v in pairs(_desc) do
-							_desc[k] = "{C:attention}" .. v
-						end
-					end
-				else
-					if not _item_name then
-						G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = G.localization
-																								  .descriptions.Voucher
-																								  .v_rand_ap_item
-																								  .name_parsed
-					else
-						G.localization.descriptions.Voucher.v_rand_ap_item_location.name_parsed = {loc_parse_string(_item_name)}
-					end
-					
-					for i = 1, #_info_queue do
-						-- TODO: fix loc_vars here
-						--info_queue[#info_queue+1] = _info_queue[i]
-					end
-				end
-
-                for k, v in pairs(G.localization.descriptions.Voucher.v_rand_ap_item_location.text) do
-                    _desc[#_desc + 1] = v
-                end
-
-                G.localization.descriptions.Voucher.v_rand_ap_item_location.text_parsed = {}
-                for k, v in pairs(_desc) do
-                    G.localization.descriptions.Voucher.v_rand_ap_item_location.text_parsed[k] = loc_parse_string(v)
-                end
-				
-				local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
-				if _player_name == G.AP.APSlot then 
-					_player_name = localize('k_ap_you')
-				end
-				
-                return {
-                    vars = {_player_name},
-                    key = 'v_rand_ap_item_location'
-                }
-            else
-                return {} -- default description if item name is unavailable
-            end
-        else -- use a special message if the location is invalid
-            return {
-                key = 'v_rand_ap_item_invalid'
-            }
-        end
+		return G.AP.ap_item_loc_vars(self, info_queue, card)
     end,
     set_card_type_badge = function(self, card, badges)
         if card.ability and card.ability.sprite == 1 then
@@ -1573,84 +1509,7 @@ SMODS.Consumable {
 		return true
 	end,
 	loc_vars = function(self, info_queue, card)
-		if not card then return nil end -- sanity check
-		if card.debuff then return nil end
-        if card.ability.extra.id == 0 then
-            return {} -- no location = default description
-        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
-            if (G.AP.location_id_to_item_name[card.ability.extra.id] and -- construct entry if names are available
-                G.AP.location_id_to_item_name[card.ability.extra.id].item_name) and tableContains({1,3}, G.AP.this_mod.config.item_names) then
-
-                local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
-                local _desc = {}
-				local _info_queue = {}
-				local _skip_name = nil
-				
-				if G.AP.location_id_to_item_name[card.ability.extra.id].game == 'Balatro' then
-					_item_name, _desc, _info_queue = G.AP.localize_name(G.AP.location_id_to_item_name[card.ability.extra.id].item_id,
-					G.AP.location_id_to_item_name[card.ability.extra.id].player_name == G.AP.APSlot)
-					_skip_name = true
-				end
-				
-				-- Add as hint
-				G.AP.location_seen(card.ability.extra.id)
-
-				if not _skip_name then
-					if #_item_name <= 24 then -- use short names as the voucher name
-						G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = {loc_parse_string(
-							_item_name)}
-					else -- otherwise put it into description
-						G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = G.localization
-																									  .descriptions.Tarot
-																									  .c_rand_ap_tarot
-																									  .name_parsed
-						_desc = split_text_to_lines(_item_name)
-						for k, v in pairs(_desc) do
-							_desc[k] = "{C:attention}" .. v
-						end
-					end
-				else
-					if not _item_name then
-						G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = G.localization
-																									  .descriptions.Tarot
-																									  .c_rand_ap_tarot
-																									  .name_parsed
-					else
-						G.localization.descriptions.Tarot.c_rand_ap_tarot_location.name_parsed = {loc_parse_string(_item_name)}
-					end
-					
-					for i = 1, #_info_queue do
-						-- TODO: fix loc_vars here
-						--info_queue[#info_queue+1] = _info_queue[i]
-					end
-				end
-				
-                for k, v in pairs(G.localization.descriptions.Tarot.c_rand_ap_tarot_location.text) do
-                    _desc[#_desc + 1] = v
-                end
-
-                G.localization.descriptions.Tarot.c_rand_ap_tarot_location.text_parsed = {}
-                for k, v in pairs(_desc) do
-                    G.localization.descriptions.Tarot.c_rand_ap_tarot_location.text_parsed[k] = loc_parse_string(v)
-                end
-
-                local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
-				if _player_name == G.AP.APSlot then 
-					_player_name = localize('k_ap_you')
-				end
-
-                return {
-                    vars = {_player_name},
-                    key = 'c_rand_ap_tarot_location'
-                }
-            else
-                return {} -- default description if item name is unavailable
-            end
-        else -- use a special message if the location is invalid
-            return {
-                key = 'c_rand_ap_tarot_invalid'
-            }
-        end
+		return G.AP.ap_item_loc_vars(self, info_queue, card)
     end,
 	set_ability = function(self, card, initial, delay_sprites)
 		G.E_MANAGER:add_event(Event({
@@ -1744,84 +1603,7 @@ SMODS.Consumable {
 		return true
 	end,
 	loc_vars = function(self, info_queue, card)
-		if not card then return nil end -- sanity check
-		if card.debuff then return nil end
-        if card.ability.extra.id == 0 then
-            return {} -- no location = default description
-        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
-            if (G.AP.location_id_to_item_name[card.ability.extra.id] and -- construct entry if names are available
-                G.AP.location_id_to_item_name[card.ability.extra.id].item_name) and tableContains({1,3}, G.AP.this_mod.config.item_names) then
-
-                local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
-                local _desc = {}
-				local _info_queue = {}
-				local _skip_name = nil
-				
-				if G.AP.location_id_to_item_name[card.ability.extra.id].game == 'Balatro' then
-					_item_name, _desc, _info_queue = G.AP.localize_name(G.AP.location_id_to_item_name[card.ability.extra.id].item_id,
-					G.AP.location_id_to_item_name[card.ability.extra.id].player_name == G.AP.APSlot)
-					_skip_name = true
-				end
-				
-				-- Add as hint
-				G.AP.location_seen(card.ability.extra.id)
-				
-				if not _skip_name then
-					if #_item_name <= 24 then -- use short names as the voucher name
-						G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = {loc_parse_string(
-							_item_name)}
-					else -- otherwise put it into description
-						G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = G.localization
-																									  .descriptions.Planet
-																									  .c_rand_ap_planet
-																									  .name_parsed
-						_desc = split_text_to_lines(_item_name)
-						for k, v in pairs(_desc) do
-							_desc[k] = "{C:attention}" .. v
-						end
-					end
-				else
-					if not _item_name then
-						G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = G.localization
-																									  .descriptions.Planet
-																									  .c_rand_ap_planet
-																									  .name_parsed
-					else
-						G.localization.descriptions.Planet.c_rand_ap_planet_location.name_parsed = {loc_parse_string(_item_name)}
-					end
-					
-					for i = 1, #_info_queue do
-						-- TODO: fix loc_vars here
-						--info_queue[#info_queue+1] = _info_queue[i]
-					end
-				end
-				
-                for k, v in pairs(G.localization.descriptions.Planet.c_rand_ap_planet_location.text) do
-                    _desc[#_desc + 1] = v
-                end
-
-                G.localization.descriptions.Planet.c_rand_ap_planet_location.text_parsed = {}
-                for k, v in pairs(_desc) do
-                    G.localization.descriptions.Planet.c_rand_ap_planet_location.text_parsed[k] = loc_parse_string(v)
-                end
-
-                local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
-				if _player_name == G.AP.APSlot then 
-					_player_name = localize('k_ap_you')
-				end
-
-                return {
-                    vars = {_player_name},
-                    key = 'c_rand_ap_planet_location'
-                }
-            else
-                return {} -- default description if item name is unavailable
-            end
-        else -- use a special message if the location is invalid
-            return {
-                key = 'c_rand_ap_planet_invalid'
-            }
-        end
+		return G.AP.ap_item_loc_vars(self, info_queue, card)
     end,
 	load = function(self, card, card_table, other_card)
 		G.E_MANAGER:add_event(Event({
@@ -1929,16 +1711,7 @@ SMODS.Consumable {
 		return true
 	end,
 	loc_vars = function(self, info_queue, card)
-		if not card then return nil end -- sanity check
-        if card.ability.extra.id == 0 then
-            return {} -- no location = default description
-        elseif G.APClient ~= nil and tableContains(G.APClient.missing_locations, card.ability.extra.id) then
-            return {} -- also default description because thats the gimmick LOL
-        else -- use a special message if the location is invalid
-            return {
-                key = 'c_rand_ap_spectral_invalid'
-            }
-        end
+		return G.AP.ap_item_loc_vars(self, info_queue, card)
     end,
 	load = function(self, card, card_table, other_card)
 		G.E_MANAGER:add_event(Event({
@@ -2116,6 +1889,109 @@ SMODS.Consumable {
 	cost = 3,
 }
 
+G.AP.ap_item_loc_vars = function(self, info_queue, card)
+	-- sanity checks
+	if not card then return {} end 
+	if card.debuff then return {} end
+	if not G.APClient then return {} end
+	-- actual code
+	
+	local set = self.set
+	local key = self.key
+	local item_names = G.AP.this_mod.config.item_names
+	
+	if card.ability.extra.id == 0 then
+		return {} -- no location = default description
+	elseif tableContains(G.APClient.missing_locations, card.ability.extra.id) then
+		-- stop here if the name is supposed to be hidden
+		if (set == 'Voucher' and item_names == 2) or (set ~= 'Voucher' and item_names == 3) or key == 'c_rand_ap_spectral' then
+			return {}
+		end
+		
+		-- construct entry if names are available
+		if (G.AP.location_id_to_item_name[card.ability.extra.id] and G.AP.location_id_to_item_name[card.ability.extra.id].item_name) then
+
+			local _item_name = tostring(G.AP.location_id_to_item_name[card.ability.extra.id].item_name)
+			local _desc = {}
+			local _info_queue = {}
+			local _skip_name = nil
+			
+			if G.AP.location_id_to_item_name[card.ability.extra.id].game == 'Balatro' then
+				_item_name, _desc, _info_queue = G.AP.localize_name(G.AP.location_id_to_item_name[card.ability.extra.id].item_id,
+				G.AP.location_id_to_item_name[card.ability.extra.id].player_name == G.AP.APSlot)
+				_skip_name = true
+			end
+			
+			-- Add as hint
+			G.AP.location_seen(card.ability.extra.id)
+
+			if not _skip_name then
+				if #_item_name <= 24 then -- use short names as the voucher name
+					G.localization.descriptions[set][key.."_location"].name_parsed = {loc_parse_string(_item_name)}
+				else -- otherwise put it into description
+					G.localization.descriptions[set][key.."_location"].name_parsed = G.localization.descriptions[set][key].name_parsed
+					_desc = split_text_to_lines(_item_name)
+					for k, v in pairs(_desc) do
+						_desc[k] = "{C:attention}" .. v
+					end
+				end
+			else
+				if not _item_name then
+					G.localization.descriptions[set][key.."_location"].name_parsed = G.localization.descriptions[set][key].name_parsed
+				else
+					G.localization.descriptions[set][key.."_location"].name_parsed = {loc_parse_string(_item_name)}
+				end
+				
+				for i = 1, #_info_queue do
+					info_queue[#info_queue+1] = _info_queue[i]
+				end
+			end
+			
+			for k, v in pairs(G.localization.descriptions[set][key.."_location"].text) do
+				_desc[#_desc + 1] = v
+			end
+
+			G.localization.descriptions[set][key.."_location"].text_parsed = {}
+			for k, v in pairs(_desc) do
+				G.localization.descriptions[set][key.."_location"].text_parsed[k] = loc_parse_string(v)
+			end
+
+			local _player_name = G.AP.location_id_to_item_name[card.ability.extra.id].player_name
+			if _player_name == G.AP.APSlot then 
+				_player_name = localize('k_ap_you')
+			end
+
+			return {
+				vars = {_player_name},
+				key = key.."_location"
+			}
+		else
+			return {} -- default description if item name is unavailable
+		end
+	else -- use a special message if the location is invalid
+		return {
+			key = key.."_invalid"
+		}
+	end
+end
+-- Fallback Joker!
+SMODS.Joker {
+	key = 'fallback',
+	no_collection = true,
+	atlas = 'ap_lock',
+	in_pool = function(self, args)
+		return nil
+	end,
+	loc_txt = {
+		name = 'Fallback Card',
+		text = {
+			"If you see this card,",
+			"then something went wrong!",
+			"Send us a bug report!"
+		}
+	}
+}
+
 G.AP.location_seen = function(id)
 	G.APClient:LocationScouts({id}, 2)
 end
@@ -2175,10 +2051,10 @@ function get_tarot_location(_pool_length)
 			local id = valid_locations[math.random(#valid_locations)]
             G.FUNCS.resolve_location_id_to_name(id)
 
-            sendDebugMessage("Returning Tarot Location" .. tostring(id))
+            G.AP.log("Returning Tarot Location" .. tostring(id))
             return id
         else
-            sendDebugMessage("Out of Tarot Locations...")
+            G.AP.log("Out of Tarot Locations...")
             return nil
         end
 
@@ -2277,11 +2153,11 @@ function get_shop_location(_pool_length)
                 _check_data.sprite = 1
             end
 
-            sendDebugMessage("Returning Shop Location " .. tostring(_check_data.id) .. " with price of $" ..
+            G.AP.log("Returning Shop Location " .. tostring(_check_data.id) .. " with price of $" ..
                                  tostring(_check_data.cost))
             return _check_data
         else
-            sendDebugMessage("Out of Shop Locations...")
+            G.AP.log("Out of Shop Locations...")
             return nil
         end
 
@@ -2418,16 +2294,6 @@ end
 G.FUNCS.can_delete_AP_profile = function(e)
 	e.config.colour = G.C.UI.BACKGROUND_INACTIVE
     e.config.button = nil
-    -- G.AP.CHECK_PROFILE_DATA = G.AP.CHECK_PROFILE_DATA or NFS.getInfo(G.AP.profile_Id .. '/' .. 'profile.jkr')
-    -- if (not G.AP.CHECK_PROFILE_DATA) or e.config.disable_button or
-        -- (G.APClient and G.APClient:get_state() == AP.State.SOCKET_CONNECTING) then
-        -- G.AP.CHECK_PROFILE_DATA = false
-        -- e.config.colour = G.C.UI.BACKGROUND_INACTIVE
-        -- e.config.button = nil
-    -- else
-        -- e.config.colour = G.C.RED
-        -- e.config.button = 'delete_AP_profile'
-    -- end
 end
 
 G.FUNCS.delete_AP_profile = function(e)
@@ -2463,11 +2329,26 @@ end
 local load_profile_funcRef = G.FUNCS.load_profile
 
 G.FUNCS.load_profile = function(delete_prof_data)
+	local new_detele = delete_prof_data
     if G.AP.GameObjectInit and G.APClient ~= nil then
         G.FUNCS.APDisconnect(true)
     end
     ap_profile_delete = false
-    return load_profile_funcRef(delete_prof_data)
+
+	if isAPProfileSelected() then -- delete ap profile before loading into it
+		love.filesystem.remove(G.focused_profile..'/'..'profile.jkr')
+		love.filesystem.remove(G.focused_profile..'/'..'save.jkr')
+		love.filesystem.remove(G.focused_profile..'/'..'meta.jkr')
+		love.filesystem.remove(G.focused_profile..'/'..'unlock_notify.jkr')
+		love.filesystem.remove(G.focused_profile..'')
+		G.SAVED_GAME = nil
+		G.DISCOVER_TALLIES = nil
+		G.PROGRESS = nil
+		G.PROFILES[G.focused_profile] = {}
+		new_detele = true
+	end
+	
+    return load_profile_funcRef(new_detele)
 end
 
 -- other stuff 
@@ -2500,9 +2381,8 @@ function get_unlocked_jokers()
     local count = 0
     if (G.P_CENTERS) then
         for k, v in pairs(G.P_CENTERS) do
-            if string.find(tostring(k), '^j_') and
-                (not AreJokersRemoved() and v.ap_unlocked == true or AreJokersRemoved() and
-                    v.unlocked == true) and not v.modded then
+            if string.find(tostring(k), '^j_') and k ~= 'j_rand_fallback' and
+                v.ap_unlocked == true and not v.modded then
                 count = count + 1
             end
         end
@@ -2515,13 +2395,10 @@ end
 function G.AP.check_progress()
 	if G.AP.goal == 0 then
 		local deck_wins = 0
-		for k, v in pairs(G.P_CENTERS) do
-			if string.find(tostring(k), '^b_') then
-				if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
-					G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins and
-					#G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins > 0 then
-					deck_wins = deck_wins + 1
-				end
+		for _, d in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
+			for k, v in pairs(d.wins) do 
+				deck_wins = deck_wins + 1
+				break
 			end
 		end
 		
@@ -2556,15 +2433,10 @@ function G.AP.check_progress()
 		return joker_stickers
 	elseif G.AP.goal == 5 then
 		local unique_wins = 0
-		for k, v in pairs(G.P_CENTERS) do
-			if string.find(tostring(k), '^b_') then
-				if G.PROFILES[G.SETTINGS.profile].deck_usage[k] and
-					G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins then
-					for _stake, _win in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[k].wins) do
-						if _win > 0 then
-							unique_wins = unique_wins + 1
-						end
-					end
+		for _, d in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage) do
+			for k, v in pairs(d.wins) do
+				if v > 0 then
+					unique_wins = unique_wins + 1
 				end
 			end
 		end
@@ -2622,13 +2494,15 @@ function check_for_unlock(args)
                     end
                     -- (completionist+ edition) deck wins on at least # stake
                 elseif G.AP.goal == 3 then
-                    local deck_stickers = G.AP.check_progress()
+					if args.type == 'win' then
+						local deck_stickers = G.AP.check_progress()
 
-                    if deck_stickers >= tonumber(G.AP.slot_data.decks_win_goal) then
-                        sendGoalReached()
-                    end
+						if deck_stickers >= tonumber(G.AP.slot_data.decks_win_goal) then
+							sendGoalReached()
+						end
 
-                    G.PROFILES[G.AP.profile_Id].ap_progress = deck_stickers
+						G.PROFILES[G.AP.profile_Id].ap_progress = deck_stickers
+					end
                     -- (completionist++ edition) win with # of jokers on at least # stake
                 elseif G.AP.goal == 4 then
 					if args.type == 'win' then
@@ -2642,18 +2516,19 @@ function check_for_unlock(args)
 					end
                     -- number of unique wins
                 elseif G.AP.goal == 5 then
-                    local unique_wins = G.AP.check_progress()
-					
-                    if unique_wins >= G.AP.slot_data.unique_deck_win_goal then
-                        sendGoalReached()
-                    end
+					if args.type == 'win' then
+						local unique_wins = G.AP.check_progress()
+						
+						if unique_wins >= G.AP.slot_data.unique_deck_win_goal then
+							sendGoalReached()
+						end
 
-                    G.PROFILES[G.AP.profile_Id].ap_progress = unique_wins
-
+						G.PROFILES[G.AP.profile_Id].ap_progress = unique_wins
+					end
                 end
             end
         else
-            sendDebugMessage("No goal available, this is not good")
+            G.AP.log("No goal available, this is not good", "ERROR")
         end
 
     end
@@ -2663,13 +2538,13 @@ end
 
 function sendGoalReached()
     if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
-        sendDebugMessage("Goal Reached. Sending Goal Reached to Server")
+        G.AP.log("Goal Reached. Sending Goal Reached to Server")
         G.APClient:StatusUpdate(30)
     end
 end
 
 function sendLocationCleared(id)
-    sendDebugMessage("sending location cleared")
+    G.AP.log("sending location cleared")
     if G.APClient ~= nil and G.APClient:get_state() == AP.State.SLOT_CONNECTED then
 
         if (tableContains(G.APClient.missing_locations, id)) then
@@ -2690,7 +2565,7 @@ end
 
 G.FUNCS.set_up_APProfile = function()
 
-    sendDebugMessage("set_up_APProfile called")
+    G.AP.log("set_up_APProfile called")
 
     G.PROFILES[G.AP.profile_Id]["received_indeces"] = {}
     G.PROFILES[G.AP.profile_Id]["jokers"] = {}
@@ -2725,15 +2600,6 @@ function Card:add_to_deck(from_debuff)
     else
         Card_add_to_deckRef(self, from_debuff)
     end
-end
-
--- fix weird nil reference 
-local check_and_set_high_scoreRef = check_and_set_high_score
-function check_and_set_high_score(score, amt)
-    if G.GAME.round_scores[score] and not G.GAME.round_scores[score].amt then
-        G.GAME.round_scores[score].amt = 0
-    end
-    return check_and_set_high_scoreRef(score, amt)
 end
 
 -- prevent modded centers from being injected for AP if removed
@@ -2799,6 +2665,27 @@ function IsDeathlinkOn()
 	return nil
 end
 
+-- custom function to render ap lock
+function G.AP.render_ap_debuff(card)
+	local sticker_type = 1
+	-- remove bottom chain if aspect ratio isnt perfect card
+	if card.T.w/card.T.h ~= G.CARD_W/G.CARD_H then sticker_type = 2 end
+	card.children.center:draw_shader('rand_ap_debuff', nil, card.ARGS.send_to_shader)
+	G.AP.locked_stickers[sticker_type].role.draw_major = card
+	G.AP.locked_stickers[sticker_type]:draw_shader('dissolve', nil, nil, nil, card.children.center)
+end
+
+local base_debuff_ref = SMODS.DrawSteps.debuff.func
+SMODS.DrawSteps.debuff.func = function(self)
+	if isAPProfileLoaded() then
+		if G.AP.should_ap_debuff(self) and G.AP.locked_stickers then
+			G.AP.render_ap_debuff(self)
+			return nil
+		end
+	end
+	base_debuff_ref(self)
+end
+
 G.AP.localize_name = function(item_id, to_self)
 	local _name = ""
 	local _desc = {}
@@ -2808,12 +2695,12 @@ G.AP.localize_name = function(item_id, to_self)
 		-- Backs
 		if string.find(G.APItems[item_id], "^b_") then
 			_name = localize({type = 'name_text', set = 'Back', key = G.APItems[item_id]})
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]]
+			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]]
 		end
 		-- Jokers
 		if string.find(G.APItems[item_id], "^j_") then
 			_name = localize({type = 'name_text', set = 'Joker', key = G.APItems[item_id]})
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]]
+			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]]
 		end
 		-- Consumables
 		if string.find(G.APItems[item_id], "^c_") then
@@ -2821,7 +2708,7 @@ G.AP.localize_name = function(item_id, to_self)
 				set = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]].set or 'Tarot', 
 				key = G.APItems[item_id]})
 			
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]]
+			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]]
 		end
 		-- Vouchers
 		if string.find(G.APItems[item_id], "^v_") then
@@ -2832,7 +2719,7 @@ G.AP.localize_name = function(item_id, to_self)
 				end
 				
 				_name = localize({type = 'name_text', set = 'Voucher', key = target})
-				_info_queue[#_info_queue + 1] = G.P_CENTERS[target] and G.P_CENTERS[target]
+				_info_queue[#_info_queue + 1] = G.P_CENTERS[target]
 			else
 				_name = nil
 				local targets = {[1] = "", [2] = ""}
@@ -2853,8 +2740,8 @@ G.AP.localize_name = function(item_id, to_self)
 				_desc[1] = '{C:attention}'..localize({type = 'name_text', set = 'Voucher', key = targets[1]})
 				_desc[2] = localize("k_ap_or")
 				_desc[3] = '{C:attention}'..localize({type = 'name_text', set = 'Voucher', key = targets[2]})
-				_info_queue[#_info_queue + 1] = G.P_CENTERS[targets[1]] and G.P_CENTERS[targets[1]]
-				_info_queue[#_info_queue + 1] = G.P_CENTERS[targets[2]] and G.P_CENTERS[targets[2]]
+				_info_queue[#_info_queue + 1] = G.P_CENTERS[targets[1]]
+				_info_queue[#_info_queue + 1] = G.P_CENTERS[targets[2]]
 			end
 		end
 		
@@ -2889,7 +2776,7 @@ G.AP.localize_name = function(item_id, to_self)
 		-- Stakes
 		if string.find(G.APItems[item_id], "^stake_") then
 			_name = localize({type = 'name_text', set = 'Stake', key = G.APItems[item_id]})
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]]
+			--_info_queue[#_info_queue + 1] = G.P_CENTERS[G.APItems[item_id]] and G.P_CENTERS[G.APItems[item_id]]
 		end
 		
 		-- Bundles
@@ -2946,8 +2833,8 @@ G.AP.localize_name = function(item_id, to_self)
 			_desc[1] = "{C:ap_stake}"..localize({type = 'name_text', set = 'Stake', key = _stake})
 			_desc[2] = '({C:attention}'..localize({type = 'name_text', set = 'Back', key = _back}).."{})"
 			
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[_stake] and G.P_CENTERS[_stake]
-			_info_queue[#_info_queue + 1] = G.P_CENTERS[_back] and G.P_CENTERS[_back]
+			--_info_queue[#_info_queue + 1] = G.P_CENTERS[_stake] and G.P_CENTERS[_stake]
+			--_info_queue[#_info_queue + 1] = G.P_CENTERS[_back] and G.P_CENTERS[_back]
 		end
 	end
 	

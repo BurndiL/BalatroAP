@@ -26,3 +26,15 @@ SMODS.Atlas {
 	px = 71,
 	py = 95
 }
+
+SMODS.Atlas {
+	key = 'ap_lock',
+	path = 'lock.png',
+	px = 71,
+	py = 95
+}
+
+SMODS.Shader {
+	key = 'rand_ap_debuff',
+	path = 'rand_ap_debuff.fs',
+}
