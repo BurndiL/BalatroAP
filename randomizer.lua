@@ -7,8 +7,8 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9e-indev-9
---- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0302d]
+--- VERSION: 0.1.9f-indev-1
+--- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0614a]
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -49,6 +49,45 @@ NFS.load(G.AP.this_mod.path .. "stake.lua")()
 NFS.load(G.AP.this_mod.path .. "UIdefinitions.lua")()
 NFS.load(G.AP.this_mod.path .. "atlas.lua")()
 NFS.load(G.AP.this_mod.path .. "modsupport.lua")()
+
+function G.AP.prepare_dll()
+	local appdata = love.filesystem.getSaveDirectory()
+	local dll_loc = G.AP.this_mod.path .. "lua-apclientpp"
+	local filename = "lua_apclientpp."
+	-- change the file extension for mac
+	if (love.system.getOS() == 'OS X' ) then filename = filename .. "so" else filename = filename .. "dll" end
+	
+	local files = NFS.getDirectoryItems(appdata)
+	local dll_found = false
+	for i = 1, #files do
+		if files[i] == filename then
+			dll_found = true
+			break
+		end
+	end
+	
+	if not dll_found then
+		local workdir = NFS.getWorkingDirectory()
+		NFS.setWorkingDirectory(dll_loc)
+		
+		local file = NFS.newFile(filename)
+		local ok, err = file:open("r")
+		local contents = file:read()
+		file:close()
+		
+		if not contents then NFS.setWorkingDirectory(workdir) return end
+		
+		NFS.setWorkingDirectory(appdata)
+		local file2 = NFS.newFile(filename)
+		local ok2, err2 = file2:open("w")
+		file2:write(contents)
+		file2:close()
+		
+		NFS.setWorkingDirectory(workdir)
+	end
+end
+
+G.AP.prepare_dll()
 
 json = NFS.load(G.AP.this_mod.path .. "json.lua")()
 AP = require('lua-apclientpp')
