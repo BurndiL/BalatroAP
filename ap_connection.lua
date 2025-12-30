@@ -1558,7 +1558,7 @@ function APConnect()
 			end 
 			
 			if isAPProfileLoaded() then
-				if key == "balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and map[key] ~= "" then 
+				if key == "balatro_current_run"..tostring(G.AP.player_id)..'_'..tostring(G.AP.team_id) and map[key] and map[key] ~= "" then 
 					local decompressed_save = STR_UNPACK(map[key])
 					G.SAVED_GAME = decompressed_save
 				end
@@ -1870,4 +1870,5 @@ G.AP.server_load = function()
 	G.APClient:Get({"balatro_deck_wins"..PID, "balatro_joker_wins"..PID, "balatro_current_run"..PID})
 	G.APClient:SetNotify({"balatro_deck_wins"..PID, "balatro_joker_wins"..PID})
 end
+
 
