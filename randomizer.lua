@@ -1246,11 +1246,11 @@ function G.AP.update_ap_debuff(card, juice)
 	
 	if center.ap_unlocked then
 		if card.debuff and juice then card:juice_up(0.1, 0.06) end
-		if (G.STAGE == G.STAGES.RUN) then
+		if (G.STAGE == G.STAGES.RUN and G.GAME and G.GAME.blind and G.GAME.blind.debuff_card) then
 			SMODS.debuff_card(card, nil, 'archipelago')
-		else card:set_debuff(true) end
+		else card:set_debuff(false) end
 	else
-		if (G.STAGE == G.STAGES.RUN) then
+		if (G.STAGE == G.STAGES.RUN and G.GAME and G.GAME.blind and G.GAME.blind.debuff_card) then
 			SMODS.debuff_card(card, true, 'archipelago')
 		else card:set_debuff(true) end
 	end
