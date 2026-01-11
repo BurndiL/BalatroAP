@@ -7,8 +7,8 @@
 --- PREFIX: rand
 --- BADGE_COLOR: 4E8BE6
 --- DISPLAY_NAME: Archipelago
---- VERSION: 0.1.9e-indev-9
---- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0302d]
+--- VERSION: 0.1.9f-indev-2
+--- DEPENDENCIES: [Steamodded>=1.0.0~BETA-0614a]
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -50,8 +50,16 @@ NFS.load(G.AP.this_mod.path .. "UIdefinitions.lua")()
 NFS.load(G.AP.this_mod.path .. "atlas.lua")()
 NFS.load(G.AP.this_mod.path .. "modsupport.lua")()
 
+function G.AP.prepare_dll()
+	local workdir = NFS.getWorkingDirectory()
+	local dll_loc = G.AP.this_mod.path .. "lua-apclientpp"
+	NFS.setWorkingDirectory(dll_loc)
+	AP = require('lua-apclientpp')
+	NFS.setWorkingDirectory(workdir)
+end
+
 json = NFS.load(G.AP.this_mod.path .. "json.lua")()
-AP = require('lua-apclientpp')
+G.AP.prepare_dll()
 
 local isInProfileTabCreation = false
 local isInRunInfoTabCreation = false
