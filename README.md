@@ -21,11 +21,7 @@ Here's a [video tutorial](https://youtu.be/XnEvgEOswpk) I made sometime if any s
 
 You will need [Steamodded](https://github.com/Steamodded/smods/releases/latest). Follow their [installation guide](https://github.com/Steamodded/smods/wiki).
 
-After that, you will also have to download `lua51.7z` from [lua apclient](https://github.com/black-sliver/lua-apclientpp/releases). 
-
-From the `lua51.7z` extract the file `lua51-clang64-dynamic > lua-apclientpp.dll` and put it into your Balatro installation folder (the same folder you put Lovely's `version.dll` when installing Steamodded). 
-
-Your Balatro Folder should look something like this (highlighted files should be there):
+Your Balatro Folder should look something like this (the `version.dll` should be there):
 ![Your Balatro Folder should look something like this (highlighted files should be there)](https://i.imgur.com/Pe5uTX4.png).
 
 ## Installing the mod
@@ -47,6 +43,9 @@ You should be good to go then! You can start the game normally over Steam and it
 
 In Balatro you can simply connect by selecting the profile "Archipelago" in the profile selector (bottom left in the main menu), then put in your connection info.
 It is adviced that you backup your existing save files, even though they should not be modified or deleted by this mod. 
+
+### Special Characters in Slot Name
+If you encounter the issue that your slot name has a special character which cannot be entered in the connection textbox ingame, you can instead go to the Appdata folder and edit the file `APSettings.json` and type it in there.
 
 ## Linux using Proton via Steam
 
