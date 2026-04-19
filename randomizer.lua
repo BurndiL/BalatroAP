@@ -1156,8 +1156,24 @@ function G.AP.recalc_shop_rates(rates)
 	
 	for k, v in ipairs(rates) do
 		if k ~= 4 then -- exclude playing cards
-			local pool_poll, pool_poll_key = get_current_pool(v.type, v.key)
-			if pool_poll[1] == "j_rand_fallback" then
+			local empty = false
+			if v.type == 'Joker' then
+				-- A single empty rarity must not zero the whole joker rate.
+				-- Treat joker slot as empty only if every rarity pool is fallback.
+				empty = true
+				for _, r in ipairs({'Common', 'Uncommon', 'Rare', 'Legendary'}) do
+					local rp = get_current_pool('Joker', r)
+					if rp[1] ~= "j_rand_fallback" then
+						empty = false
+						break
+					end
+				end
+			else
+				local pool_poll, pool_poll_key = get_current_pool(v.type, v.key)
+				empty = pool_poll[1] == "j_rand_fallback"
+			end
+
+			if empty then
 				modified = true
 				v.val = 0
 			else
