@@ -88,6 +88,45 @@ payload = '''if isAPProfileLoaded() and total_weight == 0 then
 end'''
 match_indent=true
 
+# Skip j_rand_fallback entries in the create_card resample loop when the
+# pool still has real items. This is a defensive backstop: if anything
+# causes the fallback joker's key to land in a rarity pool as a real
+# entry, pseudorandom_element could pick it and the resample loop would
+# exit (the loop only skips 'UNAVAILABLE'), producing a phantom shop
+# slot that the emplace hook then deletes. When the pool is genuinely
+# empty, the 'Fallback card' patch above sets _pool[1] = 'j_rand_fallback'
+# and everything else is UNAVAILABLE — in that case _ap_pool_has_real is
+# false and we let the loop exit with fallback so the emplace hook can
+# clean up the slot as intended.
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+pattern = '''while center == 'UNAVAILABLE' do'''
+position = "before"
+payload = '''local _ap_pool_has_real = false
+if isAPProfileLoaded() and _type == 'Joker' then
+	for _ai, _ae in ipairs(_pool) do
+		if _ae ~= 'UNAVAILABLE' and _ae ~= 'j_rand_fallback' then
+			_ap_pool_has_real = true
+			break
+		end
+	end
+end
+if _ap_pool_has_real and center == 'j_rand_fallback' then
+	center = 'UNAVAILABLE'
+end'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+pattern = '''center = pseudorandom_element(_pool, pseudoseed(_pool_key..'_resample'..it))'''
+position = "after"
+payload = '''if _ap_pool_has_real and center == 'j_rand_fallback' then
+	center = 'UNAVAILABLE'
+end'''
+match_indent=true
+
 # custom shop
 [[patches]]
 [patches.pattern]

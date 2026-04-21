@@ -1160,16 +1160,18 @@ function G.AP.recalc_shop_rates(rates)
 			if v.type == 'Joker' then
 				-- A single empty rarity must not zero the whole joker rate.
 				-- Treat joker slot as empty only if every rarity pool is fallback.
+				-- Pass _append='sho' so this matches the pool the shop will
+				-- actually fetch via create_card(..., key_append='sho').
 				empty = true
 				for _, r in ipairs({'Common', 'Uncommon', 'Rare', 'Legendary'}) do
-					local rp = get_current_pool('Joker', r)
+					local rp = get_current_pool('Joker', r, false, 'sho')
 					if rp[1] ~= "j_rand_fallback" then
 						empty = false
 						break
 					end
 				end
 			else
-				local pool_poll, pool_poll_key = get_current_pool(v.type, v.key)
+				local pool_poll, pool_poll_key = get_current_pool(v.type, v.key, false, 'sho')
 				empty = pool_poll[1] == "j_rand_fallback"
 			end
 
@@ -2003,12 +2005,22 @@ G.AP.ap_item_loc_vars = function(self, info_queue, card)
 	end
 end
 -- Fallback Joker!
+-- Override inject so SMODS.Center.inject runs (registering the center in
+-- G.P_CENTERS so _pool[1] = 'j_rand_fallback' still works as an empty-pool
+-- sentinel) but skip the default SMODS.Joker rarity-pool insertion. If the
+-- fallback ends up as a pool entry, pseudorandom_element can pick it and
+-- the resample loop exits (it only skips 'UNAVAILABLE'), producing phantom
+-- shop slots that the emplace hook then silently removes.
 SMODS.Joker {
 	key = 'fallback',
 	no_collection = true,
 	atlas = 'ap_lock',
+	hidden = true,
 	in_pool = function(self, args)
 		return nil
+	end,
+	inject = function(self)
+		SMODS.Center.inject(self)
 	end,
 	loc_txt = {
 		name = 'Fallback Card',
