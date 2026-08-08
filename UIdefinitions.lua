@@ -526,7 +526,7 @@ function G.UIDEF.profile_option(_profile)
 									prompt_text = localize('k_ap_port'),
 									ref_table = G.AP,
 									ref_value = 'APPort',
-									extended_corpus = false,
+									extended_corpus = true,
 									keyboard_offset = 1,
 									callback = function()
 									end
