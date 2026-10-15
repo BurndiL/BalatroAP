@@ -694,6 +694,9 @@ function Game:init_item_prototypes()
                 if not G.PROFILES[G.AP.profile_Id].deck_usage[k].losses then
                     G.PROFILES[G.AP.profile_Id].deck_usage[k].losses = {}
                 end
+				if not G.PROFILES[G.AP.profile_Id].deck_usage[k].wins_by_key then
+                    G.PROFILES[G.AP.profile_Id].deck_usage[k].wins_by_key = {}
+                end
 				if not G.PROFILES[G.AP.profile_Id].deck_stake then
 					G.PROFILES[G.AP.profile_Id].deck_stake = {}
 				end
