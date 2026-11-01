@@ -211,7 +211,8 @@ function init_AP_stakes()
         loc_txt = {}
     }
 
-	-- replace our default stakes with currently injected counterparts
+	-- Replace the built-in definitions with injected counterparts, but preserve
+	-- the canonical eight-level chain independently of SMODS' key prefixing.
 	local vanilla_stakes = {
 		"stake_white",
 		"stake_red",
@@ -221,15 +222,16 @@ function init_AP_stakes()
 		"stake_purple",
 		"stake_orange",
 		"stake_gold"}
-	for k, v in pairs(G.P_CENTERS) do
-		for id, key in pairs(vanilla_stakes) do
-			if k == key then
-				_defaul_stakes[id] = v
-				_defaul_stakes[id].applied_stakes = id == 0 and {} or
-					{_defaul_stakes[id-1].old_key}
-				_defaul_stakes[id].stake_level = id
-			end
+	for id, key in ipairs(vanilla_stakes) do
+		local injected = G.P_STAKES[key] or G.P_CENTERS[key]
+		if injected then
+			_defaul_stakes[id] = injected
 		end
+		_defaul_stakes[id].key = key
+		_defaul_stakes[id].original_key = vanilla_stakes[id]:sub(7)
+		_defaul_stakes[id].applied_stakes = id == 1 and {} or
+			{vanilla_stakes[id - 1]}
+		_defaul_stakes[id].stake_level = id
 	end
 
     -- create a copy of included stake list
@@ -251,18 +253,22 @@ function init_AP_stakes()
 
 	G.P_CENTER_POOLS.Stake = {}
     for i = 1, 8, 1 do
-        G.P_CENTER_POOLS.Stake[i] = _defaul_stakes[_stake_list[i]]
-		G.P_CENTER_POOLS.Stake[i].order = _stake_list[i]
-		G.P_CENTER_POOLS.Stake[i].stake_level = _stake_list[i]
-		G.P_CENTER_POOLS.Stake[i].set = "Stake"
-		
+        local stake_level = _stake_list[i]
+        local stake = _defaul_stakes[stake_level]
+        G.P_CENTER_POOLS.Stake[i] = stake
+		stake.order = i
+		stake.stake_level = stake_level
+		stake.set = "Stake"
+		stake.unlocked = stake.key == "stake_white" or
+            G.PROFILES[G.AP.profile_Id].stake_unlocks[stake_level]
 
-        -- read global unlock from the profile
-        G.P_CENTER_POOLS.Stake[i].unlocked = G.PROFILES[G.AP.profile_Id].stake_unlocks[i]
+        -- Keep the SMODS lookup and object registry synchronized with the AP pool.
+        G.P_STAKES[stake.key] = stake
+        if SMODS.Stakes then SMODS.Stakes[stake.key] = stake end
 
-        -- set the unlocked stake data if not last in/outside of included list
-        G.P_CENTER_POOLS.Stake[i].unlocked_stake = i < #G.AP.slot_data.included_stakes and
-                                                       _defaul_stakes[_stake_list[i + 1]].original_key or nil
+        -- Keep unlocked_stake compatible with SMODS while retaining AP ordering.
+        stake.unlocked_stake = i < #G.AP.slot_data.included_stakes and
+            _defaul_stakes[_stake_list[i + 1]].key or nil
     end
 
     -- remove excess stakes (shouldnt happen)
